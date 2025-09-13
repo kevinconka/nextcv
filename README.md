@@ -53,10 +53,7 @@ uv add nextcv
 # Or with pip
 pip install nextcv
 
-# Or install directly from source with uv
-uv add git+https://github.com/kevinconka/nextcv.git
-
-# Or with pip from source
+# Or install directly from source
 pip install git+https://github.com/kevinconka/nextcv.git
 ```
 
