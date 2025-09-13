@@ -1,5 +1,6 @@
-import nextcv
 import numpy as np
+
+import nextcv
 
 
 def main() -> None:
