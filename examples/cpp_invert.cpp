@@ -1,7 +1,7 @@
+#include "invert.hpp"
+#include <cstdint>
 #include <iostream>
 #include <vector>
-#include <cstdint>
-#include "invert.hpp"
 
 int main() {
     std::vector<std::uint8_t> pixels{0, 64, 128, 192, 255};
@@ -12,4 +12,3 @@ int main() {
     std::cout << std::endl;
     return 0;
 }
-

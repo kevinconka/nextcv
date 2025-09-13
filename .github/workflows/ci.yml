@@ -27,8 +27,14 @@ jobs:
       - name: Ruff lint
         run: uv run ruff check .
 
-      - name: Run tests
-        run: uv run pytest -q
+      - name: Run tests with coverage
+        run: uv run pytest
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
 
       - name: Build wheel and sdist
         run: uv build
