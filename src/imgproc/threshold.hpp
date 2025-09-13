@@ -1,11 +1,8 @@
 #pragma once
 
-#include "../../core/types.hpp"
-#include <vector>
+#include "../core/types.hpp"
 
 namespace nextcv {
-namespace image {
-namespace operations {
 
 /**
  * @brief Apply binary threshold to image
@@ -24,9 +21,7 @@ PixelVector threshold(const PixelVector& pixels, Pixel threshold, Pixel max_valu
  * @param max_value Value to assign to pixels above threshold
  * @return Thresholded pixel data
  */
-PixelVector threshold(const PixelVector& pixels, const core::ImageSize& size, 
+PixelVector threshold(const PixelVector& pixels, const ImageSize& size, 
                      Pixel threshold, Pixel max_value = 255);
 
-} // namespace operations
-} // namespace image
 } // namespace nextcv

@@ -2,7 +2,6 @@
 #include <sstream>
 
 namespace nextcv {
-namespace core {
 
 std::string get_version() {
     return "0.1.0";
@@ -18,19 +17,10 @@ bool is_valid_image_data(const PixelVector& data, const ImageSize& size) {
     return data.size() == size.total_pixels();
 }
 
-bool is_contiguous_array(const PixelVector& data, const ImageSize& size) {
-    return is_valid_image_data(data, size);
-}
-
-PixelVector create_contiguous_copy(const PixelVector& data) {
-    return PixelVector(data);
-}
-
 void validate_array_contiguity(const PixelVector& data, const ImageSize& size) {
-    if (!is_contiguous_array(data, size)) {
+    if (!is_valid_image_data(data, size)) {
         throw std::invalid_argument("Array data does not match expected size");
     }
 }
 
-} // namespace core
 } // namespace nextcv

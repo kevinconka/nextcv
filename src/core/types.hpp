@@ -2,15 +2,13 @@
 
 #include <cstdint>
 #include <vector>
-#include <array>
+#include <string>
 
 namespace nextcv {
-namespace core {
 
 // Common type definitions
 using Pixel = std::uint8_t;
 using PixelVector = std::vector<Pixel>;
-using ImageData = std::vector<Pixel>;
 
 // Image dimensions
 struct ImageSize {
@@ -33,5 +31,4 @@ enum class ColorSpace {
     BGRA = 4
 };
 
-} // namespace core
 } // namespace nextcv

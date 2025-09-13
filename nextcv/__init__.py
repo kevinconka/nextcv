@@ -2,9 +2,7 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
-from ._internal.nextcv_py import hello
-from .core import get_version, get_build_info
-from .image import invert, threshold
+from ._internal.nextcv_py import hello, invert, threshold, get_version, get_build_info
 
 try:
     __version__ = version("nextcv")

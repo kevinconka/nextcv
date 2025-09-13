@@ -1,10 +1,10 @@
 # NextCV Repository Structure
 
-This document describes the scalable structure implemented for the NextCV computer vision library.
+This document describes the simplified, scalable structure implemented for the NextCV computer vision library, inspired by OpenCV's design philosophy.
 
 ## Overview
 
-NextCV follows a modular architecture with clear separation between C++ core functionality and Python bindings. The structure is designed to be easily extensible for future features.
+NextCV follows a simplified modular architecture with a single namespace (like OpenCV's `cv` namespace) and automatic CMake file discovery. The structure is designed to be easily extensible without namespace confusion or manual CMake maintenance.
 
 ## Directory Structure
 
@@ -15,27 +15,15 @@ nextcv/
 │   │   ├── hello.hpp/cpp         # Basic greeting functionality
 │   │   ├── types.hpp             # Common type definitions
 │   │   └── utils.hpp/cpp         # Utility functions
-│   ├── image/                    # Image processing modules
-│   │   ├── operations/           # Basic image operations
-│   │   │   ├── invert.hpp/cpp    # Pixel inversion
-│   │   │   └── threshold.hpp/cpp # Binary thresholding
-│   │   ├── io/                   # Image I/O (future)
-│   │   └── transform/            # Geometric transformations (future)
-│   ├── features/                 # Feature detection and matching
-│   │   ├── detection/            # Feature detection (future)
-│   │   └── matching/             # Feature matching (future)
+│   ├── imgproc/                  # Image processing (like OpenCV's imgproc)
+│   │   ├── invert.hpp/cpp        # Pixel inversion
+│   │   └── threshold.hpp/cpp     # Binary thresholding
+│   ├── features/                 # Feature detection and matching (future)
+│   │   └── (empty, ready for expansion)
 │   └── bindings/                 # Python bindings
 │       └── bindings.cpp          # pybind11 bindings
 ├── nextcv/                       # Python package
 │   ├── __init__.py               # Main package interface
-│   ├── core/                     # Core Python utilities
-│   │   ├── __init__.py
-│   │   └── utils.py              # Python utility functions
-│   ├── image/                    # Image processing Python interface
-│   │   ├── __init__.py
-│   │   └── operations.py         # Image operations
-│   ├── features/                 # Feature detection Python interface
-│   │   └── __init__.py
 │   └── _internal/                # Internal C++ bindings
 │       └── nextcv_py.pyi         # Type stubs
 ├── examples/                     # Usage examples
@@ -47,109 +35,143 @@ nextcv/
 
 ## C++ Architecture
 
-### Namespace Structure
+### Simplified Namespace Structure
 
 ```cpp
 namespace nextcv {
-    namespace core {
-        // Core utilities, types, and base functionality
-    }
+    // All functions directly in nextcv namespace
+    // Like OpenCV's cv namespace
     
-    namespace image {
-        namespace operations {
-            // Image processing operations
-        }
-        namespace io {
-            // Image I/O operations
-        }
-        namespace transform {
-            // Geometric transformations
-        }
-    }
+    // Core functions
+    std::string hello();
+    std::string get_version();
     
-    namespace features {
-        namespace detection {
-            // Feature detection algorithms
-        }
-        namespace matching {
-            // Feature matching algorithms
-        }
-    }
+    // Image processing functions
+    PixelVector invert(const PixelVector& pixels);
+    PixelVector threshold(const PixelVector& pixels, Pixel threshold);
 }
 ```
 
 ### Library Organization
 
 - **nextcv_core**: Core utilities, types, and base functionality
-- **nextcv_image**: Image processing operations (depends on nextcv_core)
+- **nextcv_imgproc**: Image processing operations (depends on nextcv_core)
 - **nextcv_features**: Feature detection and matching (future, depends on nextcv_core)
+
+### Modern CMake with Automatic File Discovery
+
+```cmake
+# Automatically discover all .cpp files in each module
+file(GLOB_RECURSE CORE_SOURCES "core/*.cpp")
+file(GLOB_RECURSE IMGPROC_SOURCES "imgproc/*.cpp")
+file(GLOB_RECURSE FEATURES_SOURCES "features/*.cpp")
+
+# No need to manually update CMakeLists.txt when adding new files!
+```
 
 ## Python Architecture
 
-### Package Structure
+### Simplified Package Structure
 
-The Python package follows a modular design with clear separation of concerns:
+The Python package uses a flat structure with all functions directly accessible:
 
-- **nextcv.core**: Core utilities and version information
-- **nextcv.image**: Image processing functionality
-- **nextcv.features**: Feature detection and matching (future)
-- **nextcv._internal**: Internal C++ bindings (not for direct use)
+```python
+import nextcv
+
+# All functions directly available
+nextcv.hello()
+nextcv.invert(image)
+nextcv.threshold(image, 128)
+nextcv.get_version()
+```
 
 ### Import Patterns
 
 ```python
-# Main interface
+# Simple, direct imports (like OpenCV)
 import nextcv
-nextcv.hello()
-nextcv.invert(image)
-nextcv.threshold(image, 128)
+result = nextcv.invert(image)
 
-# Module-specific imports
-from nextcv.core import get_version
-from nextcv.image import invert, threshold
+# Or import specific functions
+from nextcv import invert, threshold
+result = invert(image)
 ```
 
-## Benefits of This Structure
+## Key Design Principles
 
-### Scalability
-- **Modular Design**: Each module can be developed independently
-- **Clear Dependencies**: Dependencies are explicit and manageable
-- **Namespace Organization**: Prevents naming conflicts and provides clear API boundaries
+### 1. **Single Namespace** (Like OpenCV)
+- All C++ functions in `nextcv` namespace
+- No deep nesting like `nextcv::image::operations::invert()`
+- Simple: `nextcv::invert()`
 
-### Maintainability
-- **Separation of Concerns**: C++ core, Python interface, and bindings are clearly separated
-- **Consistent Patterns**: Similar functionality is organized consistently
-- **Future-Ready**: Structure supports easy addition of new modules
+### 2. **Automatic CMake Discovery**
+- Uses `GLOB_RECURSE` to automatically find all `.cpp` files
+- No need to manually update CMakeLists.txt when adding files
+- Modern CMake syntax with proper target linking
 
-### Extensibility
-- **Easy to Add Features**: New functionality can be added to appropriate modules
-- **Plugin Architecture**: New modules can be added without affecting existing code
-- **API Consistency**: New functions follow established patterns
+### 3. **Module-Based Organization**
+- **core/**: Basic utilities and types
+- **imgproc/**: Image processing (like OpenCV's imgproc module)
+- **features/**: Feature detection (like OpenCV's features2d module)
+
+### 4. **Simple Python API**
+- All functions directly accessible from `nextcv` package
+- No complex module hierarchy
+- Clean, intuitive interface
+
+## Benefits of This Simplified Structure
+
+### **Ease of Use**
+- **Simple API**: `nextcv::invert()` instead of `nextcv::image::operations::invert()`
+- **No Namespace Confusion**: Single namespace like OpenCV
+- **Intuitive**: Functions are where you expect them
+
+### **Easy Maintenance**
+- **Automatic CMake**: No manual file listing required
+- **Self-Documenting**: Structure clearly shows module organization
+- **Future-Proof**: Easy to add new modules without restructuring
+
+### **OpenCV Compatibility**
+- **Familiar Pattern**: Developers familiar with OpenCV will feel at home
+- **Proven Design**: OpenCV's single namespace approach has worked for decades
+- **Industry Standard**: Follows established computer vision library patterns
 
 ## Adding New Functionality
 
 ### C++ Side
-1. Create appropriate header/source files in the relevant module directory
-2. Add files to CMakeLists.txt
-3. Update bindings if Python interface is needed
-4. Add to appropriate namespace
+1. **Add files to appropriate module directory** (e.g., `src/imgproc/new_function.hpp/cpp`)
+2. **CMake automatically discovers them** - no manual updates needed!
+3. **Use simple namespace**: `namespace nextcv { ... }`
+4. **Update bindings** if Python interface is needed
 
 ### Python Side
-1. Create new module files in the appropriate package directory
-2. Update __init__.py files to export new functionality
-3. Add type stubs if needed
-4. Update examples and tests
+1. **Add to bindings.cpp** for new C++ functions
+2. **Update __init__.py** to export new functions
+3. **Functions automatically available** as `nextcv.new_function()`
 
-## Future Expansion Areas
+## Comparison with OpenCV
 
-The current structure is designed to easily accommodate:
+| Aspect | OpenCV | NextCV |
+|--------|--------|--------|
+| Namespace | `cv::` | `nextcv::` |
+| Image Processing | `cv::imgproc` module | `src/imgproc/` directory |
+| Core Functions | `cv::core` module | `src/core/` directory |
+| Python API | `cv.invert()` | `nextcv.invert()` |
+| CMake | Manual file listing | Automatic discovery |
 
-- **Image I/O**: Reading/writing various image formats
-- **Geometric Transformations**: Resize, rotate, warp operations
-- **Feature Detection**: Corner detection, blob detection, etc.
-- **Feature Matching**: Template matching, feature descriptors
-- **Machine Learning**: Integration with ML frameworks
-- **Video Processing**: Video I/O and processing
-- **GPU Acceleration**: CUDA/OpenCL support
+## Future Expansion
 
-This structure provides a solid foundation for building a comprehensive computer vision library while maintaining clean, maintainable code.
+The simplified structure easily accommodates:
+
+- **New Image Operations**: Add to `src/imgproc/`
+- **Feature Detection**: Add to `src/features/`
+- **Machine Learning**: Add `src/ml/` module
+- **Video Processing**: Add `src/video/` module
+- **GPU Support**: Add `src/gpu/` module
+
+Each new module follows the same simple pattern:
+- Single `nextcv` namespace
+- Automatic CMake discovery
+- Direct Python API access
+
+This structure provides the perfect balance of simplicity and scalability, making it easy to use and extend without the complexity of deep namespace hierarchies.

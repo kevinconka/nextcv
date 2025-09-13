@@ -1,9 +1,7 @@
 #include "invert.hpp"
-#include "../../core/utils.hpp"
+#include "../core/utils.hpp"
 
 namespace nextcv {
-namespace image {
-namespace operations {
 
 PixelVector invert(const PixelVector& pixels) {
     PixelVector out;
@@ -14,11 +12,9 @@ PixelVector invert(const PixelVector& pixels) {
     return out;
 }
 
-PixelVector invert(const PixelVector& pixels, const core::ImageSize& size) {
-    core::validate_array_contiguity(pixels, size);
+PixelVector invert(const PixelVector& pixels, const ImageSize& size) {
+    validate_array_contiguity(pixels, size);
     return invert(pixels);
 }
 
-} // namespace operations
-} // namespace image
 } // namespace nextcv

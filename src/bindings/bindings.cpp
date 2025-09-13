@@ -4,8 +4,8 @@
 
 #include "../core/hello.hpp"
 #include "../core/utils.hpp"
-#include "../image/operations/invert.hpp"
-#include "../image/operations/threshold.hpp"
+#include "../imgproc/invert.hpp"
+#include "../imgproc/threshold.hpp"
 
 namespace py = pybind11;
 
@@ -25,7 +25,7 @@ py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
                                      static_cast<std::uint8_t*>(buf_info.ptr) + buf_info.size);
 
     // Apply inversion
-    auto inverted = nextcv::image::operations::invert(pixels);
+    auto inverted = nextcv::invert(pixels);
 
     // Create output numpy array with same shape as input
     py::array_t<std::uint8_t> result(buf_info.shape);
@@ -51,7 +51,7 @@ py::array_t<std::uint8_t> threshold(const py::array_t<std::uint8_t>& input,
                                      static_cast<std::uint8_t*>(buf_info.ptr) + buf_info.size);
 
     // Apply threshold
-    auto thresholded = nextcv::image::operations::threshold(pixels, threshold, max_value);
+    auto thresholded = nextcv::threshold(pixels, threshold, max_value);
 
     // Create output numpy array with same shape as input
     py::array_t<std::uint8_t> result(buf_info.shape);
@@ -67,11 +67,11 @@ PYBIND11_MODULE(nextcv_py, m) {
     m.doc() = "NextCV pybind11 bindings";
 
     // Core functions
-    m.def("hello", &nextcv::core::hello, "Return a greeting from NextCV C++");
-    m.def("get_version", &nextcv::core::get_version, "Get NextCV version");
-    m.def("get_build_info", &nextcv::core::get_build_info, "Get build information");
+    m.def("hello", &nextcv::hello, "Return a greeting from NextCV C++");
+    m.def("get_version", &nextcv::get_version, "Get NextCV version");
+    m.def("get_build_info", &nextcv::get_build_info, "Get build information");
 
-    // Image operations
+    // Image processing functions
     m.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
     m.def("threshold", &threshold, 
           py::arg("input"), 

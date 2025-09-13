@@ -1,9 +1,7 @@
 #include "threshold.hpp"
-#include "../../core/utils.hpp"
+#include "../core/utils.hpp"
 
 namespace nextcv {
-namespace image {
-namespace operations {
 
 PixelVector threshold(const PixelVector& pixels, Pixel threshold, Pixel max_value) {
     PixelVector out;
@@ -14,12 +12,10 @@ PixelVector threshold(const PixelVector& pixels, Pixel threshold, Pixel max_valu
     return out;
 }
 
-PixelVector threshold(const PixelVector& pixels, const core::ImageSize& size, 
+PixelVector threshold(const PixelVector& pixels, const ImageSize& size, 
                      Pixel threshold, Pixel max_value) {
-    core::validate_array_contiguity(pixels, size);
+    validate_array_contiguity(pixels, size);
     return threshold(pixels, threshold, max_value);
 }
 
-} // namespace operations
-} // namespace image
 } // namespace nextcv
