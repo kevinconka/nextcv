@@ -10,6 +10,12 @@ uv run python -c "import nextcv; print(nextcv.hello())"
 uv build   # builds sdist + wheel using PEP 517 backend
 ```
 
+Example script: `examples/python_example.py`
+
+```bash
+uv run python examples/python_example.py
+```
+
 ## C++
 
 ```bash

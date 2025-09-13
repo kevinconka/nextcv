@@ -27,6 +27,7 @@ dependencies = []
 [project.optional-dependencies]
 dev = [
   "pytest>=7",
+  "ruff>=0.5",
 ]
 
 [project.urls]
@@ -38,6 +39,6 @@ Issues = "https://example.com/nextcv/issues"
 # Reference: https://scikit-build-core.readthedocs.io/en/latest/configuration/
 [tool.scikit-build]
 wheel.packages = ["nextcv"]
-cmake.minimum-version = "3.20"
+cmake.version = ">=3.20"
 build-dir = "build"
 
