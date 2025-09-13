@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   # Job 1: Code Quality Checks (formatting, linting, style)
@@ -12,11 +12,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        llvm: [17] # set the LLVM/Clang major version(s) you want
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history for proper diff detection
+          fetch-depth: 0 # Fetch full history for proper diff detection
 
       - name: Detect changed files
         uses: dorny/paths-filter@v3
@@ -60,14 +61,47 @@ jobs:
           fi
 
       - name: Install clang-format (Ubuntu)
-        if: matrix.os == 'ubuntu-latest' && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        if: startsWith(matrix.os, 'ubuntu') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-format
+          set -eux
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          chmod +x /tmp/llvm.sh
+          sudo /tmp/llvm.sh ${{ matrix.llvm }}
+          sudo apt-get install -y \
+            clang-${{ matrix.llvm }} \
+            lld-${{ matrix.llvm }} \
+            clang-tidy-${{ matrix.llvm }} \
+            clang-format-${{ matrix.llvm }}
+          echo "CC=clang-${{ matrix.llvm }}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{ matrix.llvm }}" >> $GITHUB_ENV
+          clang-${{ matrix.llvm }} --version
 
       - name: Install clang-format (macOS)
-        if: matrix.os == 'macos-latest' && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
-        run: brew install clang-format
+        if: startsWith(matrix.os, 'macos') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        shell: bash
+        run: |
+          set -eux
+          brew update
+          brew install llvm@${{ matrix.llvm }}
+          LLVM_PREFIX="$(brew --prefix llvm@${{ matrix.llvm }})"
+          echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
+          # Helpful for finding headers/libs (e.g., libc++)
+          echo "CPPFLAGS=-I$LLVM_PREFIX/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$LLVM_PREFIX/lib" >> $GITHUB_ENV
+          echo "CC=clang"  >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+          clang --version
+
+      - name: Install clang-tidy (windows)
+        if: startsWith(matrix.os, 'windows') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        shell: pwsh
+        run: |
+          choco install llvm --version=${{ matrix.llvm }} -y --no-progress
+          "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          "CC=clang"  | Out-File -FilePath $env:GITHUB_ENV -Append
+          "CXX=clang++" | Out-File -FilePath $env:GITHUB_ENV -Append
+          clang --version
 
       - name: Clang-format check
         if: steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true'
