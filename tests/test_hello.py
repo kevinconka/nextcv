@@ -53,11 +53,11 @@ def test_invert_2d():
     # Test with a simple 2D array
     data_2d = np.array([[0, 64, 128], [192, 255, 32]], dtype=np.uint8)
     inverted_2d = nextcv.invert(data_2d)
-    
+
     # Check shape is preserved
     assert inverted_2d.shape == data_2d.shape
     assert inverted_2d.dtype == np.uint8
-    
+
     # Check inversion is correct
     expected_2d = np.array([[255, 191, 127], [63, 0, 223]], dtype=np.uint8)
     assert np.array_equal(inverted_2d, expected_2d)
@@ -66,17 +66,19 @@ def test_invert_2d():
 def test_invert_3d():
     """Test invert function with 3D arrays (e.g., RGB images)."""
     # Test with a simple 3D array (2x2x3 RGB image)
-    data_3d = np.array([[[0, 128, 255], [64, 192, 32]], 
-                        [[255, 0, 128], [96, 160, 224]]], dtype=np.uint8)
+    data_3d = np.array(
+        [[[0, 128, 255], [64, 192, 32]], [[255, 0, 128], [96, 160, 224]]], dtype=np.uint8
+    )
     inverted_3d = nextcv.invert(data_3d)
-    
+
     # Check shape is preserved
     assert inverted_3d.shape == data_3d.shape
     assert inverted_3d.dtype == np.uint8
-    
+
     # Check inversion is correct
-    expected_3d = np.array([[[255, 127, 0], [191, 63, 223]], 
-                            [[0, 255, 127], [159, 95, 31]]], dtype=np.uint8)
+    expected_3d = np.array(
+        [[[255, 127, 0], [191, 63, 223]], [[0, 255, 127], [159, 95, 31]]], dtype=np.uint8
+    )
     assert np.array_equal(inverted_3d, expected_3d)
 
 
@@ -85,11 +87,11 @@ def test_invert_4d():
     # Test with a 4D array (batch_size=2, height=2, width=2, channels=2)
     data_4d = np.random.randint(0, 256, size=(2, 2, 2, 2), dtype=np.uint8)
     inverted_4d = nextcv.invert(data_4d)
-    
+
     # Check shape is preserved
     assert inverted_4d.shape == data_4d.shape
     assert inverted_4d.dtype == np.uint8
-    
+
     # Check inversion is correct element-wise
     expected_4d = 255 - data_4d
     assert np.array_equal(inverted_4d, expected_4d)

@@ -30,8 +30,9 @@ def main() -> None:
     # Example with 3D numpy array (RGB image)
     print("\n3D Array Example (RGB Image):")
     # Create a small 2x2 RGB image
-    data_3d = np.array([[[255, 0, 128], [128, 128, 128]], 
-                        [[0, 255, 0], [255, 255, 255]]], dtype=np.uint8)
+    data_3d = np.array(
+        [[[255, 0, 128], [128, 128, 128]], [[0, 255, 0], [255, 255, 255]]], dtype=np.uint8
+    )
     print("Original 3D array shape:", data_3d.shape)
     print("Original 3D array:")
     print(data_3d)
