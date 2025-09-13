@@ -131,6 +131,10 @@ int main() {
 git clone https://github.com/kevinconka/nextcv.git
 cd nextcv
 
+# Install pre-commit hooks (recommended)
+pip install pre-commit
+pre-commit install
+
 # Python development
 uv sync
 uv run pytest
@@ -150,6 +154,53 @@ uv run python examples/python_example.py
 
 # C++ example
 ./build/examples/cpp_example
+```
+
+---
+
+<div align="center">
+
+## 🔧 Code Quality & Pre-commit
+
+</div>
+
+This project uses [pre-commit](https://pre-commit.com/) to ensure code quality and consistency. Pre-commit hooks automatically run checks and fixes on your code before each commit.
+
+### Setup Pre-commit
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install the git hook scripts
+pre-commit install
+
+# (Optional) Run against all files
+pre-commit run --all-files
+```
+
+### What Pre-commit Does
+
+The configured hooks will automatically:
+- **Format code** with Ruff and clang-format
+- **Remove unused imports** with pycln
+- **Check for security issues** with gitleaks
+- **Validate YAML/JSON** files
+- **Remove trailing whitespace** and fix line endings
+- **Check for large files** and case conflicts
+- **Ensure test files** follow naming conventions
+
+### Manual Usage
+
+```bash
+# Run all hooks on staged files
+pre-commit run
+
+# Run specific hook
+pre-commit run ruff
+
+# Update hook versions
+pre-commit autoupdate
 ```
 
 ---
