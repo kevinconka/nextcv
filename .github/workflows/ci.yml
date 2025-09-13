@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  # Job 1: Setup and Linting (runs on all platforms)
-  lint:
+  # Job 1: Code Quality Checks (formatting, linting, style)
+  code-quality:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -50,8 +50,6 @@ jobs:
         run: |
           if [ "${{ steps.changes.outputs.python }}" == "true" ]; then
             uv run ruff format --check ${{ steps.changes.outputs.python_files }}
-          else
-            uv run ruff format --check .
           fi
 
       - name: Ruff lint
@@ -59,8 +57,6 @@ jobs:
         run: |
           if [ "${{ steps.changes.outputs.python }}" == "true" ]; then
             uv run ruff check ${{ steps.changes.outputs.python_files }}
-          else
-            uv run ruff check .
           fi
 
       - name: Install clang-format (Ubuntu)
@@ -79,13 +75,11 @@ jobs:
           set -euo pipefail
           if [ "${{ steps.changes.outputs.cpp }}" == "true" ]; then
             echo "${{ steps.changes.outputs.cpp_files }}" | tr ' ' '\n' | xargs -I {} clang-format --dry-run --Werror {}
-          else
-            find src examples -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) -not -path "*/build/*" -print0 | xargs -0 -I {} clang-format --dry-run --Werror {}
           fi
 
-  # Job 2: Python Testing (depends on lint, runs on all platforms)
-  test:
-    needs: lint
+  # Job 2: Python Tests and Coverage (depends on code-quality, runs on all platforms)
+  python-tests:
+    needs: code-quality
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -108,9 +102,9 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: false
 
-  # Job 3: Package Building (depends on test, runs on all platforms)
-  build:
-    needs: test
+  # Job 3: Package Distribution (wheel/sdist building, depends on python-tests, runs on all platforms)
+  package-distribution:
+    needs: python-tests
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -133,9 +127,9 @@ jobs:
           name: dist-${{ matrix.os }}
           path: dist/
 
-  # Job 4: C++ Build and Examples (depends on build, runs on all platforms)
-  cpp-examples:
-    needs: build
+  # Job 4: C++ Compilation and Examples (depends on package-distribution, runs on all platforms)
+  cpp-compilation:
+    needs: package-distribution
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
