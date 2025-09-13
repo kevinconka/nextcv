@@ -21,15 +21,21 @@ uv run python examples/python_example.py
 ```bash
 cmake -B build -DNEXTCV_BUILD_EXAMPLES=ON
 cmake --build build
-./build/examples/cpp_hello
+./build/examples/cpp_example
 ```
 
 ## Python usage
 
 ```python
 import nextcv
+import numpy as np
+
 print(nextcv.hello())
-print(nextcv.invert(b"\x00\x7f\xff"))
+
+# Invert pixel values using numpy arrays
+data = np.array([0, 127, 255], dtype=np.uint8)
+inverted = nextcv.invert(data)
+print(inverted)  # [255 128   0]
 ```
 
 ## C++ usage
