@@ -15,10 +15,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(NEXTCV_BUILD_EXAMPLES "Build NextCV C++ examples" OFF)
 option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
 
-# Find Python and pybind11 (simplified)
+# Find Python and pybind11 (compatible with scikit-build-core)
 if(NEXTCV_BUILD_PYTHON)
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-  find_package(pybind11 CONFIG REQUIRED)
+  
+  # For scikit-build-core, pybind11 is provided via Python
+  find_package(pybind11 CONFIG QUIET)
+  if(NOT pybind11_FOUND)
+    # Fallback: find pybind11 via Python
+    execute_process(
+      COMMAND ${Python3_EXECUTABLE} -c "import pybind11; print(pybind11.get_cmake_dir())"
+      OUTPUT_VARIABLE pybind11_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    find_package(pybind11 CONFIG REQUIRED PATHS ${pybind11_DIR})
+  endif()
 endif()
 
 # Add source directory

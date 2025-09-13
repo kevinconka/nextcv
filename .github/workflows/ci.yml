@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.8"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v5
+
+      - name: 🐍 Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: 🔧 Install dependencies
+        run: uv sync
+
+      - name: ✨ Lint & Format Check
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: 🧪 Run Tests
+        run: |
+          uv run pytest --cov=nextcv --cov-report=term-missing:skip-covered --cov-report=xml --junitxml=pytest.xml | tee pytest-coverage.txt
+
+      - name: 📊 Coverage Comment (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
+
+  cpp-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.8"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v5
+
+      - name: 🐍 Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: 🔧 Install dependencies
+        run: uv sync
+
+      - name: 🛠️ Install Clang Tools (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-17 clang-17
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-17 100
+
+      - name: 🛠️ Install Clang Tools (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install llvm@17
+          echo "$(brew --prefix llvm@17)/bin" >> $GITHUB_PATH
+
+      - name: 🎨 Check C++ Format
+        run: |
+          find src examples -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) \
+            -not -path "*/build/*" \
+            -exec clang-format --dry-run --Werror {} +
+
+      - name: 🔨 Build C++ Examples
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DNEXTCV_BUILD_EXAMPLES=ON -DNEXTCV_BUILD_PYTHON=OFF
+          cmake --build build --parallel
+          ./build/examples/cpp_example
