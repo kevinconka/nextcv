@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Sync project (creates venv, installs build deps)
+        run: uv sync --extra dev
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Install clang-format (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Install clang-format (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install clang-format
+
+      - name: Clang-format check
+        run: |
+          set -euo pipefail
+          find src examples -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) -print0 | xargs -0 -I {} clang-format --dry-run --Werror {}
+
+      - name: Build C++ examples
+        run: |
+          cmake -B build -DNEXTCV_BUILD_EXAMPLES=ON
+          cmake --build build --parallel
+          ./build/examples/cpp_hello | cat
+
+      - name: Run Python example
+        run: uv run python examples/python_example.py | cat
