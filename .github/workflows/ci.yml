@@ -64,8 +64,8 @@ jobs:
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
     if: >-
-      ${{ needs.changed-files.outputs.changed_py_files != '' }}
-      ${{ needs.changed-files.outputs.changed_cpp_files != '' }}
+      ${{ needs.changed-files.outputs.changed_py_files != '' ||
+          needs.changed-files.outputs.changed_cpp_files != '' }}
     timeout-minutes: 15
     steps:
       - name: 📥 Checkout
