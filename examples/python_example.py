@@ -5,7 +5,10 @@ import nextcv
 
 def main() -> None:
     """Demonstrate NextCV functionality with various array dimensions."""
+    print("=== NextCV Python Example ===")
     print(nextcv.hello())
+    print(f"Version: {nextcv.get_version()}")
+    print(f"Build info: {nextcv.get_build_info()}")
 
     # Example with 1D numpy array
     print("\n1D Array Example:")
@@ -40,6 +43,16 @@ def main() -> None:
     print("Inverted 3D array:")
     print(inverted_3d)
     print("Shape preserved:", data_3d.shape == inverted_3d.shape)
+
+    # Example with threshold operation
+    print("\nThreshold Example:")
+    data_thresh = np.array([50, 100, 150, 200, 250], dtype=np.uint8)
+    print("Original array:", data_thresh)
+    thresholded = nextcv.threshold(data_thresh, 128)
+    print("Thresholded (128):", thresholded)
+    expected_thresh = np.array([0, 0, 255, 255, 255], dtype=np.uint8)
+    print("Expected:        ", expected_thresh)
+    print("Match:", np.array_equal(thresholded, expected_thresh))
 
 
 if __name__ == "__main__":

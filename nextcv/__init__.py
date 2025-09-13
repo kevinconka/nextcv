@@ -2,11 +2,13 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
-from .nextcv_py import hello, invert
+from ._internal.nextcv_py import hello
+from .core import get_version, get_build_info
+from .image import invert, threshold
 
 try:
     __version__ = version("nextcv")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
-__all__ = ["hello", "invert"]
+__all__ = ["hello", "invert", "threshold", "get_version", "get_build_info"]

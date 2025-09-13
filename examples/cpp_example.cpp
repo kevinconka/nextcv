@@ -1,5 +1,6 @@
-#include "hello.hpp"
-#include "invert.hpp"
+#include "core/hello.hpp"
+#include "image/operations/invert.hpp"
+#include "image/operations/threshold.hpp"
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -7,7 +8,7 @@
 int main() {
     // Demonstrate hello functionality
     std::cout << "=== NextCV C++ Example ===" << std::endl;
-    std::cout << nextcv::hello() << std::endl;
+    std::cout << nextcv::core::hello() << std::endl;
 
     // Demonstrate invert functionality
     std::cout << "\n=== Pixel Inversion Demo ===" << std::endl;
@@ -19,7 +20,7 @@ int main() {
     }
     std::cout << std::endl;
 
-    auto inverted = nextcv::invert(pixels);
+    auto inverted = nextcv::image::operations::invert(pixels);
 
     std::cout << "Inverted pixels: ";
     for (auto v : inverted) {
@@ -35,9 +36,25 @@ int main() {
     // Demonstrate with a single pixel
     std::cout << "\n=== Single Pixel Test ===" << std::endl;
     std::vector<std::uint8_t> single_pixel{100};
-    auto single_inverted = nextcv::invert(single_pixel);
+    auto single_inverted = nextcv::image::operations::invert(single_pixel);
     std::cout << "100 -> " << static_cast<int>(single_inverted[0]) << " (expected: " << (255 - 100)
               << ")" << std::endl;
+
+    // Demonstrate threshold functionality
+    std::cout << "\n=== Threshold Demo ===" << std::endl;
+    std::vector<std::uint8_t> test_pixels{50, 100, 150, 200, 250};
+    std::cout << "Original pixels: ";
+    for (auto v : test_pixels) {
+        std::cout << static_cast<int>(v) << " ";
+    }
+    std::cout << std::endl;
+
+    auto thresholded = nextcv::image::operations::threshold(test_pixels, 128);
+    std::cout << "Thresholded (128): ";
+    for (auto v : thresholded) {
+        std::cout << static_cast<int>(v) << " ";
+    }
+    std::cout << std::endl;
 
     return 0;
 }
