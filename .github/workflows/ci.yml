@@ -18,36 +18,44 @@ jobs:
   changed-files:
     runs-on: ubuntu-latest
     outputs:
-      python: ${{ steps.changes.outputs.python }}
-      cpp: ${{ steps.changes.outputs.cpp }}
+      changed_py_files: >-
+        ${{ steps.changed-py-files.outputs.all_changed_files }}
+      changed_cpp_files: >-
+        ${{ steps.changed-cpp-files.outputs.all_changed_files }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # Need full history for proper diff detection
+          fetch-depth: 0 # Fetch all history for all branches and tags
 
-      - name: 🔍 Detect changed files
-        uses: dorny/paths-filter@v3
-        id: changes
+      - name: 🔍 Get python changed files
+        id: changed-py-files
+        uses: tj-actions/changed-files@v46
         with:
-          filters: |
-            python:
-              - '**/*.py'
-              - '**/*.pyi'
-            cpp:
-              - '**/*.c'
-              - '**/*.cpp'
-              - '**/*.h'
-              - '**/*.hpp'
-              - '**/CMakeLists.txt'
-              - '**/*.cmake'
-              - '**/CMakePresets.json'
-              - '**/Makefile'
+          files: |
+            **/*.py                # Python source
+            **/*.pyi               # Python type hints
+
+      - name: 🔍 Get c++ changed files
+        id: changed-cpp-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.c                 # C source
+            **/*.cpp               # C++ source  
+            **/*.h                 # C/C++ headers
+            **/*.hpp               # C++ headers
+            **/CMakeLists.txt      # CMake build files
+            **/*.cmake             # CMake modules
+            **/CMakePresets.json   # CMake presets
+            **/Makefile            # Traditional makefiles
 
       - name: 📝 Debug Changed Files
         run: |
-          echo "Python files changed: ${{ steps.changes.outputs.python }}"
-          echo "C++ files changed: ${{ steps.changes.outputs.cpp }}"
+          echo "Python changed files:"
+          echo "${{ steps.changed-py-files.outputs.all_changed_files }}"
+          echo "C++ changed files:"
+          echo "${{ steps.changed-cpp-files.outputs.all_changed_files }}"
 
   test:
     needs: changed-files
@@ -58,8 +66,8 @@ jobs:
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
     if: >-
-      ${{ needs.changed-files.outputs.python == 'true' ||
-          needs.changed-files.outputs.cpp == 'true' }}
+      ${{ needs.changed-files.outputs.changed_py_files != '' ||
+          needs.changed-files.outputs.changed_cpp_files != '' }}
     timeout-minutes: 15
     steps:
       - name: 📥 Checkout
@@ -106,7 +114,7 @@ jobs:
         python-version: ["3.8"]
     runs-on: ${{ matrix.os }}
     if: >-
-      ${{ needs.changed-files.outputs.cpp == 'true' }}
+      ${{ needs.changed-files.outputs.changed_cpp_files != '' }}
     timeout-minutes: 10
     steps:
       - name: 📥 Checkout
