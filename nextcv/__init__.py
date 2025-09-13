@@ -1,3 +1,3 @@
-from .nextcv_py import hello, invert, invert_numpy
+from .nextcv_py import hello, invert
 
-__all__ = ["hello", "invert", "invert_numpy"]
+__all__ = ["hello", "invert"]

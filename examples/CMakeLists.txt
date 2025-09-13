@@ -19,9 +19,6 @@ target_include_directories(nextcv_core_simple
     ../src
 )
 
-# Build examples
-add_executable(cpp_hello cpp_hello.cpp)
-target_link_libraries(cpp_hello PRIVATE nextcv_core_simple)
-
-add_executable(cpp_invert cpp_invert.cpp)
-target_link_libraries(cpp_invert PRIVATE nextcv_core_simple)
+# Build unified example
+add_executable(cpp_example cpp_example.cpp)
+target_link_libraries(cpp_example PRIVATE nextcv_core_simple)

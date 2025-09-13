@@ -9,7 +9,7 @@ def main() -> None:
     data = np.array([0, 64, 128, 192, 255], dtype=np.uint8)
     print("Original array:", data)
     
-    inverted = nextcv.invert_numpy(data)
+    inverted = nextcv.invert(data)
     print("Inverted array:", inverted)
     
     # Verify the inversion worked correctly

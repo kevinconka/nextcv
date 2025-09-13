@@ -46,9 +46,15 @@ jobs:
         
         # Test basic functionality
         data = np.array([0, 64, 128, 192, 255], dtype=np.uint8)
-        inverted = nextcv.invert_numpy(data)
+        inverted = nextcv.invert(data)
         expected = np.array([255, 191, 127, 63, 0], dtype=np.uint8)
         
         assert np.array_equal(inverted, expected), f'Expected {expected}, got {inverted}'
         print('✓ Numpy functionality test passed')
         "
+    
+    - name: Test C++ example
+      run: |
+        cmake -B build -DNEXTCV_BUILD_EXAMPLES=ON
+        cmake --build build
+        ./build/examples/cpp_example
