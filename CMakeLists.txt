@@ -1,30 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(NextCV LANGUAGES CXX)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-option(NEXTCV_BUILD_EXAMPLES "Build NextCV C++ examples" OFF)
-
-# Find Python and pybind11
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-
-# Try to find pybind11 in the Python environment first
-execute_process(
-  COMMAND ${Python3_EXECUTABLE} -c "import pybind11; print(pybind11.get_cmake_dir())"
-  OUTPUT_VARIABLE pybind11_DIR
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  RESULT_VARIABLE pybind11_found
+project(NextCV 
+  VERSION 0.0.1
+  LANGUAGES CXX
+  DESCRIPTION "NextCV is like OpenCV but with modern tooling"
 )
 
-if(pybind11_found EQUAL 0)
-  message(STATUS "Found pybind11 at: ${pybind11_DIR}")
-  find_package(pybind11 CONFIG REQUIRED PATHS ${pybind11_DIR} NO_DEFAULT_PATH)
-else()
-  # Fallback to system pybind11
+# Set C++ standard globally
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Options
+option(NEXTCV_BUILD_EXAMPLES "Build NextCV C++ examples" OFF)
+option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
+
+# Find Python and pybind11 (simplified)
+if(NEXTCV_BUILD_PYTHON)
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   find_package(pybind11 CONFIG REQUIRED)
 endif()
 
+# Add source directory
 add_subdirectory(src)
 
 # Install/export for C++ consumers
@@ -56,14 +53,10 @@ install(FILES
   DESTINATION include/nextcv
 )
 
-# Examples (not installed)
+# Examples (integrated, not installed)
 if(NEXTCV_BUILD_EXAMPLES)
-  add_executable(cpp_hello examples/cpp_hello.cpp)
-  target_link_libraries(cpp_hello PRIVATE nextcv_core)
-  set_target_properties(cpp_hello PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
-
-  add_executable(cpp_invert examples/cpp_invert.cpp)
-  target_link_libraries(cpp_invert PRIVATE nextcv_core)
-  set_target_properties(cpp_invert PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
+  add_executable(cpp_example examples/cpp_example.cpp)
+  target_link_libraries(cpp_example PRIVATE nextcv_core)
+  set_target_properties(cpp_example PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
 endif()
 

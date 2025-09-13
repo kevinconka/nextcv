@@ -10,6 +10,11 @@ uv run python -c "import nextcv; print(nextcv.hello())"
 uv build   # builds sdist + wheel using PEP 517 backend
 ```
 
+Or install directly from git:
+```bash
+pip install git+https://github.com/your-username/nextcv.git
+```
+
 Example script: `examples/python_example.py`
 
 ```bash
@@ -63,6 +68,45 @@ with tarfile.open(sdist) as t:
         print(m.name)
 PY
 ```
+
+## 🤝 Contributing
+
+Welcome to the NextCV party! 🎉 Whether you're a Python wizard, a C++ sorcerer, or someone who just thinks computer vision is pretty neat, we'd love to have you contribute.
+
+### Quick Start
+
+**Python:**
+```bash
+git clone <your-fork-url>
+cd nextcv
+uv sync
+uv run pytest tests/ -v
+uv build
+```
+
+**C++:**
+```bash
+git clone <your-fork-url>
+cd nextcv
+cmake -B build -DNEXTCV_BUILD_EXAMPLES=ON
+cmake --build build
+./build/examples/cpp_example
+```
+
+### What We Want
+- New CV algorithms (the more creative, the better!)
+- Performance improvements (make it go brrrr 🚀)
+- Bug fixes (the unsung heroes of open source)
+- Tests that make us go "wow, we didn't think of that"
+- Code that's so clean it sparkles ✨
+
+### Development
+1. Fork & create a feature branch
+2. Write tests (seriously, we love tests)
+3. Run `uv run pytest tests/ -v` and `cmake --build build`
+4. Submit a PR that makes us excited to review it!
+
+**Ready to contribute?** We can't wait to see what you'll build! 🚀
 
 ## Notes
 
