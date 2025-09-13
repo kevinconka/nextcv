@@ -1,8 +1,5 @@
 [build-system]
-requires = [
-  "scikit-build-core>=0.10",
-  "pybind11>=2.10",
-]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.10"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -12,7 +9,7 @@ description = "NextCV is like OpenCV but with modern tooling. A minimal, experim
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "Apache-2.0" }
-authors = [{ name = "NextCV Contributors" }]
+authors = [{ name = "Kevin Serrano", email = "kserranov@gmail.com" }]
 keywords = ["computer-vision", "cpp", "pybind11", "scikit-build-core"]
 classifiers = [
   "License :: OSI Approved :: Apache Software License",
@@ -22,22 +19,14 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-dependencies = [
-    "numpy>=1.20.0",
-]
+dependencies = ["numpy>=1.20.0"]
 
 [dependency-groups]
-dev = [
-  "pybind11>=2.10",
-  "pytest>=7",
-  "pytest-cov>=4.0",
-  "ruff>=0.5",
-]
+dev = ["pybind11>=2.10", "pytest>=7", "pytest-cov>=4.0", "ruff>=0.5"]
 
 [project.urls]
-Homepage = "https://example.com/nextcv"
-Repository = "https://example.com/nextcv.git"
-Issues = "https://example.com/nextcv/issues"
+Repository = "https://github.com/kevinconka/nextcv.git"
+Issues = "https://github.com/kevinconka/nextcv/issues"
 
 # scikit-build-core configuration
 # Reference: https://scikit-build-core.readthedocs.io/en/latest/configuration/
@@ -53,10 +42,9 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
-    "-v",
-    "--cov=nextcv",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
+  "-v",
+  "--cov=nextcv",
+  "--cov-report=term-missing",
+  "--cov-report=html",
+  "--cov-report=xml",
 ]
-
