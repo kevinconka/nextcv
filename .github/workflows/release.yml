@@ -28,15 +28,15 @@ jobs:
       - name: 🏗️ Build Package
         run: uv build
 
-      - name: 📝 Build Changelog
-        id: changelog
-        uses: mikepenz/release-changelog-builder-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: 📝 Build Changelog
+      #   id: changelog
+      #   uses: mikepenz/release-changelog-builder-action@v5
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          body: ${{ steps.changelog.outputs.changelog }}
+          # body: ${{ steps.changelog.outputs.changelog }}
           files: dist/*
           generate_release_notes: true # Adds GitHub's auto-generated notes too!
