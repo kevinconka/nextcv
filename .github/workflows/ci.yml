@@ -14,44 +14,87 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    outputs:
+      repo-cache-key: repo-${{ github.sha }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Ensures we get commit history for diffing
+
+      - name: 🔄 Cache repository
+        uses: actions/cache@v4
+        with:
+          path: . # Cache the entire repo
+          key: repo-${{ github.sha }}
+
+  changed-files:
+    needs: checkout
+    runs-on: ubuntu-latest
+    outputs:
+      changed_python_files: ${{ steps.changed-python-files.outputs.all_changed_files }}
+      changed_cpp_files: ${{ steps.changed-cpp-files.outputs.all_changed_files }}
+      changed_config_files: ${{ steps.changed-config-files.outputs.all_changed_files }}
+    steps:
+      - name: 🔄 Restore repository from cache
+        uses: actions/cache@v4
+        with:
+          path: .
+          key: repo-${{ github.sha }}
+
+      - name: 🔍 Get changed Python files
+        id: changed-python-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.py
+            **/*.pyi
+            **/pyproject.toml
+            **/ruff.toml
+
+      - name: 🔍 Get changed C++ files
+        id: changed-cpp-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.cpp
+            **/*.cc
+            **/*.c
+            **/*.hpp
+            **/*.h
+            **/*.hh
+            **/*.ipp
+            **/CMakeLists.txt
+            **/*.cmake
+            **/CMakePresets.json
+
+      - name: 🔍 Get changed config files
+        id: changed-config-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            .github/workflows/**
+            **/pyproject.toml
+            **/ruff.toml
+
   # Job 1: Code Quality Checks (formatting, linting, style)
   code-quality:
     timeout-minutes: 15
+    needs: [checkout, changed-files]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
         llvm: [17] # set the LLVM/Clang major version(s) you want
     runs-on: ${{ matrix.os }}
+    if: ${{ needs.changed-files.outputs.changed_python_files != '' || needs.changed-files.outputs.changed_cpp_files != '' || needs.changed-files.outputs.changed_config_files != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: 🔄 Restore repository from cache
+        uses: actions/cache@v4
         with:
-          fetch-depth: 0 # Fetch full history for proper diff detection
-
-      - name: Detect changed files
-        uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          list-files: json
-          filters: |
-            python:
-              - '**/*.py'
-              - '**/pyproject.toml'
-              - '**/ruff.toml'
-            cpp:
-              - '**/*.cpp'
-              - '**/*.cc'
-              - '**/*.c'
-              - '**/*.hpp'
-              - '**/*.h'
-              - '**/*.hh'
-              - '**/*.ipp'
-              - '**/CMakeLists.txt'
-              - '**/*.cmake'
-              - '**/CMakePresets.json'
-            config:
-              - '**/.github/workflows/**'
-              - '**/pyproject.toml'
-              - '**/ruff.toml'
+          path: .
+          key: repo-${{ github.sha }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -69,34 +112,23 @@ jobs:
       - name: Sync project (creates venv, installs build deps)
         run: uv sync
 
-      - name: Ruff format check
-        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.config == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=$(jq -r '.[]?' <<< '${{ steps.changes.outputs.python_files || '[]' }}')
-          if [ -n "$files" ]; then
-            echo "$files" | xargs -r uv run ruff format --check
-          else
-            echo "No Python files changed, checking all files"
-            uv run ruff format --check .
-          fi
+      - name: ✨ Lint with Ruff (only changed files)
+        if: needs.changed-files.outputs.changed_python_files != '' || needs.changed-files.outputs.changed_config_files != ''
+        uses: astral-sh/ruff-action@v3
+        with:
+          version: "latest"
+          src: ${{ needs.changed-files.outputs.changed_python_files }}
 
-      - name: Ruff lint
-        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.config == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=$(jq -r '.[]?' <<< '${{ steps.changes.outputs.python_files || '[]' }}')
-          if [ -n "$files" ]; then
-            echo "$files" | xargs -r uv run ruff check
-          else
-            echo "No Python files changed, checking all files"
-            uv run ruff check .
-          fi
+      - name: 📝 Format with Ruff (only changed files)
+        if: needs.changed-files.outputs.changed_python_files != '' || needs.changed-files.outputs.changed_config_files != ''
+        uses: astral-sh/ruff-action@v3
+        with:
+          version: "latest"
+          src: ${{ needs.changed-files.outputs.changed_python_files }}
+          args: "format --diff"
 
       - name: Install LLVM/Clang (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        if: startsWith(matrix.os, 'ubuntu') && (needs.changed-files.outputs.changed_cpp_files != '' || needs.changed-files.outputs.changed_config_files != '')
         shell: bash
         run: |
           set -eux
@@ -113,7 +145,7 @@ jobs:
           clang-${{ matrix.llvm }} --version
 
       - name: Install LLVM/Clang (macOS)
-        if: startsWith(matrix.os, 'macos') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        if: startsWith(matrix.os, 'macos') && (needs.changed-files.outputs.changed_cpp_files != '' || needs.changed-files.outputs.changed_config_files != '')
         shell: bash
         run: |
           set -eux
@@ -126,11 +158,11 @@ jobs:
           clang --version
 
       - name: Clang-format check
-        if: steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true'
+        if: needs.changed-files.outputs.changed_cpp_files != '' || needs.changed-files.outputs.changed_config_files != ''
         shell: bash
         run: |
           set -euo pipefail
-          files=$(jq -r '.[]?' <<< '${{ steps.changes.outputs.cpp_files || '[]' }}')
+          files="${{ needs.changed-files.outputs.changed_cpp_files }}"
           if [ -n "$files" ]; then
             echo "$files" | xargs -r clang-format --dry-run --Werror
           else
@@ -141,13 +173,18 @@ jobs:
   # Job 2: Python Tests and Coverage (depends on code-quality, runs on all platforms)
   python-tests:
     timeout-minutes: 20
-    needs: code-quality
+    needs: [checkout, changed-files, code-quality]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    if: ${{ needs.changed-files.outputs.changed_python_files != '' || needs.changed-files.outputs.changed_config_files != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: 🔄 Restore repository from cache
+        uses: actions/cache@v4
+        with:
+          path: .
+          key: repo-${{ github.sha }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -175,16 +212,24 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: 🧹 Minimize uv cache
+        run: uv cache prune --ci
+
   # Job 3: Package Distribution (wheel/sdist building, depends on python-tests, runs on all platforms)
   package-distribution:
     timeout-minutes: 15
-    needs: python-tests
+    needs: [checkout, python-tests]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    if: ${{ needs.changed-files.outputs.changed_python_files != '' || needs.changed-files.outputs.changed_config_files != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: 🔄 Restore repository from cache
+        uses: actions/cache@v4
+        with:
+          path: .
+          key: repo-${{ github.sha }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -214,13 +259,18 @@ jobs:
   # Job 4: C++ Compilation and Examples (depends on package-distribution, runs on all platforms)
   cpp-compilation:
     timeout-minutes: 20
-    needs: package-distribution
+    needs: [checkout, changed-files, package-distribution]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    if: ${{ needs.changed-files.outputs.changed_cpp_files != '' || needs.changed-files.outputs.changed_config_files != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: 🔄 Restore repository from cache
+        uses: actions/cache@v4
+        with:
+          path: .
+          key: repo-${{ github.sha }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -268,3 +318,6 @@ jobs:
 
       - name: Run Python example
         run: uv run python examples/python_example.py | cat
+
+      - name: 🧹 Minimize uv cache
+        run: uv cache prune --ci
