@@ -1,0 +1,161 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job 1: Setup and Linting (runs on all platforms)
+  lint:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for proper diff detection
+
+      - name: Detect changed files
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            python:
+              - '**/*.py'
+              - '**/pyproject.toml'
+              - '**/ruff.toml'
+            cpp:
+              - '**/*.cpp'
+              - '**/*.hpp'
+              - '**/*.h'
+              - '**/*.cc'
+              - '**/CMakeLists.txt'
+              - '**/CMakePresets.json'
+            config:
+              - '**/.github/workflows/**'
+              - '**/pyproject.toml'
+              - '**/ruff.toml'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Sync project (creates venv, installs build deps)
+        run: uv sync --extra dev
+
+      - name: Ruff format check
+        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.config == 'true'
+        run: |
+          if [ "${{ steps.changes.outputs.python }}" == "true" ]; then
+            uv run ruff format --check ${{ steps.changes.outputs.python_files }}
+          else
+            uv run ruff format --check .
+          fi
+
+      - name: Ruff lint
+        if: steps.changes.outputs.python == 'true' || steps.changes.outputs.config == 'true'
+        run: |
+          if [ "${{ steps.changes.outputs.python }}" == "true" ]; then
+            uv run ruff check ${{ steps.changes.outputs.python_files }}
+          else
+            uv run ruff check .
+          fi
+
+      - name: Install clang-format (Ubuntu)
+        if: matrix.os == 'ubuntu-latest' && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Install clang-format (macOS)
+        if: matrix.os == 'macos-latest' && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
+        run: brew install clang-format
+
+      - name: Clang-format check
+        if: steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true'
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.changes.outputs.cpp }}" == "true" ]; then
+            echo "${{ steps.changes.outputs.cpp_files }}" | tr ' ' '\n' | xargs -I {} clang-format --dry-run --Werror {}
+          else
+            find src examples -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) -not -path "*/build/*" -print0 | xargs -0 -I {} clang-format --dry-run --Werror {}
+          fi
+
+  # Job 2: Python Testing (depends on lint, runs on all platforms)
+  test:
+    needs: lint
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Sync project (creates venv, installs build deps)
+        run: uv sync --extra dev
+
+      - name: Run tests with coverage
+        run: uv run pytest
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  # Job 3: Package Building (depends on test, runs on all platforms)
+  build:
+    needs: test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Sync project (creates venv, installs build deps)
+        run: uv sync --extra dev
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/
+
+  # Job 4: C++ Build and Examples (depends on build, runs on all platforms)
+  cpp-examples:
+    needs: build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Sync project (creates venv, installs build deps)
+        run: uv sync --extra dev
+
+      - name: Build C++ examples
+        run: |
+          cd examples
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel
+          ./build/cpp_hello | cat
+          ./build/cpp_invert | cat
+
+      - name: Run Python example
+        run: uv run python examples/python_example.py | cat
