@@ -262,11 +262,9 @@ jobs:
 
       - name: Build C++ examples
         run: |
-          cd examples
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DNEXTCV_BUILD_EXAMPLES=ON
           cmake --build build --parallel
-          ./build/cpp_hello | cat
-          ./build/cpp_invert | cat
+          ./build/examples/cpp_example | cat
 
       - name: Run Python example
         run: uv run python examples/python_example.py | cat
