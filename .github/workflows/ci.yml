@@ -95,7 +95,7 @@ jobs:
             | tee pytest-coverage.txt
 
       - name: 📊 Coverage Comment (Ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: ./pytest-coverage.txt
