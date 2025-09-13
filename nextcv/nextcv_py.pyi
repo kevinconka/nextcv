@@ -1,0 +1,7 @@
+import numpy as np
+from numpy.typing import NDArray
+
+def hello() -> str: ...
+
+
+def invert(input: NDArray[np.uint8]) -> NDArray[np.uint8]: ...
