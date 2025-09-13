@@ -22,7 +22,13 @@ classifiers = [
 dependencies = ["numpy>=1.20.0"]
 
 [dependency-groups]
-dev = ["pybind11>=2.10", "pytest>=7", "pytest-cov>=4.0", "ruff>=0.5"]
+dev = [
+    "pre-commit",
+    "pybind11>=2.10",
+    "pytest>=7",
+    "pytest-cov>=4.0",
+    "ruff>=0.5",
+]
 
 [project.urls]
 Repository = "https://github.com/kevinconka/nextcv.git"

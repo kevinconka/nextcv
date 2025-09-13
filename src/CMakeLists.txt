@@ -98,30 +98,22 @@ if(NEXTCV_BUILD_PYTHON)
 endif()
 
 # Install all libraries
-install(TARGETS nextcv_core nextcv_image
+set(INSTALL_TARGETS nextcv_core nextcv_image)
+
+if(TARGET nextcv_postprocessing)
+  list(APPEND INSTALL_TARGETS nextcv_postprocessing)
+endif()
+
+if(TARGET nextcv_features)
+  list(APPEND INSTALL_TARGETS nextcv_features)
+endif()
+
+install(TARGETS ${INSTALL_TARGETS}
   EXPORT NextCVTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
-if(TARGET nextcv_postprocessing)
-  install(TARGETS nextcv_postprocessing
-    EXPORT NextCVTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-  )
-endif()
-
-if(TARGET nextcv_features)
-  install(TARGETS nextcv_features
-    EXPORT NextCVTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-  )
-endif()
 
 # Install headers
 install(DIRECTORY core/ image/ postprocessing/ features/

@@ -1,10 +1,10 @@
 # NextCV Repository Structure
 
-This document describes the two-level namespace structure implemented for the NextCV computer vision library, providing clear organization without excessive complexity.
+This document describes the mixed C++/Python structure implemented for the NextCV computer vision library, providing both high-performance C++ implementations and pure Python fallbacks in the same modules.
 
 ## Overview
 
-NextCV follows a modular architecture with two-level namespaces (e.g., `nextcv::image::invert()`) and automatic CMake file discovery. The structure provides clear organization while remaining simple and extensible.
+NextCV follows a mixed architecture where each functional module can contain both C++ and Python implementations, allowing users to choose the best implementation for their needs. The structure provides clear organization while remaining intuitive and flexible.
 
 ## Directory Structure
 
@@ -26,18 +26,42 @@ nextcv/
 │       └── bindings.cpp          # pybind11 bindings
 ├── nextcv/                       # Python package
 │   ├── __init__.py               # Main package interface
+│   ├── core/                     # Mixed C++/Python core module
+│   │   └── __init__.py           # hello, hello_python, get_version
+│   ├── image/                    # Mixed C++/Python image processing
+│   │   └── __init__.py           # invert, invert_python, threshold
+│   ├── postprocessing/           # Mixed C++/Python post-processing
+│   │   └── __init__.py           # nms, fast_nms, nms_python
+│   ├── utils/                    # Pure Python utilities
+│   │   └── __init__.py           # load_image, save_image, draw_boxes
+│   ├── features/                 # Pure Python features (for now)
+│   │   └── __init__.py           # detect_corners, detect_corners_python
 │   └── _internal/                # Internal C++ bindings
 │       └── nextcv_py.pyi         # Type stubs
 ├── examples/                     # Usage examples
 │   ├── cpp_example.cpp           # C++ usage example
-│   └── python_example.py         # Python usage example
+│   ├── python_example.py         # Python usage example
+│   └── mixed_api_example.py      # Mixed API usage example
 └── tests/                        # Test suite
     └── test_hello.py
 ```
 
-## C++ Architecture
+## Mixed API Architecture
 
-### Two-Level Namespace Structure
+### Functional Modules with Mixed Implementations
+
+```python
+# Mixed modules - C++ as default, Python as fallback
+from nextcv.image import invert, invert_python
+from nextcv.postprocessing import nms, fast_nms, nms_python
+from nextcv.core import hello, hello_python
+
+# Pure Python modules
+from nextcv.utils import load_image, save_image, draw_boxes
+from nextcv.features import detect_corners, detect_corners_python
+```
+
+### C++ Namespace Structure
 
 ```cpp
 namespace nextcv {
@@ -60,12 +84,26 @@ namespace nextcv {
 }
 ```
 
-### Library Organization
+### Module Organization
 
-- **nextcv_core**: Core utilities, types, and base functionality
-- **nextcv_image**: Image processing operations (depends on nextcv_core)
-- **nextcv_postprocessing**: Post-processing operations (depends on nextcv_core)
-- **nextcv_features**: Feature detection and matching (future, depends on nextcv_core)
+- **nextcv.core**: Mixed C++/Python core functionality
+  - `hello()` - Default implementation (C++ if available, Python fallback)
+  - `hello_python()` - Always Python implementation
+  - `get_version()` - Version information
+- **nextcv.image**: Mixed C++/Python image processing
+  - `invert()` - Default implementation (C++ if available, Python fallback)
+  - `invert_python()` - Always Python implementation
+  - `threshold()` - Binary thresholding
+- **nextcv.postprocessing**: Mixed C++/Python post-processing
+  - `nms()` - Default implementation (C++ if available, Python fallback)
+  - `fast_nms()` - Alias for C++ implementation
+  - `nms_python()` - Always Python implementation
+- **nextcv.utils**: Pure Python utilities
+  - `load_image()`, `save_image()` - Image I/O
+  - `resize_image()`, `normalize_image()` - Image utilities
+  - `draw_boxes()` - Visualization
+- **nextcv.features**: Pure Python features (for now)
+  - `detect_corners()` - Corner detection
 
 ### Modern CMake with Automatic File Discovery
 
@@ -81,66 +119,75 @@ file(GLOB_RECURSE FEATURES_SOURCES "features/*.cpp")
 
 ## Python Architecture
 
-### Simplified Package Structure
+### Mixed Module Structure
 
-The Python package uses a flat structure with all functions directly accessible:
+The Python package uses functional modules with mixed C++/Python implementations:
 
 ```python
-import nextcv
+# Mixed modules - C++ as default, Python as fallback
+from nextcv.image import invert, invert_python
+from nextcv.postprocessing import nms, fast_nms, nms_python
+from nextcv.core import hello, hello_python
 
-# All functions directly available
-nextcv.hello()
-nextcv.invert(image)
-nextcv.threshold(image, 128)
-nextcv.nms(boxes, 0.5)
-nextcv.get_version()
+# Pure Python modules
+from nextcv.utils import load_image, save_image, draw_boxes
+from nextcv.features import detect_corners, detect_corners_python
 ```
 
 ### Import Patterns
 
 ```python
-# Simple, direct imports (like OpenCV)
-import nextcv
-result = nextcv.invert(image)
-filtered_boxes = nextcv.nms(boxes, 0.5)
+# Performance-critical code (uses C++ if available)
+from nextcv.image import invert
+result = invert(image)  # C++ if available, Python fallback
 
-# Or import specific functions
-from nextcv import invert, threshold, nms
-result = invert(image)
-filtered = nms(boxes, 0.5)
+# Debugging or when C++ not available
+from nextcv.image import invert_python
+result = invert_python(image)  # Always Python
+
+# Explicit C++ usage
+from nextcv.postprocessing import fast_nms
+result = fast_nms(boxes, 0.5)  # C++ implementation
+
+# Utilities (always Python)
+from nextcv.utils import load_image, draw_boxes
+image = load_image("input.jpg")
+result = draw_boxes(image, boxes)
 ```
 
 ## Key Design Principles
 
-### 1. **Two-Level Namespaces** (Perfect Balance)
-- Clear organization: `nextcv::image::invert()`
-- Logical grouping: `nextcv::postprocessing::nms()`
-- Not too deep: `nextcv::core::get_version()`
-- Easy to understand and extend
+### 1. **Mixed Implementations** (Best of Both Worlds)
+- C++ as default for performance-critical functions
+- Python fallback when C++ not available
+- Clear naming: `function_name()` vs `function_name_python()`
+- Easy to choose the right implementation
 
 ### 2. **Automatic CMake Discovery**
 - Uses `GLOB_RECURSE` to automatically find all `.cpp` files
 - No need to manually update CMakeLists.txt when adding files
 - Modern CMake syntax with proper target linking
 
-### 3. **Module-Based Organization**
-- **core/**: Basic utilities and types
-- **image/**: Image processing operations
-- **postprocessing/**: Post-processing operations (NMS, etc.)
-- **features/**: Feature detection and matching
+### 3. **Functional Module Organization**
+- **core/**: Core functionality (mixed C++/Python)
+- **image/**: Image processing (mixed C++/Python)
+- **postprocessing/**: Post-processing (mixed C++/Python)
+- **utils/**: Utilities (pure Python)
+- **features/**: Feature detection (pure Python for now)
 
-### 4. **Simple Python API**
-- All functions directly accessible from `nextcv` package
-- No complex module hierarchy
-- Clean, intuitive interface
+### 4. **Intuitive Naming Convention**
+- `function_name()` - Default implementation (C++ if available, Python fallback)
+- `function_name_python()` - Always Python implementation
+- `fast_function_name()` - Alias for C++ implementation
+- Clear distinction between implementations
 
-## Benefits of This Two-Level Structure
+## Benefits of This Mixed Structure
 
 ### **Ease of Use**
-- **Clear Organization**: `nextcv::image::invert()` is intuitive and organized
-- **Logical Grouping**: Related functions are grouped together
-- **Not Too Deep**: Two levels provide clarity without complexity
-- **Intuitive**: Functions are where you expect them
+- **Intuitive Organization**: Functions grouped by functionality
+- **Flexible Choice**: Choose C++ for performance, Python for debugging
+- **Clear Implementation**: Function name indicates implementation type
+- **Fallback Support**: Python implementations work when C++ isn't available
 
 ### **Easy Maintenance**
 - **Automatic CMake**: No manual file listing required
@@ -148,9 +195,9 @@ filtered = nms(boxes, 0.5)
 - **Future-Proof**: Easy to add new modules without restructuring
 
 ### **Industry Best Practices**
-- **Familiar Pattern**: Two-level namespaces are common in C++ libraries
-- **Proven Design**: Provides organization without complexity
-- **Industry Standard**: Follows established C++ library patterns
+- **Familiar Pattern**: Mixed implementations are common in scientific libraries
+- **Proven Design**: Provides flexibility without complexity
+- **Industry Standard**: Follows established mixed-language library patterns
 
 ## Adding New Functionality
 
@@ -161,32 +208,35 @@ filtered = nms(boxes, 0.5)
 4. **Update bindings** if Python interface is needed
 
 ### Python Side
-1. **Add to bindings.cpp** for new C++ functions
-2. **Update __init__.py** to export new functions
-3. **Functions automatically available** as `nextcv.new_function()`
+1. **Add to appropriate module** (e.g., `nextcv/image/__init__.py`)
+2. **Create both implementations**: `new_function()` and `new_function_python()`
+3. **Set default**: `new_function = _new_function_cpp if available else _new_function_python`
+4. **Export both**: Add to `__all__` list
 
-## Namespace Examples
+## Implementation Examples
 
-| Function Category | C++ Namespace | Example Function |
-|-------------------|---------------|------------------|
-| Core utilities | `nextcv::core::` | `nextcv::core::get_version()` |
-| Image processing | `nextcv::image::` | `nextcv::image::invert()` |
-| Post-processing | `nextcv::postprocessing::` | `nextcv::postprocessing::nms()` |
-| Features | `nextcv::features::` | `nextcv::features::detect_corners()` |
+| Module | Default Function | Python Function | C++ Alias | Description |
+|--------|------------------|-----------------|-----------|-------------|
+| core | `hello()` | `hello_python()` | - | Greeting message |
+| image | `invert()` | `invert_python()` | - | Image inversion |
+| postprocessing | `nms()` | `nms_python()` | `fast_nms()` | Non-Maximum Suppression |
+| utils | `load_image()` | - | - | Image I/O (Python-only) |
+| features | `detect_corners()` | `detect_corners_python()` | - | Corner detection |
 
 ## Future Expansion
 
-The two-level structure easily accommodates:
+The mixed structure easily accommodates:
 
-- **New Image Operations**: Add to `src/image/` → `nextcv::image::new_function()`
-- **Feature Detection**: Add to `src/features/` → `nextcv::features::new_function()`
-- **Machine Learning**: Add `src/ml/` → `nextcv::ml::new_function()`
-- **Video Processing**: Add `src/video/` → `nextcv::video::new_function()`
-- **GPU Support**: Add `src/gpu/` → `nextcv::gpu::new_function()`
+- **New Image Operations**: Add to `src/image/` → `nextcv.image.new_function()`
+- **Feature Detection**: Add to `src/features/` → `nextcv.features.new_function()`
+- **Machine Learning**: Add `src/ml/` → `nextcv.ml.new_function()`
+- **Video Processing**: Add `src/video/` → `nextcv.video.new_function()`
+- **GPU Support**: Add `src/gpu/` → `nextcv.gpu.new_function()`
 
 Each new module follows the same pattern:
-- Two-level namespace: `nextcv::module::function()`
+- Mixed implementations: `function()` and `function_python()`
 - Automatic CMake discovery
-- Direct Python API access
+- Clear naming convention
+- Fallback support
 
-This structure provides the perfect balance of organization and simplicity, making it easy to use and extend without namespace confusion or excessive complexity.
+This structure provides the perfect balance of performance and flexibility, making it easy to use and extend while providing clear implementation choices.
