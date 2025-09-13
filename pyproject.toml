@@ -22,7 +22,9 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-dependencies = []
+dependencies = [
+    "numpy>=1.20.0",
+]
 
 [project.optional-dependencies]
 dev = [

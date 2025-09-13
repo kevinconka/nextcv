@@ -28,7 +28,16 @@ cmake --build build
 
 ```python
 import nextcv
+import numpy as np
+
 print(nextcv.hello())
+
+# Using numpy arrays (recommended for computer vision)
+data = np.array([0, 127, 255], dtype=np.uint8)
+inverted = nextcv.invert_numpy(data)
+print(inverted)  # [255 128   0]
+
+# Legacy bytes interface still available
 print(nextcv.invert(b"\x00\x7f\xff"))
 ```
 
