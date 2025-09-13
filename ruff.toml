@@ -6,8 +6,15 @@ select = [
   "E",  # pycodestyle errors
   "F",  # pyflakes
   "I",  # import sorting (isort)
+  "D",  # pydocstyle for docstring conventions
+  "PYI", # flake8-pyi for .pyi files
 ]
-ignore = []
+ignore = [
+  "D100",  # Missing docstring in public module (allow for __init__.py)
+]
+
+[lint.pydocstyle]
+convention = "google"
 
 [format]
 quote-style = "double"
