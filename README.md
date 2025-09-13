@@ -53,7 +53,10 @@ uv add nextcv
 # Or with pip
 pip install nextcv
 
-# Or install directly from source
+# Or install directly from source with uv
+uv add git+https://github.com/kevinconka/nextcv.git
+
+# Or with pip from source
 pip install git+https://github.com/kevinconka/nextcv.git
 ```
 
@@ -132,8 +135,7 @@ git clone https://github.com/kevinconka/nextcv.git
 cd nextcv
 
 # Install pre-commit hooks (recommended)
-pip install pre-commit
-pre-commit install
+uvx pre-commit install
 
 # Python development
 uv sync
@@ -169,14 +171,11 @@ This project uses [pre-commit](https://pre-commit.com/) to ensure code quality a
 ### Setup Pre-commit
 
 ```bash
-# Install pre-commit
-pip install pre-commit
-
 # Install the git hook scripts
-pre-commit install
+uvx pre-commit install
 
 # (Optional) Run against all files
-pre-commit run --all-files
+uvx pre-commit run --all-files
 ```
 
 ### What Pre-commit Does
@@ -194,13 +193,13 @@ The configured hooks will automatically:
 
 ```bash
 # Run all hooks on staged files
-pre-commit run
+uvx pre-commit run
 
 # Run specific hook
-pre-commit run ruff
+uvx pre-commit run ruff
 
 # Update hook versions
-pre-commit autoupdate
+uvx pre-commit autoupdate
 ```
 
 ---
