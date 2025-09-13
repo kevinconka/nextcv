@@ -262,8 +262,20 @@ jobs:
 
       - name: Build C++ examples
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DNEXTCV_BUILD_EXAMPLES=ON
+          # Ensure we're using the virtual environment Python
+          PYTHON_EXECUTABLE=$(uv run which python)
+          echo "Using Python: $PYTHON_EXECUTABLE"
+
+          # Configure CMake with explicit Python path
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNEXTCV_BUILD_EXAMPLES=ON \
+            -DPython3_EXECUTABLE="$PYTHON_EXECUTABLE"
+
+          # Build the project
           cmake --build build --parallel
+
+          # Run the example
           ./build/examples/cpp_example | cat
 
       - name: Run Python example
