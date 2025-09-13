@@ -24,4 +24,3 @@ PYBIND11_MODULE(nextcv_py, m) {
     m.def("hello", &nextcv::hello, "Return a greeting from NextCV C++");
     m.def("invert", &invert_bytes, "Invert 8-bit pixels provided as bytes-like, returns bytes");
 }
-

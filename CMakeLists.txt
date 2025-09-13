@@ -6,7 +6,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(NEXTCV_BUILD_EXAMPLES "Build NextCV C++ examples" OFF)
 
-find_package(pybind11 CONFIG REQUIRED)
+# Find Python and pybind11
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+# Try to find pybind11 in the Python environment first
+execute_process(
+  COMMAND ${Python3_EXECUTABLE} -c "import pybind11; print(pybind11.get_cmake_dir())"
+  OUTPUT_VARIABLE pybind11_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE pybind11_found
+)
+
+if(pybind11_found EQUAL 0)
+  message(STATUS "Found pybind11 at: ${pybind11_DIR}")
+  find_package(pybind11 CONFIG REQUIRED PATHS ${pybind11_DIR} NO_DEFAULT_PATH)
+else()
+  # Fallback to system pybind11
+  find_package(pybind11 CONFIG REQUIRED)
+endif()
 
 add_subdirectory(src)
 

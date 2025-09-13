@@ -7,4 +7,3 @@ namespace nextcv {
 std::string hello();
 
 } // namespace nextcv
-
