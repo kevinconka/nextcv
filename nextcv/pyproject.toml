@@ -1,0 +1,43 @@
+[build-system]
+requires = [
+  "scikit-build-core>=0.10",
+  "pybind11>=2.10",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "nextcv"
+version = "0.0.1"
+description = "NextCV is like OpenCV but with modern tooling. A minimal, experimental CV library (C++ core + pybind11)."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0" }
+authors = [{ name = "NextCV Contributors" }]
+keywords = ["computer-vision", "cpp", "pybind11", "scikit-build-core"]
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++",
+  "Operating System :: OS Independent",
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7",
+]
+
+[project.urls]
+Homepage = "https://example.com/nextcv"
+Repository = "https://example.com/nextcv.git"
+Issues = "https://example.com/nextcv/issues"
+
+# scikit-build-core configuration
+# Reference: https://scikit-build-core.readthedocs.io/en/latest/configuration/
+[tool.scikit-build]
+wheel.packages = ["nextcv"]
+cmake.minimum-version = "3.20"
+build-dir = "build"
+
