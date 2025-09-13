@@ -5,6 +5,7 @@
 #include <string>
 
 namespace nextcv {
+namespace core {
 
 // Common type definitions
 using Pixel = std::uint8_t;
@@ -31,4 +32,5 @@ enum class ColorSpace {
     BGRA = 4
 };
 
+} // namespace core
 } // namespace nextcv

@@ -2,6 +2,7 @@
 #include "../core/utils.hpp"
 
 namespace nextcv {
+namespace image {
 
 PixelVector threshold(const PixelVector& pixels, Pixel threshold, Pixel max_value) {
     PixelVector out;
@@ -12,10 +13,11 @@ PixelVector threshold(const PixelVector& pixels, Pixel threshold, Pixel max_valu
     return out;
 }
 
-PixelVector threshold(const PixelVector& pixels, const ImageSize& size, 
+PixelVector threshold(const PixelVector& pixels, const core::ImageSize& size, 
                      Pixel threshold, Pixel max_value) {
-    validate_array_contiguity(pixels, size);
+    core::validate_array_contiguity(pixels, size);
     return threshold(pixels, threshold, max_value);
 }
 
+} // namespace image
 } // namespace nextcv

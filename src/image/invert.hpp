@@ -3,6 +3,7 @@
 #include "../core/types.hpp"
 
 namespace nextcv {
+namespace image {
 
 /**
  * @brief Invert pixel values in an image
@@ -18,6 +19,7 @@ PixelVector invert(const PixelVector& pixels);
  * @return Inverted pixel data
  * @throws std::invalid_argument if data size doesn't match expected dimensions
  */
-PixelVector invert(const PixelVector& pixels, const ImageSize& size);
+PixelVector invert(const PixelVector& pixels, const core::ImageSize& size);
 
+} // namespace image
 } // namespace nextcv

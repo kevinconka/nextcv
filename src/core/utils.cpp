@@ -2,6 +2,7 @@
 #include <sstream>
 
 namespace nextcv {
+namespace core {
 
 std::string get_version() {
     return "0.1.0";
@@ -23,4 +24,5 @@ void validate_array_contiguity(const PixelVector& data, const ImageSize& size) {
     }
 }
 
+} // namespace core
 } // namespace nextcv

@@ -3,6 +3,7 @@
 #include <string>
 
 namespace nextcv {
+namespace core {
 
 /**
  * @brief Return a greeting message from NextCV
@@ -10,4 +11,5 @@ namespace nextcv {
  */
 std::string hello();
 
+} // namespace core
 } // namespace nextcv

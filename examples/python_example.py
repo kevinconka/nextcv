@@ -54,6 +54,12 @@ def main() -> None:
     print("Expected:        ", expected_thresh)
     print("Match:", np.array_equal(thresholded, expected_thresh))
 
+    # Example with NMS (Non-Maximum Suppression)
+    print("\nNMS Example:")
+    # Note: In a real scenario, you'd have bounding boxes from object detection
+    # For this demo, we'll create some mock bounding boxes
+    print("NMS function is available as nextcv.nms() for bounding box filtering")
+
 
 if __name__ == "__main__":
     main()

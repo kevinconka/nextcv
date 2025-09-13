@@ -17,23 +17,43 @@ set_target_properties(nextcv_core PROPERTIES
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-# Image processing library - automatically discover all .cpp files in imgproc/
-file(GLOB_RECURSE IMGPROC_SOURCES "imgproc/*.cpp")
-add_library(nextcv_imgproc ${IMGPROC_SOURCES})
+# Image processing library - automatically discover all .cpp files in image/
+file(GLOB_RECURSE IMAGE_SOURCES "image/*.cpp")
+add_library(nextcv_image ${IMAGE_SOURCES})
 
-target_include_directories(nextcv_imgproc
+target_include_directories(nextcv_image
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(nextcv_imgproc PUBLIC nextcv_core)
+target_link_libraries(nextcv_image PUBLIC nextcv_core)
 
-set_target_properties(nextcv_imgproc PROPERTIES
-  EXPORT_NAME nextcv_imgproc
+set_target_properties(nextcv_image PROPERTIES
+  EXPORT_NAME nextcv_image
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
+
+# Postprocessing library - automatically discover all .cpp files in postprocessing/
+file(GLOB_RECURSE POSTPROC_SOURCES "postprocessing/*.cpp")
+if(POSTPROC_SOURCES)
+  add_library(nextcv_postprocessing ${POSTPROC_SOURCES})
+  
+  target_include_directories(nextcv_postprocessing
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<INSTALL_INTERFACE:include>
+  )
+  
+  target_link_libraries(nextcv_postprocessing PUBLIC nextcv_core)
+  
+  set_target_properties(nextcv_postprocessing PROPERTIES
+    EXPORT_NAME nextcv_postprocessing
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+endif()
 
 # Features library - automatically discover all .cpp files in features/
 file(GLOB_RECURSE FEATURES_SOURCES "features/*.cpp")
@@ -62,9 +82,13 @@ if(NEXTCV_BUILD_PYTHON)
   
   pybind11_add_module(nextcv_py MODULE ${BINDINGS_SOURCES})
   
-  target_link_libraries(nextcv_py PRIVATE nextcv_core nextcv_imgproc)
+  target_link_libraries(nextcv_py PRIVATE nextcv_core nextcv_image)
   
-  # Link features if it exists
+  # Link optional libraries if they exist
+  if(TARGET nextcv_postprocessing)
+    target_link_libraries(nextcv_py PRIVATE nextcv_postprocessing)
+  endif()
+  
   if(TARGET nextcv_features)
     target_link_libraries(nextcv_py PRIVATE nextcv_features)
   endif()
@@ -74,12 +98,21 @@ if(NEXTCV_BUILD_PYTHON)
 endif()
 
 # Install all libraries
-install(TARGETS nextcv_core nextcv_imgproc
+install(TARGETS nextcv_core nextcv_image
   EXPORT NextCVTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
+if(TARGET nextcv_postprocessing)
+  install(TARGETS nextcv_postprocessing
+    EXPORT NextCVTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+  )
+endif()
 
 if(TARGET nextcv_features)
   install(TARGETS nextcv_features
@@ -91,7 +124,7 @@ if(TARGET nextcv_features)
 endif()
 
 # Install headers
-install(DIRECTORY core/ imgproc/ features/
+install(DIRECTORY core/ image/ postprocessing/ features/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )
