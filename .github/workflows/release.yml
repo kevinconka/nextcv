@@ -28,11 +28,11 @@ jobs:
       - name: 🏗️ Build Package
         run: uv build
 
-      - name: 📝 Build Changelog
-        id: changelog
-        uses: mikepenz/release-changelog-builder-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: 📝 Build Changelog
+      #   id: changelog
+      #   uses: mikepenz/release-changelog-builder-action@v5
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
