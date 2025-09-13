@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Job 1: Code Quality Checks (formatting, linting, style)
   code-quality:
+    timeout-minutes: 15
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -23,6 +31,7 @@ jobs:
         uses: dorny/paths-filter@v3
         id: changes
         with:
+          list-files: json
           filters: |
             python:
               - '**/*.py'
@@ -30,10 +39,14 @@ jobs:
               - '**/ruff.toml'
             cpp:
               - '**/*.cpp'
+              - '**/*.cc'
+              - '**/*.c'
               - '**/*.hpp'
               - '**/*.h'
-              - '**/*.cc'
+              - '**/*.hh'
+              - '**/*.ipp'
               - '**/CMakeLists.txt'
+              - '**/*.cmake'
               - '**/CMakePresets.json'
             config:
               - '**/.github/workflows/**'
@@ -58,104 +71,76 @@ jobs:
 
       - name: Ruff format check
         if: steps.changes.outputs.python == 'true' || steps.changes.outputs.config == 'true'
+        shell: bash
         run: |
-          if [ "${{ steps.changes.outputs.python }}" == "true" ]; then
-            uv run ruff format --check ${{ steps.changes.outputs.python_files }}
+          set -euo pipefail
+          files=$(jq -r '.[]?' <<< '${{ steps.changes.outputs.python_files || '[]' }}')
+          if [ -n "$files" ]; then
+            echo "$files" | xargs -r uv run ruff format --check
+          else
+            echo "No Python files changed, checking all files"
+            uv run ruff format --check .
           fi
 
       - name: Ruff lint
         if: steps.changes.outputs.python == 'true' || steps.changes.outputs.config == 'true'
+        shell: bash
         run: |
-          if [ "${{ steps.changes.outputs.python }}" == "true" ]; then
-            uv run ruff check ${{ steps.changes.outputs.python_files }}
+          set -euo pipefail
+          files=$(jq -r '.[]?' <<< '${{ steps.changes.outputs.python_files || '[]' }}')
+          if [ -n "$files" ]; then
+            echo "$files" | xargs -r uv run ruff check
+          else
+            echo "No Python files changed, checking all files"
+            uv run ruff check .
           fi
 
-      - name: Cache LLVM/Clang (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/bin/clang-${{ matrix.llvm }}
-            /usr/local/bin/clang++-${{ matrix.llvm }}
-            /usr/local/bin/clang-format-${{ matrix.llvm }}
-            /usr/local/bin/clang-tidy-${{ matrix.llvm }}
-            /usr/local/bin/lld-${{ matrix.llvm }}
-            /usr/local/lib/clang
-          key: ${{ runner.os }}-llvm-${{ matrix.llvm }}-ubuntu
-          restore-keys: |
-            ${{ runner.os }}-llvm-${{ matrix.llvm }}-
-
-      - name: Install clang-format (Ubuntu)
+      - name: Install LLVM/Clang (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
         shell: bash
         run: |
           set -eux
-          if ! command -v clang-${{ matrix.llvm }} &> /dev/null; then
-            curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
-            chmod +x /tmp/llvm.sh
-            sudo /tmp/llvm.sh ${{ matrix.llvm }}
-            sudo apt-get install -y \
-              clang-${{ matrix.llvm }} \
-              lld-${{ matrix.llvm }} \
-              clang-tidy-${{ matrix.llvm }} \
-              clang-format-${{ matrix.llvm }}
-          fi
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          chmod +x /tmp/llvm.sh
+          sudo /tmp/llvm.sh ${{ matrix.llvm }}
+          sudo apt-get install -y \
+            clang-${{ matrix.llvm }} \
+            lld-${{ matrix.llvm }} \
+            clang-tidy-${{ matrix.llvm }} \
+            clang-format-${{ matrix.llvm }}
           echo "CC=clang-${{ matrix.llvm }}" >> $GITHUB_ENV
           echo "CXX=clang++-${{ matrix.llvm }}" >> $GITHUB_ENV
           clang-${{ matrix.llvm }} --version
 
-      - name: Cache LLVM/Clang (macOS)
-        if: startsWith(matrix.os, 'macos') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
-        uses: actions/cache@v4
-        with:
-          path: |
-            /opt/homebrew/Cellar/llvm@${{ matrix.llvm }}
-            /opt/homebrew/bin/clang
-            /opt/homebrew/bin/clang++
-            /opt/homebrew/bin/clang-format
-            /opt/homebrew/bin/clang-tidy
-          key: ${{ runner.os }}-llvm-${{ matrix.llvm }}-macos
-          restore-keys: |
-            ${{ runner.os }}-llvm-${{ matrix.llvm }}-
-
-      - name: Install clang-format (macOS)
+      - name: Install LLVM/Clang (macOS)
         if: startsWith(matrix.os, 'macos') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
         shell: bash
         run: |
           set -eux
-          if ! brew list llvm@${{ matrix.llvm }} &> /dev/null; then
-            brew update
-            brew install llvm@${{ matrix.llvm }}
-          fi
+          brew update
+          brew install llvm@${{ matrix.llvm }}
           LLVM_PREFIX="$(brew --prefix llvm@${{ matrix.llvm }})"
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
-          # Helpful for finding headers/libs (e.g., libc++)
-          echo "CPPFLAGS=-I$LLVM_PREFIX/include" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$LLVM_PREFIX/lib" >> $GITHUB_ENV
           echo "CC=clang"  >> $GITHUB_ENV
           echo "CXX=clang++" >> $GITHUB_ENV
           clang --version
 
-      - name: Install clang-tidy (windows)
-        if: startsWith(matrix.os, 'windows') && (steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true')
-        shell: pwsh
-        run: |
-          choco install llvm --version=${{ matrix.llvm }} -y --no-progress
-          "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
-          "CC=clang"  | Out-File -FilePath $env:GITHUB_ENV -Append
-          "CXX=clang++" | Out-File -FilePath $env:GITHUB_ENV -Append
-          clang --version
-
       - name: Clang-format check
         if: steps.changes.outputs.cpp == 'true' || steps.changes.outputs.config == 'true'
+        shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ steps.changes.outputs.cpp }}" == "true" ]; then
-            echo "${{ steps.changes.outputs.cpp_files }}" | tr ' ' '\n' | xargs -I {} clang-format --dry-run --Werror {}
+          files=$(jq -r '.[]?' <<< '${{ steps.changes.outputs.cpp_files || '[]' }}')
+          if [ -n "$files" ]; then
+            echo "$files" | xargs -r clang-format --dry-run --Werror
+          else
+            echo "No C++ files changed, checking all files"
+            find src examples -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' \) -not -path "*/build/*" -print0 | xargs -0 -I {} clang-format --dry-run --Werror {}
           fi
 
   # Job 2: Python Tests and Coverage (depends on code-quality, runs on all platforms)
   python-tests:
+    timeout-minutes: 20
     needs: code-quality
     strategy:
       matrix:
@@ -181,16 +166,18 @@ jobs:
         run: uv sync
 
       - name: Run tests with coverage
-        run: uv run pytest
+        run: uv run pytest --cov=nextcv --cov-report=xml
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # Job 3: Package Distribution (wheel/sdist building, depends on python-tests, runs on all platforms)
   package-distribution:
+    timeout-minutes: 15
     needs: python-tests
     strategy:
       matrix:
@@ -226,6 +213,7 @@ jobs:
 
   # Job 4: C++ Compilation and Examples (depends on package-distribution, runs on all platforms)
   cpp-compilation:
+    timeout-minutes: 20
     needs: package-distribution
     strategy:
       matrix:
