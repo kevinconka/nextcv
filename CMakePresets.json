@@ -5,7 +5,6 @@
       "name": "uv-env",
       "displayName": "UV Virtual Environment",
       "description": "Use Python from uv virtual environment",
-      "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "Python3_EXECUTABLE": "${sourceDir}/.venv/bin/python3",
