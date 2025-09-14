@@ -4,8 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace nextcv {
-namespace core {
+namespace nextcv::core {
 
 // Common type definitions
 using Pixel = std::uint8_t;
@@ -19,7 +18,7 @@ struct ImageSize {
 
     ImageSize(std::size_t w, std::size_t h, std::size_t c = 1) : width(w), height(h), channels(c) {}
 
-    std::size_t total_pixels() const {
+    [[nodiscard]] auto totalPixels() const -> std::size_t {
         return width * height * channels;
     }
 };
@@ -27,5 +26,4 @@ struct ImageSize {
 // Color space definitions
 enum class ColorSpace { GRAYSCALE = 1, RGB = 3, RGBA = 4, BGR = 3, BGRA = 4 };
 
-} // namespace core
-} // namespace nextcv
+} // namespace nextcv::core

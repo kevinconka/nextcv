@@ -3,8 +3,7 @@
 #include "../core/types.hpp"
 #include <vector>
 
-namespace nextcv {
-namespace postprocessing {
+namespace nextcv::postprocessing {
 
 // Bounding box structure
 struct BoundingBox {
@@ -22,8 +21,7 @@ struct BoundingBox {
  * @param threshold IoU threshold for suppression
  * @return Indices of boxes to keep after NMS
  */
-std::vector<int> nms(const std::vector<std::array<float, 4>>& bboxes,
-                     const std::vector<float>& scores, float threshold = 0.5f);
+auto nms(const std::vector<std::array<float, 4>>& bboxes, const std::vector<float>& scores,
+         float threshold = 0.5F) -> std::vector<int>;
 
-} // namespace postprocessing
-} // namespace nextcv
+} // namespace nextcv::postprocessing

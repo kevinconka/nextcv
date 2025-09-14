@@ -1,11 +1,10 @@
 #include "hello.hpp"
+#include <string>
 
-namespace nextcv {
-namespace core {
+namespace nextcv::core {
 
-std::string hello() {
+auto hello() -> std::string {
     return "Hello from NextCV (C++)";
 }
 
-} // namespace core
-} // namespace nextcv
+} // namespace nextcv::core

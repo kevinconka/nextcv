@@ -2,14 +2,12 @@
 
 #include <string>
 
-namespace nextcv {
-namespace core {
+namespace nextcv::core {
 
 /**
  * @brief Return a greeting message from NextCV
  * @return Greeting string
  */
-std::string hello();
+auto hello() -> std::string;
 
-} // namespace core
-} // namespace nextcv
+} // namespace nextcv::core

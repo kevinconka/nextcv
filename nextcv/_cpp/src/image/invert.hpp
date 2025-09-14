@@ -2,15 +2,14 @@
 
 #include "../core/types.hpp"
 
-namespace nextcv {
-namespace image {
+namespace nextcv::image {
 
 /**
  * @brief Invert pixel values in an image
  * @param pixels Input pixel data
  * @return Inverted pixel data
  */
-core::PixelVector invert(const core::PixelVector& pixels);
+auto invert(const core::PixelVector& pixels) -> core::PixelVector;
 
 /**
  * @brief Invert pixel values with validation
@@ -19,7 +18,6 @@ core::PixelVector invert(const core::PixelVector& pixels);
  * @return Inverted pixel data
  * @throws std::invalid_argument if data size doesn't match expected dimensions
  */
-core::PixelVector invert(const core::PixelVector& pixels, const core::ImageSize& size);
+auto invert(const core::PixelVector& pixels, const core::ImageSize& size) -> core::PixelVector;
 
-} // namespace image
-} // namespace nextcv
+} // namespace nextcv::image

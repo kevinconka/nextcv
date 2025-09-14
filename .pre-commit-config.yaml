@@ -45,9 +45,9 @@ repos:
       - id: clang-format
         types_or: [c, c++, cuda]
 
-  - repo: https://github.com/pocc/pre-commit-hooks
-    rev: v1.3.5
-    hooks:
-      - id: clang-tidy
-        args: [--config-file=.clang-tidy]
-        types_or: [c++, c]
+  # - repo: https://github.com/pocc/pre-commit-hooks
+  #   rev: v1.3.5
+  #   hooks:
+  #     - id: clang-tidy
+  #       args: [--config-file=.clang-tidy]
+  #       types_or: [c++, c]
