@@ -60,9 +60,9 @@ int main() {
     auto kept_indices = nextcv::postprocessing::nms(bboxes, scores, 0.5f);
     std::cout << "After NMS: " << kept_indices.size() << " boxes kept" << std::endl;
     for (const auto& idx : kept_indices) {
-        const auto& box = bboxes[idx];
+        const auto& box = bboxes[static_cast<size_t>(idx)];
         std::cout << "  [" << idx << "] (" << box[0] << ", " << box[1] << ", " << box[2] << ", "
-                  << box[3] << ") conf=" << scores[idx] << std::endl;
+                  << box[3] << ") conf=" << scores[static_cast<size_t>(idx)] << std::endl;
     }
 
     return 0;

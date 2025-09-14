@@ -34,28 +34,35 @@ function(create_nextcv_library target_name source_pattern dependencies)
   )
 endfunction()
 
-# Dynamic library discovery - automatically find all library directories
-file(GLOB LIBRARY_DIRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*/")
-list(FILTER LIBRARY_DIRS EXCLUDE REGEX "bindings")
+# Single library approach - automatically discover all .cpp files
+file(GLOB_RECURSE ALL_SOURCES "*.cpp")
+list(FILTER ALL_SOURCES EXCLUDE REGEX "bindings/.*")
 
-# Create libraries dynamically
-foreach(LIB_DIR ${LIBRARY_DIRS})
-  # Remove trailing slash
-  string(REGEX REPLACE "/$" "" LIB_NAME ${LIB_DIR})
+# Create include directory structure for development
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/nextcv)
+file(COPY core image postprocessing DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/nextcv/)
 
-  # Check if directory has .cpp files
-  file(GLOB_RECURSE LIB_SOURCES "${LIB_DIR}/*.cpp")
-  if(LIB_SOURCES)
-    # Determine dependencies based on library name
-    set(DEPS "")
-    if(NOT ${LIB_NAME} STREQUAL "core")
-      set(DEPS "nextcv_core")
-    endif()
+# Create single library with all sources
+add_library(nextcv ${ALL_SOURCES})
 
-    # Create the library
-    create_nextcv_library(nextcv_${LIB_NAME} "${LIB_DIR}/*.cpp" "${DEPS}")
-  endif()
-endforeach()
+# Set modern target properties
+target_compile_features(nextcv PUBLIC cxx_std_17)
+target_include_directories(nextcv
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<INSTALL_INTERFACE:include/nextcv>
+)
+
+# Set target properties using modern syntax
+set_target_properties(nextcv PROPERTIES
+  EXPORT_NAME nextcv
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
+  POSITION_INDEPENDENT_CODE ON
+)
 
 
 # Python bindings (only if Python is enabled)
@@ -67,14 +74,7 @@ if(NEXTCV_BUILD_PYTHON)
 
   # Set modern target properties for Python module
   target_compile_features(nextcv_py PRIVATE cxx_std_17)
-
-  # Dynamically link all created libraries
-  get_property(ALL_TARGETS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
-  foreach(TARGET ${ALL_TARGETS})
-    if(TARGET ${TARGET} AND ${TARGET} MATCHES "^nextcv_" AND NOT ${TARGET} STREQUAL "nextcv_py")
-      target_link_libraries(nextcv_py PRIVATE ${TARGET})
-    endif()
-  endforeach()
+  target_link_libraries(nextcv_py PRIVATE nextcv)
 
   # Set target properties using modern syntax
   set_target_properties(nextcv_py PROPERTIES
@@ -88,16 +88,8 @@ if(NEXTCV_BUILD_PYTHON)
   install(TARGETS nextcv_py DESTINATION nextcv/_cpp)
 endif()
 
-# Dynamic library installation - automatically install all created libraries
-get_property(ALL_TARGETS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
-foreach(TARGET ${ALL_TARGETS})
-  if(TARGET ${TARGET} AND ${TARGET} MATCHES "^nextcv_")
-    list(APPEND INSTALL_TARGETS ${TARGET})
-  endif()
-endforeach()
-
-# Install all libraries with modern syntax
-install(TARGETS ${INSTALL_TARGETS}
+# Install the single library
+install(TARGETS nextcv
   EXPORT NextCVTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
