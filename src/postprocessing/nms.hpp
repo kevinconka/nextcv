@@ -16,12 +16,14 @@ struct BoundingBox {
 };
 
 /**
- * @brief Apply Non-Maximum Suppression to bounding boxes
- * @param boxes Input bounding boxes
+ * @brief Apply Non-Maximum Suppression to bounding boxes (numpy array version)
+ * @param bboxes Bounding boxes as (x1, y1, x2, y2) format
+ * @param scores Confidence scores for each bounding box
  * @param threshold IoU threshold for suppression
- * @return Filtered bounding boxes after NMS
+ * @return Indices of boxes to keep after NMS
  */
-std::vector<BoundingBox> nms(const std::vector<BoundingBox>& boxes, float threshold = 0.5f);
+std::vector<int> nms(const std::vector<std::array<float, 4>>& bboxes,
+                     const std::vector<float>& scores, float threshold = 0.5f);
 
 } // namespace postprocessing
 } // namespace nextcv

@@ -5,11 +5,13 @@ namespace nextcv {
 namespace image {
 
 core::PixelVector invert(const core::PixelVector& pixels) {
+    constexpr core::Pixel MAX_PIXEL_VALUE = std::numeric_limits<core::Pixel>::max();
     core::PixelVector out;
     out.reserve(pixels.size());
-    for (core::Pixel p : pixels) {
-        out.push_back(static_cast<core::Pixel>(255 - p));
-    }
+
+    std::transform(pixels.begin(), pixels.end(), std::back_inserter(out),
+                   [](core::Pixel p) { return static_cast<core::Pixel>(MAX_PIXEL_VALUE - p); });
+
     return out;
 }
 

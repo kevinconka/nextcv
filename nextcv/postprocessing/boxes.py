@@ -1,16 +1,24 @@
 """Bounding box postprocessing functions."""
 
+from typing import TYPE_CHECKING
+
 import cv2
 import numpy as np
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+else:
+    # At runtime, just alias to ndarray so code still runs
+    NDArray = np.ndarray
+
 
 def iou_np(
-    target_box: np.ndarray,
-    boxes: np.ndarray,
-    target_area: np.ndarray,
-    areas: np.ndarray,
+    target_box: NDArray,
+    boxes: NDArray,
+    target_area: NDArray,
+    areas: NDArray,
     inclusive: bool = False,
-) -> np.ndarray:
+) -> NDArray:
     """Calculate intersection over union of target box with all others.
 
     Args:
@@ -40,10 +48,10 @@ def iou_np(
 
 
 def nms_np(
-    bboxes: np.ndarray,
-    scores: np.ndarray,
+    bboxes: NDArray,
+    scores: NDArray,
     iou_thresh: float,
-) -> np.ndarray:
+) -> NDArray:
     """Non-Maximum-Supression (NMS) algorithm to remove overlapping bounding boxes.
 
     Args:
@@ -80,14 +88,14 @@ def nms_np(
         # update order by removing suppressed boxes
         order = order[idxs + 1]  # +1 because we removed the first element
 
-    return keep
+    return np.nonzero(keep)[0]  # indices of boxes to keep
 
 
 def nms_cv2(
-    bboxes: np.ndarray,
-    scores: np.ndarray,
+    bboxes: NDArray,
+    scores: NDArray,
     iou_thresh: float,
-) -> np.ndarray:
+) -> NDArray:
     """Non-Maximum-Supression (NMS) using OpenCV's dnn.NMSBoxes().
 
     Args:
@@ -99,4 +107,7 @@ def nms_cv2(
     Returns:
         The indices of the bounding boxes to keep.
     """
-    return cv2.dnn.NMSBoxes(bboxes, scores, iou_thresh)
+    indices = cv2.dnn.NMSBoxes(
+        bboxes, scores, score_threshold=0.0, nms_threshold=iou_thresh
+    )
+    return np.array(indices, dtype=np.int32)

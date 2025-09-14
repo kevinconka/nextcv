@@ -10,7 +10,10 @@
     "editor.defaultFormatter": "xaver.clang-format"
   },
   "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
-  "cursorpyright.analysis.ignore": [
-    "./nextcv/_cpp/**"
+  "pylint.args": [
+    "--ignored-modules=nextcv._cpp.nextcv_py"
+  ],
+  "cursorpyright.analysis.exclude": [
+    "nextcv/_cpp"
   ]
 }

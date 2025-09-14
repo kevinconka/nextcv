@@ -8,6 +8,6 @@ Includes operations like:
 - Thresholding and normalization
 """
 
-from nextcv._cpp import invert
+from nextcv._cpp.nextcv_py import invert
 
 __all__ = ["invert"]

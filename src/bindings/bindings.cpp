@@ -46,7 +46,7 @@ PYBIND11_MODULE(nextcv_py, m) {
     // Image processing functions
     m.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
 
-    // Postprocessing functions
-    m.def("nms", &nextcv::postprocessing::nms, py::arg("boxes"), py::arg("threshold") = 0.5f,
-          "Apply Non-Maximum Suppression to bounding boxes");
+    m.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
+          py::arg("threshold") = 0.5f,
+          "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
 }

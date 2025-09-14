@@ -1,50 +1,60 @@
 #include "nms.hpp"
 #include <algorithm>
+#include <array>
+#include <numeric>
 #include <vector>
 
 namespace nextcv {
 namespace postprocessing {
 
-std::vector<BoundingBox> nms(const std::vector<BoundingBox>& boxes, float threshold) {
-    if (boxes.empty()) {
+std::vector<int> nms(const std::vector<std::array<float, 4>>& bboxes,
+                     const std::vector<float>& scores, float threshold) {
+    if (bboxes.empty() || scores.empty() || bboxes.size() != scores.size()) {
         return {};
     }
 
-    // Sort boxes by confidence (descending)
-    std::vector<BoundingBox> sorted_boxes = boxes;
-    std::sort(
-        sorted_boxes.begin(), sorted_boxes.end(),
-        [](const BoundingBox& a, const BoundingBox& b) { return a.confidence > b.confidence; });
+    // Create indices and sort by scores (descending)
+    std::vector<int> indices(bboxes.size());
+    std::iota(indices.begin(), indices.end(), 0);
 
-    std::vector<BoundingBox> result;
-    std::vector<bool> suppressed(sorted_boxes.size(), false);
+    std::sort(indices.begin(), indices.end(),
+              [&scores](int a, int b) { return scores[a] > scores[b]; });
 
-    for (size_t i = 0; i < sorted_boxes.size(); ++i) {
-        if (suppressed[i])
+    std::vector<int> result;
+    std::vector<bool> suppressed(bboxes.size(), false);
+
+    for (size_t i = 0; i < indices.size(); ++i) {
+        if (suppressed[indices[i]])
             continue;
 
-        result.push_back(sorted_boxes[i]);
+        result.push_back(indices[i]);
 
         // Suppress boxes with high IoU
-        for (size_t j = i + 1; j < sorted_boxes.size(); ++j) {
-            if (suppressed[j])
+        for (size_t j = i + 1; j < indices.size(); ++j) {
+            if (suppressed[indices[j]])
                 continue;
 
-            // Calculate IoU (simplified - just overlap check for demo)
-            const auto& box1 = sorted_boxes[i];
-            const auto& box2 = sorted_boxes[j];
+            // Calculate IoU
+            const auto& box1 = bboxes[indices[i]];
+            const auto& box2 = bboxes[indices[j]];
 
-            float overlap = std::max(0.0f, std::min(box1.x + box1.width, box2.x + box2.width) -
-                                               std::max(box1.x, box2.x)) *
-                            std::max(0.0f, std::min(box1.y + box1.height, box2.y + box2.height) -
-                                               std::max(box1.y, box2.y));
+            // Intersection
+            float x1 = std::max(box1[0], box2[0]);
+            float y1 = std::max(box1[1], box2[1]);
+            float x2 = std::min(box1[2], box2[2]);
+            float y2 = std::min(box1[3], box2[3]);
 
-            float area1 = box1.width * box1.height;
-            float area2 = box2.width * box2.height;
-            float iou = overlap / (area1 + area2 - overlap);
+            float intersection = std::max(0.0f, x2 - x1) * std::max(0.0f, y2 - y1);
+
+            // Areas
+            float area1 = (box1[2] - box1[0]) * (box1[3] - box1[1]);
+            float area2 = (box2[2] - box2[0]) * (box2[3] - box2[1]);
+            float union_area = area1 + area2 - intersection;
+
+            float iou = intersection / union_area;
 
             if (iou > threshold) {
-                suppressed[j] = true;
+                suppressed[indices[j]] = true;
             }
         }
     }
