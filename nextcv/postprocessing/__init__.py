@@ -1,7 +1,4 @@
-"""NextCV Postprocessing module - Post-processing functionality.
-
-This module provides post-processing functions with both C++ and Python implementations.
-"""
+"""NextCV Postprocessing module - Post-processing functionality."""
 
 # Try to import C++ wrapped functions
 try:
@@ -10,8 +7,8 @@ try:
 except ImportError:
     CPP_AVAILABLE = False
 
-# Python implementations
-def nms_python(boxes, threshold=0.5):
+# Python implementation (default)
+def nms(boxes, threshold=0.5):
     """Python implementation of Non-Maximum Suppression.
     
     Args:
@@ -67,15 +64,10 @@ def nms_python(boxes, threshold=0.5):
     
     return result
 
-# Expose functions with C++ as default, Python as fallback
+# C++ implementation (if available)
 if CPP_AVAILABLE:
-    nms = _nms_cpp
-    fast_nms = _nms_cpp  # Alias for C++ implementation
+    nms_fast = _nms_cpp
 else:
-    nms = nms_python
-    fast_nms = nms_python  # Fallback to Python
+    nms_fast = nms  # Fallback to Python
 
-# Always expose both implementations
-__all__ = [
-    "nms", "nms_python", "fast_nms"
-]
+__all__ = ["nms", "nms_fast"]

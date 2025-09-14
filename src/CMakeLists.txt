@@ -55,25 +55,6 @@ if(POSTPROC_SOURCES)
   )
 endif()
 
-# Features library - automatically discover all .cpp files in features/
-file(GLOB_RECURSE FEATURES_SOURCES "features/*.cpp")
-if(FEATURES_SOURCES)
-  add_library(nextcv_features ${FEATURES_SOURCES})
-  
-  target_include_directories(nextcv_features
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<INSTALL_INTERFACE:include>
-  )
-  
-  target_link_libraries(nextcv_features PUBLIC nextcv_core)
-  
-  set_target_properties(nextcv_features PROPERTIES
-    EXPORT_NAME nextcv_features
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-  )
-endif()
 
 # Python bindings (only if Python is enabled)
 if(NEXTCV_BUILD_PYTHON)
@@ -89,10 +70,6 @@ if(NEXTCV_BUILD_PYTHON)
     target_link_libraries(nextcv_py PRIVATE nextcv_postprocessing)
   endif()
   
-  if(TARGET nextcv_features)
-    target_link_libraries(nextcv_py PRIVATE nextcv_features)
-  endif()
-  
   # Ensure the Python module is placed inside the wheel under the nextcv package
   install(TARGETS nextcv_py DESTINATION nextcv)
 endif()
@@ -104,9 +81,6 @@ if(TARGET nextcv_postprocessing)
   list(APPEND INSTALL_TARGETS nextcv_postprocessing)
 endif()
 
-if(TARGET nextcv_features)
-  list(APPEND INSTALL_TARGETS nextcv_features)
-endif()
 
 install(TARGETS ${INSTALL_TARGETS}
   EXPORT NextCVTargets
@@ -116,7 +90,7 @@ install(TARGETS ${INSTALL_TARGETS}
 )
 
 # Install headers
-install(DIRECTORY core/ image/ postprocessing/ features/
+install(DIRECTORY core/ image/ postprocessing/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )
