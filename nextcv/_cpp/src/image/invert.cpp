@@ -1,6 +1,6 @@
 #include "invert.hpp"
+#include "../core/types.hpp"
 #include "../core/utils.hpp"
-#include "/Users/kevinserrano/GitHub/kevinconka/nextcv/nextcv/_cpp/src/core/types.hpp"
 #include <algorithm>
 #include <iterator>
 #include <limits>
