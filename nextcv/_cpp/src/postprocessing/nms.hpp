@@ -11,8 +11,8 @@ struct BoundingBox {
     float x, y, width, height;
     float confidence;
 
-    BoundingBox(float x, float y, float w, float h, float conf)
-        : x(x), y(y), width(w), height(h), confidence(conf) {}
+    BoundingBox(float x_val, float y_val, float w, float h, float conf)
+        : x(x_val), y(y_val), width(w), height(h), confidence(conf) {}
 };
 
 /**

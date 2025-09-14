@@ -13,8 +13,8 @@ function(create_nextcv_library target_name source_pattern dependencies)
   target_compile_features(${target_name} PUBLIC cxx_std_17)
   target_include_directories(${target_name}
     PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<INSTALL_INTERFACE:include/nextcv>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/nextcv>
   )
 
   # Link dependencies
@@ -105,8 +105,8 @@ install(TARGETS ${INSTALL_TARGETS}
 install(DIRECTORY .
   DESTINATION include/nextcv
   FILES_MATCHING
-    PATTERN "*.hpp"
-    PATTERN "*.h"
+  PATTERN "*.hpp"
+  PATTERN "*.h"
   PATTERN "bindings" EXCLUDE
   PATTERN "*.cpp" EXCLUDE
   PATTERN "CMakeLists.txt" EXCLUDE

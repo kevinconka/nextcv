@@ -43,10 +43,6 @@ jobs:
             **/*.cpp
             **/*.h
             **/*.hpp
-            **/CMakeLists.txt
-            **/*.cmake
-            **/CMakePresets.json
-            **/Makefile
 
       - name: 📝 Debug Changed Files
         run: |
