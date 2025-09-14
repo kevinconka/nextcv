@@ -14,7 +14,7 @@
   "pylint.args": [
     "--ignored-modules=nextcv._cpp.nextcv_py"
   ],
-  "cursorpyright.analysis.exclude": [
-    "nextcv/_cpp"
-  ]
+  "cursorpyright.analysis.diagnosticSeverityOverrides": {
+    "reportMissingModuleSource": "none"
+  }
 }
