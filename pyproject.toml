@@ -54,10 +54,49 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-  "-v",
-  "--cov=nextcv",
-  "--cov-report=term-missing",
-  "--cov-report=html",
-  "--cov-report=xml",
+addopts = "-q --cov -s"
+
+# Coverage settings
+[tool.coverage.run]
+source = ["nextcv"]
+
+[tool.coverage.report]
+include = ["nextcv/*"]
+exclude_lines = ["if TYPE_CHECKING"]
+show_missing = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+# Pylint settings
+[tool.pylint]
+ignored-modules = [
+  "cv2", # doesn't ship with proper type stubs by default
+]
+jobs = 0
+ignore = ["tests", "docs", "build", ".venv"]
+ignore-paths = [".*tests.*.py$", ".*pyi$"]
+max-args = 10
+max-attributes = 10
+max-line-length = 88
+min-similarity-lines = 6
+max-positional-arguments = 10 # counts also args with default values ?
+disable = [
+  "import-outside-toplevel",       # lazy loading
+  "missing-function-docstring",    # handled by ruff
+  "logging-fstring-interpolation",
+  "too-few-public-methods",
+  "broad-exception-caught",
+]
+good-names-rgxs = [
+  "^K.*$", # Camera intrinsics matrix prefix
+  "^R.*$", # Rotation matrix prefix
+  "^H.*$", # Homography matrix prefix
+  "^B.*$", # Batch size prefix
+  "^C.*$", # Channel size prefix
+  "^H.*$", # Height prefix
+  "^W.*$", # Width prefix
 ]

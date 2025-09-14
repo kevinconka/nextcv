@@ -39,15 +39,15 @@ set_target_properties(nextcv_image PROPERTIES
 file(GLOB_RECURSE POSTPROC_SOURCES "postprocessing/*.cpp")
 if(POSTPROC_SOURCES)
   add_library(nextcv_postprocessing ${POSTPROC_SOURCES})
-  
+
   target_include_directories(nextcv_postprocessing
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
       $<INSTALL_INTERFACE:include>
   )
-  
+
   target_link_libraries(nextcv_postprocessing PUBLIC nextcv_core)
-  
+
   set_target_properties(nextcv_postprocessing PROPERTIES
     EXPORT_NAME nextcv_postprocessing
     VERSION ${PROJECT_VERSION}
@@ -60,18 +60,18 @@ endif()
 if(NEXTCV_BUILD_PYTHON)
   # Automatically discover all .cpp files in bindings/
   file(GLOB_RECURSE BINDINGS_SOURCES "bindings/*.cpp")
-  
+
   pybind11_add_module(nextcv_py MODULE ${BINDINGS_SOURCES})
-  
+
   target_link_libraries(nextcv_py PRIVATE nextcv_core nextcv_image)
-  
+
   # Link optional libraries if they exist
   if(TARGET nextcv_postprocessing)
     target_link_libraries(nextcv_py PRIVATE nextcv_postprocessing)
   endif()
-  
+
   # Ensure the Python module is placed inside the wheel under the nextcv package
-  install(TARGETS nextcv_py DESTINATION nextcv)
+  install(TARGETS nextcv_py DESTINATION nextcv/_cpp)
 endif()
 
 # Install all libraries
