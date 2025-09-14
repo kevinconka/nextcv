@@ -17,16 +17,17 @@ def invert(pixels: NDArray[np.uint8]) -> NDArray[np.uint8]:
     ...
 
 def nms(
-    boxes: list[tuple[float, float, float, float]], threshold: float = 0.5
-) -> list[int]:
+    bboxes: NDArray[np.float32], scores: NDArray[np.float32], threshold: float = 0.5
+) -> NDArray[np.int32]:
     """Apply Non-Maximum Suppression to bounding boxes.
 
     Args:
-        boxes: List of bounding boxes as (x1, y1, x2, y2) tuples
+        bboxes: Bounding boxes as (N, 4) array with (x1, y1, x2, y2) format
+        scores: Confidence scores as (N,) array
         threshold: IoU threshold for suppression (default: 0.5)
 
     Returns:
-        List of indices of boxes to keep
+        NDArray[np.int32]: Indices of boxes to keep
     """
     ...
 
