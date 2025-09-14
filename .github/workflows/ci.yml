@@ -18,8 +18,8 @@ jobs:
   changed-files:
     runs-on: ubuntu-latest
     outputs:
-      python: ${{ steps.python-changed-files.outputs.all_changed_files }}
-      cpp: ${{ steps.cpp-changed-files.outputs.all_changed_files }}
+      python: ${{ steps.changed-python-files.outputs.all_changed_files }}
+      cpp: ${{ steps.changed-cpp-files.outputs.all_changed_files }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v5
@@ -27,33 +27,29 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: 🔍 Get python changed files
-        id: python-changed-files
+        id: changed-python-files
         uses: tj-actions/changed-files@v46
         with:
           files: |
-            - '**/*.py'
-            - '**/*.pyi'
+            **/*.py
+            **/*.pyi
 
       - name: 🔍 Get cpp changed files
-        id: cpp-changed-files
+        id: changed-cpp-files
         uses: tj-actions/changed-files@v46
         with:
           files: |
-            - '**/*.c'
-            - '**/*.cpp'
-            - '**/*.h'
-            - '**/*.hpp'
-            - '**/CMakeLists.txt'
-            - '**/*.cmake'
-            - '**/CMakePresets.json'
-            - '**/Makefile'
+            **/*.c
+            **/*.cpp
+            **/*.h
+            **/*.hpp
 
       - name: 📝 Debug Changed Files
         run: |
           echo "Python changed files:"
-          echo "${{ steps.python-changed-files.outputs.all_changed_files }}"
+          echo "${{ steps.changed-python-files.outputs.all_changed_files }}"
           echo "C++ changed files:"
-          echo "${{ steps.cpp-changed-files.outputs.all_changed_files }}"
+          echo "${{ steps.changed-cpp-files.outputs.all_changed_files }}"
 
   test:
     needs: changed-files

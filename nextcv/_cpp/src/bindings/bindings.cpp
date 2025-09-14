@@ -1,9 +1,11 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
+#include <pybind11/stl.h>
 
-#include "hello.hpp"
-#include "invert.hpp"
+#include "../core/hello.hpp"
+#include "../image/invert.hpp"
+#include "../postprocessing/nms.hpp"
 
 namespace py = pybind11;
 
@@ -23,7 +25,7 @@ py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
                                      static_cast<std::uint8_t*>(buf_info.ptr) + buf_info.size);
 
     // Apply inversion
-    auto inverted = nextcv::invert(pixels);
+    auto inverted = nextcv::image::invert(pixels);
 
     // Create output numpy array with same shape as input
     py::array_t<std::uint8_t> result(buf_info.shape);
@@ -38,6 +40,13 @@ py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
 PYBIND11_MODULE(nextcv_py, m) {
     m.doc() = "NextCV pybind11 bindings";
 
-    m.def("hello", &nextcv::hello, "Return a greeting from NextCV C++");
+    // Core functions
+    m.def("hello", &nextcv::core::hello, "Return a greeting from NextCV C++");
+
+    // Image processing functions
     m.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
+
+    m.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
+          py::arg("threshold") = 0.5f,
+          "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
 }

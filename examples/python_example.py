@@ -1,45 +1,107 @@
+#!/usr/bin/env python3
+"""Example demonstrating NextCV mixed API approach.
+
+This example shows how to use both C++ and Python implementations
+in the same modules, allowing you to choose the best implementation.
+"""
+
+import time
+
 import numpy as np
 
-import nextcv
+
+def create_test_data(n_boxes: int = 10000) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Create test data for the examples.
+
+    Args:
+        n_boxes: Number of bounding boxes to generate for NMS testing
+
+    Returns:
+        Tuple of (test_image, test_boxes, test_scores)
+    """
+    # Create test image
+    test_image = np.array([[0, 64, 128, 192, 255]], dtype=np.uint8)
+
+    # Create bounding boxes dataset
+    rng = np.random.default_rng(42)
+    test_boxes = rng.uniform(0, 100, (n_boxes, 4)).astype(np.float32)
+    # Ensure boxes are valid (x1 < x2, y1 < y2)
+    test_boxes[:, 2] = test_boxes[:, 0] + rng.uniform(10, 50, n_boxes)
+    test_boxes[:, 3] = test_boxes[:, 1] + rng.uniform(10, 50, n_boxes)
+    test_scores = rng.uniform(0.1, 1.0, n_boxes).astype(np.float32)
+
+    return test_image, test_boxes, test_scores
+
+
+def demonstrate_core_functionality() -> None:
+    """Demonstrate core functionality with C++ and Python implementations."""
+    print("Core functionality:")
+    from nextcv.core import hello_cpp, hello_python
+
+    print(f"   hello(): {hello_cpp()}")  # C++ if available, Python fallback
+    print(f"   hello_python(): {hello_python()}")  # Always Python
+    print()
+
+
+def demonstrate_image_processing(test_image: np.ndarray) -> None:
+    """Demonstrate image processing functionality."""
+    print("Image processing:")
+    from nextcv.image import invert
+
+    print(f"   invert(): {invert(test_image)}")
+    print()
+
+
+def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> None:
+    """Demonstrate NMS functionality with performance timing."""
+    print("Post-processing (NMS timing comparison):")
+    from nextcv.postprocessing import nms_cpp, nms_cv2, nms_np
+
+    print(f"   Dataset: {len(test_boxes)} bounding boxes")
+    print()
+
+    # Time C++ implementation
+    start_time = time.perf_counter()
+    result_cpp = nms_cpp(test_boxes, test_scores, 0.5)
+    cpp_time = time.perf_counter() - start_time
+    print(f"   nms_cpp(): {len(result_cpp)} boxes kept in {cpp_time * 1000:.2f}ms")
+
+    # Time OpenCV implementation
+    start_time = time.perf_counter()
+    result_cv2 = nms_cv2(test_boxes, test_scores, 0.5)
+    cv2_time = time.perf_counter() - start_time
+    print(f"   nms_cv2(): {len(result_cv2)} boxes kept in {cv2_time * 1000:.2f}ms")
+
+    # Time NumPy implementation
+    start_time = time.perf_counter()
+    result_np = nms_np(test_boxes, test_scores, 0.5)
+    np_time = time.perf_counter() - start_time
+    print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
+
+    # Performance comparison
+    print()
+    print("Performance comparison:")
+    fastest_time = min(cpp_time, cv2_time, np_time)
+    print(f"   Fastest: {fastest_time * 1000:.2f}ms")
+    print(f"   C++ speedup: {cpp_time / fastest_time:.1f}x")
+    print(f"   OpenCV speedup: {cv2_time / fastest_time:.1f}x")
+    print(f"   NumPy speedup: {np_time / fastest_time:.1f}x")
+    print()
 
 
 def main() -> None:
-    """Demonstrate NextCV functionality with various array dimensions."""
-    print(nextcv.hello())
+    """Demonstrate the mixed API approach."""
+    print("=== NextCV Mixed API Example ===")
+    print("This example shows the mixed C++/Python approach")
+    print()
 
-    # Example with 1D numpy array
-    print("\n1D Array Example:")
-    data_1d = np.array([0, 64, 128, 192, 255], dtype=np.uint8)
-    print("Original 1D array:", data_1d)
-    inverted_1d = nextcv.invert(data_1d)
-    print("Inverted 1D array:", inverted_1d)
-    expected_1d = np.array([255, 191, 127, 63, 0], dtype=np.uint8)
-    print("Expected:         ", expected_1d)
-    print("Match:", np.array_equal(inverted_1d, expected_1d))
+    # Create test data
+    test_image, test_boxes, test_scores = create_test_data()
 
-    # Example with 2D numpy array (grayscale image)
-    print("\n2D Array Example (Grayscale Image):")
-    data_2d = np.array([[0, 128, 255], [64, 192, 32]], dtype=np.uint8)
-    print("Original 2D array:")
-    print(data_2d)
-    inverted_2d = nextcv.invert(data_2d)
-    print("Inverted 2D array:")
-    print(inverted_2d)
-    print("Shape preserved:", data_2d.shape == inverted_2d.shape)
-
-    # Example with 3D numpy array (RGB image)
-    print("\n3D Array Example (RGB Image):")
-    # Create a small 2x2 RGB image
-    data_3d = np.array(
-        [[[255, 0, 128], [128, 128, 128]], [[0, 255, 0], [255, 255, 255]]], dtype=np.uint8
-    )
-    print("Original 3D array shape:", data_3d.shape)
-    print("Original 3D array:")
-    print(data_3d)
-    inverted_3d = nextcv.invert(data_3d)
-    print("Inverted 3D array:")
-    print(inverted_3d)
-    print("Shape preserved:", data_3d.shape == inverted_3d.shape)
+    # Run demonstrations
+    demonstrate_core_functionality()
+    demonstrate_image_processing(test_image)
+    demonstrate_nms_timing(test_boxes, test_scores)
 
 
 if __name__ == "__main__":

@@ -101,7 +101,7 @@ print(f"Inverted:  {inverted}")
 int main() {
     std::vector<uint8_t> pixels{0, 64, 128, 192, 255};
     auto inverted = nextcv::invert(pixels);
-    
+
     for (auto pixel : inverted) {
         std::cout << static_cast<int>(pixel) << " ";
     }

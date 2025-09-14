@@ -1,15 +1,33 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 
-project(NextCV 
+# Prevent in-source builds
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory.")
+endif()
+
+project(NextCV
   VERSION 0.0.1
   LANGUAGES CXX
   DESCRIPTION "NextCV is like OpenCV but with modern tooling"
 )
 
-# Set C++ standard globally
+# Enable compile commands for tooling
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Set C++ standard globally (will be overridden by target_compile_features)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Modern compile options and warnings
+if(MSVC)
+  add_compile_options(/W4 /permissive-)
+else()
+  add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2)
+  endif()
+endif()
 
 # Options
 option(NEXTCV_BUILD_EXAMPLES "Build NextCV C++ examples" OFF)
@@ -18,7 +36,7 @@ option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
 # Find Python and pybind11 (compatible with scikit-build-core)
 if(NEXTCV_BUILD_PYTHON)
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-  
+
   # For scikit-build-core, pybind11 is provided via Python
   find_package(pybind11 CONFIG QUIET)
   if(NOT pybind11_FOUND)
@@ -33,12 +51,10 @@ if(NEXTCV_BUILD_PYTHON)
 endif()
 
 # Add source directory
-add_subdirectory(src)
+add_subdirectory(nextcv/_cpp/src)
 
 # Install/export for C++ consumers
 include(CMakePackageConfigHelpers)
-
-install(TARGETS nextcv_core EXPORT NextCVTargets)
 
 install(
   EXPORT NextCVTargets
@@ -57,17 +73,11 @@ install(FILES
   DESTINATION lib/cmake/NextCV
 )
 
-# Install headers for consumers
-install(FILES
-  ${CMAKE_CURRENT_LIST_DIR}/src/hello.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/invert.hpp
-  DESTINATION include/nextcv
-)
+# Headers are installed by src/CMakeLists.txt
 
 # Examples (integrated, not installed)
 if(NEXTCV_BUILD_EXAMPLES)
   add_executable(cpp_example examples/cpp_example.cpp)
-  target_link_libraries(cpp_example PRIVATE nextcv_core)
+  target_link_libraries(cpp_example PRIVATE nextcv)
   set_target_properties(cpp_example PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
 endif()
-
