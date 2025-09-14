@@ -78,6 +78,6 @@ install(FILES
 # Examples (integrated, not installed)
 if(NEXTCV_BUILD_EXAMPLES)
   add_executable(cpp_example examples/cpp_example.cpp)
-  target_link_libraries(cpp_example PRIVATE nextcv_core)
+  target_link_libraries(cpp_example PRIVATE nextcv_core nextcv_image nextcv_postprocessing)
   set_target_properties(cpp_example PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
 endif()

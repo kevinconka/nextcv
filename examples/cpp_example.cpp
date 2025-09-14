@@ -1,6 +1,6 @@
-#include "core/hello.hpp"
-#include "image/invert.hpp"
-#include "postprocessing/nms.hpp"
+#include "nextcv/core/hello.hpp"
+#include "nextcv/image/invert.hpp"
+#include "nextcv/postprocessing/nms.hpp"
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -42,24 +42,27 @@ int main() {
 
     // Demonstrate NMS functionality
     std::cout << "\n=== NMS Demo ===" << std::endl;
-    std::vector<nextcv::postprocessing::BoundingBox> boxes = {
-        {10, 10, 50, 50, 0.9f},   // High confidence
-        {15, 15, 45, 45, 0.8f},   // Overlapping, lower confidence
-        {100, 100, 30, 30, 0.7f}, // Non-overlapping
-        {20, 20, 40, 40, 0.6f}    // Overlapping, lowest confidence
+    std::vector<std::array<float, 4>> bboxes = {
+        {10, 10, 60, 60},     // x1, y1, x2, y2 - High confidence
+        {15, 15, 60, 60},     // Overlapping, lower confidence
+        {100, 100, 130, 130}, // Non-overlapping
+        {20, 20, 60, 60}      // Overlapping, lowest confidence
     };
+    std::vector<float> scores = {0.9f, 0.8f, 0.7f, 0.6f};
 
-    std::cout << "Original boxes: " << boxes.size() << std::endl;
-    for (const auto& box : boxes) {
-        std::cout << "  (" << box.x << ", " << box.y << ", " << box.width << ", " << box.height
-                  << ") conf=" << box.confidence << std::endl;
+    std::cout << "Original boxes: " << bboxes.size() << std::endl;
+    for (size_t i = 0; i < bboxes.size(); ++i) {
+        const auto& box = bboxes[i];
+        std::cout << "  [" << i << "] (" << box[0] << ", " << box[1] << ", " << box[2] << ", "
+                  << box[3] << ") conf=" << scores[i] << std::endl;
     }
 
-    auto filtered_boxes = nextcv::postprocessing::nms(boxes, 0.5f);
-    std::cout << "After NMS: " << filtered_boxes.size() << " boxes" << std::endl;
-    for (const auto& box : filtered_boxes) {
-        std::cout << "  (" << box.x << ", " << box.y << ", " << box.width << ", " << box.height
-                  << ") conf=" << box.confidence << std::endl;
+    auto kept_indices = nextcv::postprocessing::nms(bboxes, scores, 0.5f);
+    std::cout << "After NMS: " << kept_indices.size() << " boxes kept" << std::endl;
+    for (const auto& idx : kept_indices) {
+        const auto& box = bboxes[idx];
+        std::cout << "  [" << idx << "] (" << box[0] << ", " << box[1] << ", " << box[2] << ", "
+                  << box[3] << ") conf=" << scores[idx] << std::endl;
     }
 
     return 0;
