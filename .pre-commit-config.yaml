@@ -50,3 +50,6 @@ repos:
     -   id: clang-tidy
         args: [--config-file=.clang-tidy]
         types_or: [c++, c]
+    -   id: include-what-you-use
+        args: [--mapping_file=.iwyu.imp]
+        types_or: [c++, c]

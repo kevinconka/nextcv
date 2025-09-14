@@ -1,0 +1,11 @@
+# IWYU mapping file for NextCV project
+# This file helps include-what-you-use understand project-specific mappings
+
+# Standard library mappings
+[ { include: [ "<string>", "private", "<string>", "public" ] } ]
+[ { include: [ "<vector>", "private", "<vector>", "public" ] } ]
+[ { include: [ "<algorithm>", "private", "<algorithm>", "public" ] } ]
+[ { include: [ "<limits>", "private", "<limits>", "public" ] } ]
+[ { include: [ "<stdexcept>", "private", "<stdexcept>", "public" ] } ]
+[ { include: [ "<cstdint>", "private", "<cstdint>", "public" ] } ]
+[ { include: [ "<iterator>", "private", "<iterator>", "public" ] } ]
