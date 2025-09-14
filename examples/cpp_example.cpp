@@ -1,6 +1,7 @@
 #include "nextcv/core/hello.hpp"
 #include "nextcv/image/invert.hpp"
 #include "nextcv/postprocessing/nms.hpp"
+#include <array>
 #include <cstdint>
 #include <iostream>
 #include <vector>
