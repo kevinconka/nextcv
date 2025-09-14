@@ -58,6 +58,12 @@ ignore = [
   "PLC0415", # import at top of file
 ]
 
+[lint.per-file-ignores]
+"test_*.py" = [
+  "ANN201",  # Ignore annotation requirements in tests
+  "PLR2004", # Ignore magic numbers in tests
+]
+
 [lint.pydocstyle]
 convention = "google"
 
