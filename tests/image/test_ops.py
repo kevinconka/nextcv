@@ -36,7 +36,7 @@ def test_invert(input_array: np.ndarray, expected: np.ndarray):
 def test_invert_preserves_shape():
     """Test that inversion preserves input shape."""
     # Test with 3D array (H, W, C)
-    rng = np.random.Generator(np.random.PCG64())
+    rng = np.random.default_rng(42)
     input_array = rng.integers(0, 256, (10, 20, 3), dtype=np.uint8)
 
     result = cvi.invert(input_array)
