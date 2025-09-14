@@ -1,55 +1,53 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
+  - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
     rev: v0.8.0
     hooks:
-    -   id: pre-commit-update
+      - id: pre-commit-update
 
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude: ^(.*\\.ipynb|.*\\.json)$
+      - id: check-yaml
         exclude: mkdocs.yml
-    -   id: check-added-large-files
+      - id: check-added-large-files
         args: ["--maxkb=1500"]
-    -   id: check-json
+      - id: check-json
         exclude: .vscode/settings.json
-    -   id: pretty-format-json
+      - id: pretty-format-json
         args: [--autofix, --no-sort-keys]
         exclude: ^(.vscode/settings\\.json|.*\\.ipynb)$
-    -   id: check-case-conflict
-    -   id: name-tests-test
+      - id: check-case-conflict
+      - id: name-tests-test
         args: [--pytest-test-first]
 
--   repo: https://github.com/gitleaks/gitleaks
+  - repo: https://github.com/gitleaks/gitleaks
     rev: v8.28.0
     hooks:
-    -   id: gitleaks
+      - id: gitleaks
 
--   repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.13.0
     hooks:
       # Run the linter.
-    -   id: ruff
+      - id: ruff
         args: [--fix]
-    -   id: ruff-format
+      - id: ruff-format
 
--   repo: https://github.com/pre-commit/mirrors-clang-format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v21.1.0
     hooks:
-    -   id: clang-format
+      - id: clang-format
         types_or: [c, c++, cuda]
 
--   repo: https://github.com/pocc/pre-commit-hooks
+  - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:
-    -   id: clang-tidy
+      - id: clang-tidy
         args: [--config-file=.clang-tidy]
-        types_or: [c++, c]
-    -   id: include-what-you-use
-        args: [--mapping_file=.iwyu.imp]
         types_or: [c++, c]

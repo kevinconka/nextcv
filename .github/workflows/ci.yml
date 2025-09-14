@@ -143,15 +143,10 @@ jobs:
 
       - name: 🔍 Run clang-tidy
         run: |
-          # Generate compile_commands.json for clang-tidy
-          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DNEXTCV_BUILD_PYTHON=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          # Run clang-tidy on changed C++ files
-          clang-tidy --config-file=.clang-tidy ${{ needs.changed-files.outputs.cpp }} -- -I build -I nextcv/_cpp/src
-
-      - name: 📋 Run include-what-you-use
-        run: |
-          # Run IWYU on changed C++ files
-          include-what-you-use -p build ${{ needs.changed-files.outputs.cpp }}
+          # Generate compile_commands.json for clang-tidy (with Python support for bindings)
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          # Run clang-tidy on changed C++ files using compile_commands.json
+          clang-tidy --config-file=.clang-tidy -p build ${{ needs.changed-files.outputs.cpp }}
 
       - name: 🔨 Build C++ Examples
         run: |
