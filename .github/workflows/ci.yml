@@ -126,8 +126,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format-17 clang-17
+          sudo apt-get install -y clang-format-17 clang-17 clang-tidy-17
           sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-17 100
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-17 100
 
       - name: 🛠️ Install Clang Tools (macOS)
         if: matrix.os == 'macos-latest'
@@ -138,6 +139,13 @@ jobs:
       - name: 🎨 Check C++ Format
         run: |
           clang-format --dry-run --Werror ${{ needs.changed-files.outputs.cpp }}
+
+      - name: 🔍 Run clang-tidy
+        run: |
+          # Generate compile_commands.json for clang-tidy
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DNEXTCV_BUILD_PYTHON=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          # Run clang-tidy on changed C++ files
+          clang-tidy --config-file=.clang-tidy ${{ needs.changed-files.outputs.cpp }} -- -I build -I nextcv/_cpp/src
 
       - name: 🔨 Build C++ Examples
         run: |
