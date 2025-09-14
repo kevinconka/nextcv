@@ -1,36 +1,24 @@
----
-# Clang-tidy configuration for NextCV project
----
+# .clang-tidy (stricter CI preset)
 Checks: >
-  *,
-  -abseil-*,
-  -altera-*,
-  -android-*,
-  -fuchsia-*,
-  -google-*,
-  -llvm-*,
-  -zircon-*,
-  -llvmlibc-*,
-  -readability-identifier-length,
-  -readability-magic-numbers,
-  -readability-uppercase-literal-suffix,
-  -modernize-use-trailing-return-type,
-  -modernize-avoid-c-arrays,
-  -cppcoreguidelines-avoid-c-arrays,
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
-  -cppcoreguidelines-pro-bounds-constant-array-index,
-  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
-  -cppcoreguidelines-avoid-magic-numbers,
-  -misc-non-private-member-variables-in-classes,
-  -bugprone-easily-swappable-parameters,
-  -misc-include-cleaner
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  readability-*,
+  cppcoreguidelines-avoid-goto,
+  cppcoreguidelines-interfaces-global-init,
+  cppcoreguidelines-narrowing-conversions,
+  misc-include-cleaner
 
-WarningsAsErrors: ''
-HeaderFilterRegex: '.*'
-AnalyzeTemporaryDtors: false
-FormatStyle: 'file'
+WarningsAsErrors: true # CI gate
+HeaderFilterRegex: "^(nextcv/_cpp/src/|include/)"
+FormatStyle: file
+
 CheckOptions:
-  - key: readability-identifier-naming.NamespaceCase
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.MemberCase
     value: lower_case
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
@@ -40,19 +28,10 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
-  - key: readability-identifier-naming.MemberCase
-    value: lower_case
-  - key: readability-identifier-naming.PrivateMemberPrefix
-    value: m_
-  - key: readability-identifier-naming.ProtectedMemberPrefix
-    value: m_
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
-  - key: readability-identifier-naming.ConstantCase
-    value: UPPER_CASE
-  - key: readability-identifier-naming.StaticConstantCase
-    value: UPPER_CASE
-  - key: readability-identifier-naming.GlobalConstantCase
-    value: UPPER_CASE
-  - key: readability-identifier-naming.ConstantMemberCase
-    value: UPPER_CASE
+
+  - key: misc-include-cleaner.DeduplicateFindings
+    value: true
+  - key: misc-include-cleaner.ExcludeDirs
+    value: "third_party|.venv|build"

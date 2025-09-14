@@ -14,6 +14,7 @@ project(NextCV
 # Enable compile commands for tooling
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
 # Set C++ standard globally (will be overridden by target_compile_features)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

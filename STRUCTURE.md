@@ -49,8 +49,10 @@ cvx.core.hello_python()
 1. Add files to `nextcv/_cpp/src/module/`
 2. Use namespace: `namespace nextcv { namespace module { ... } }`
 3. Update bindings if needed
+4. Run `make tidy` to check code quality
 
 **Python Side:**
 1. Add to `nextcv/module/__init__.py`
 2. Create both implementations: `function_cpp()` and `function_python()`
 3. Export in `__all__` list
+4. Run `uv run ruff check` to check code quality

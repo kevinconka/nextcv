@@ -124,14 +124,16 @@ uvx pre-commit run --all-files
 
 ### Development Tools Setup
 
+The Makefile automatically detects and uses the best available tools. Just install the dependencies:
+
 **Linux (Ubuntu/Debian)**
 ```bash
-sudo apt-get install -y clang-format clang-tidy
+sudo apt-get install -y cmake clang-tidy
 ```
 
 **macOS**
 ```bash
-brew install llvm
+brew install llvm cmake
 
 # Add LLVM to PATH (auto-detects shell)
 if [ -n "$ZSH_VERSION" ]; then
@@ -142,6 +144,8 @@ fi
 
 # Reload shell
 source ~/.zshrc    # or ~/.bashrc
+
+make check-deps    # Check if all dependencies are installed
 ```
 
 ### Development Workflow
@@ -161,6 +165,12 @@ uv run ruff format .
 ```
 
 **C++ Development**
+```bash
+# Use the Makefile for C++ development
+make help                    # See all available targets
+```
+
+**Manual C++ Commands** (if you prefer raw commands)
 ```bash
 cmake -B build -DNEXTCV_BUILD_TESTS=ON
 cmake --build build

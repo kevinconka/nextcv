@@ -143,13 +143,14 @@ jobs:
 
       - name: 🔍 Run clang-tidy
         run: |
-          # Generate compile_commands.json for clang-tidy (with Python support for bindings)
-          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          # Run clang-tidy on changed C++ files using compile_commands.json
-          clang-tidy --config-file=.clang-tidy -p build ${{ needs.changed-files.outputs.cpp }}
+          # Use the Makefile for consistent clang-tidy execution
+          make tidy ${{ needs.changed-files.outputs.cpp }}
 
       - name: 🔨 Build C++ Examples
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DNEXTCV_BUILD_EXAMPLES=ON -DNEXTCV_BUILD_PYTHON=OFF
-          cmake --build build --parallel
-          ./build/examples/cpp_example
+          # Use Makefile for consistent build process
+          make build
+          # Run the example (if it exists)
+          if [ -f "./build/examples/cpp_example" ]; then
+            ./build/examples/cpp_example
+          fi

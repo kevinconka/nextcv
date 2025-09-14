@@ -49,7 +49,7 @@ add_library(nextcv ${ALL_SOURCES})
 target_compile_features(nextcv PUBLIC cxx_std_17)
 target_include_directories(nextcv
   PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include/nextcv>
 )
 
