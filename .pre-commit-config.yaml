@@ -16,9 +16,10 @@ repos:
       - id: check-added-large-files
         args: ["--maxkb=1500"]
       - id: check-json
+        exclude: .vscode/settings.json
       - id: pretty-format-json
         args: [--autofix, --no-sort-keys]
-        exclude: .*\.ipynb$
+        exclude: ^(.vscode/settings\\.json|.*\\.ipynb)$
       - id: check-case-conflict
       - id: name-tests-test
         args: [--pytest-test-first]

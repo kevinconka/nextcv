@@ -74,7 +74,9 @@ output = "coverage.xml"
 # Pylint settings
 [tool.pylint]
 ignored-modules = [
-  "cv2", # doesn't ship with proper type stubs by default
+  "cv2",         # doesn't ship with proper type stubs by default
+  "nextcv_py",   # stubs for C++ module
+  "nextcv._cpp", # C++ module
 ]
 jobs = 0
 ignore = ["tests", "docs", "build", ".venv"]

@@ -1,12 +1,7 @@
 """NextCV Core module - Core functionality."""
 
-from nextcv._cpp.nextcv_py import hello as hello_cpp
+from nextcv._cpp import hello_cpp
 
-
-# Python implementation
-def hello_python() -> str:
-    """Python implementation of hello function."""
-    return "Hello from NextCV (Python)"
-
+from .hello import hello_python
 
 __all__ = ["hello_python", "hello_cpp"]
