@@ -31,22 +31,22 @@ jobs:
         uses: tj-actions/changed-files@v46
         with:
           files: |
-            '**/*.py'
-            '**/*.pyi'
+            **/*.py
+            **/*.pyi
 
       - name: 🔍 Get cpp changed files
         id: changed-cpp-files
         uses: tj-actions/changed-files@v46
         with:
           files: |
-            '**/*.c'
-            '**/*.cpp'
-            '**/*.h'
-            '**/*.hpp'
-            '**/CMakeLists.txt'
-            '**/*.cmake'
-            '**/CMakePresets.json'
-            '**/Makefile'
+            **/*.c
+            **/*.cpp
+            **/*.h
+            **/*.hpp
+            **/CMakeLists.txt
+            **/*.cmake
+            **/CMakePresets.json
+            **/Makefile
 
       - name: 📝 Debug Changed Files
         run: |
