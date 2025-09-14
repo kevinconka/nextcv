@@ -30,6 +30,7 @@ function(create_nextcv_library target_name source_pattern dependencies)
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
+    POSITION_INDEPENDENT_CODE ON
   )
 endfunction()
 
@@ -66,18 +67,21 @@ if(NEXTCV_BUILD_PYTHON)
 
   # Set modern target properties for Python module
   target_compile_features(nextcv_py PRIVATE cxx_std_17)
-  target_link_libraries(nextcv_py PRIVATE nextcv_core nextcv_image)
 
-  # Link optional libraries if they exist
-  if(TARGET nextcv_postprocessing)
-    target_link_libraries(nextcv_py PRIVATE nextcv_postprocessing)
-  endif()
+  # Dynamically link all created libraries
+  get_property(ALL_TARGETS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+  foreach(TARGET ${ALL_TARGETS})
+    if(TARGET ${TARGET} AND ${TARGET} MATCHES "^nextcv_" AND NOT ${TARGET} STREQUAL "nextcv_py")
+      target_link_libraries(nextcv_py PRIVATE ${TARGET})
+    endif()
+  endforeach()
 
   # Set target properties using modern syntax
   set_target_properties(nextcv_py PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
+    POSITION_INDEPENDENT_CODE ON
   )
 
   # Ensure the Python module is placed inside the wheel under the nextcv package
