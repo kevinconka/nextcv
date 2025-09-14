@@ -33,7 +33,7 @@ if(NEXTCV_BUILD_PYTHON)
 endif()
 
 # Add source directory
-add_subdirectory(src)
+add_subdirectory(nextcv/_cpp/src)
 
 # Install/export for C++ consumers
 include(CMakePackageConfigHelpers)
@@ -57,8 +57,8 @@ install(FILES
 
 # Install headers for consumers
 install(FILES
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/hello.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/image/invert.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/nextcv/_cpp/src/core/hello.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/nextcv/_cpp/src/image/invert.hpp
   DESTINATION include/nextcv
 )
 
