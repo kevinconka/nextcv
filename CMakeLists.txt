@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(NextCV 
+project(NextCV
   VERSION 0.0.1
   LANGUAGES CXX
   DESCRIPTION "NextCV is like OpenCV but with modern tooling"
@@ -18,7 +18,7 @@ option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
 # Find Python and pybind11 (compatible with scikit-build-core)
 if(NEXTCV_BUILD_PYTHON)
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-  
+
   # For scikit-build-core, pybind11 is provided via Python
   find_package(pybind11 CONFIG QUIET)
   if(NOT pybind11_FOUND)
@@ -37,8 +37,6 @@ add_subdirectory(src)
 
 # Install/export for C++ consumers
 include(CMakePackageConfigHelpers)
-
-install(TARGETS nextcv_core EXPORT NextCVTargets)
 
 install(
   EXPORT NextCVTargets
@@ -59,8 +57,8 @@ install(FILES
 
 # Install headers for consumers
 install(FILES
-  ${CMAKE_CURRENT_LIST_DIR}/src/hello.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/invert.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/hello.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/image/invert.hpp
   DESTINATION include/nextcv
 )
 
@@ -70,4 +68,3 @@ if(NEXTCV_BUILD_EXAMPLES)
   target_link_libraries(cpp_example PRIVATE nextcv_core)
   set_target_properties(cpp_example PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
 endif()
-

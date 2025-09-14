@@ -10,7 +10,7 @@ namespace image {
  * @param pixels Input pixel data
  * @return Inverted pixel data
  */
-PixelVector invert(const PixelVector& pixels);
+core::PixelVector invert(const core::PixelVector& pixels);
 
 /**
  * @brief Invert pixel values with validation
@@ -19,7 +19,7 @@ PixelVector invert(const PixelVector& pixels);
  * @return Inverted pixel data
  * @throws std::invalid_argument if data size doesn't match expected dimensions
  */
-PixelVector invert(const PixelVector& pixels, const core::ImageSize& size);
+core::PixelVector invert(const core::PixelVector& pixels, const core::ImageSize& size);
 
 } // namespace image
 } // namespace nextcv
