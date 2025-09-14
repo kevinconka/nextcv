@@ -63,6 +63,10 @@ ignore = [
   "ANN201",  # Ignore annotation requirements in tests
   "PLR2004", # Ignore magic numbers in tests
 ]
+"*.ipynb" = [
+  "I",       # Ignore import-related errors in notebooks
+  "PLR2004", # Ignore magic numbers in notebooks
+]
 
 [lint.pydocstyle]
 convention = "google"
