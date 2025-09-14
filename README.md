@@ -124,6 +124,23 @@ int main() {
 - **CMake 3.20+**
 - **uv** (recommended) or pip
 
+### System Dependencies
+
+#### Linux (Ubuntu/Debian)
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential cmake python3-dev
+```
+
+#### macOS
+```bash
+# Install Xcode command line tools
+xcode-select --install
+
+# Install dependencies via Homebrew
+brew install cmake python
+```
+
 ### Development Setup
 
 ```bash
