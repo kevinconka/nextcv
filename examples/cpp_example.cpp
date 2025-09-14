@@ -1,6 +1,5 @@
 #include "core/hello.hpp"
 #include "image/invert.hpp"
-#include "image/threshold.hpp"
 #include "postprocessing/nms.hpp"
 #include <cstdint>
 #include <iostream>
@@ -41,22 +40,6 @@ int main() {
     std::cout << "100 -> " << static_cast<int>(single_inverted[0]) << " (expected: " << (255 - 100)
               << ")" << std::endl;
 
-    // Demonstrate threshold functionality
-    std::cout << "\n=== Threshold Demo ===" << std::endl;
-    std::vector<std::uint8_t> test_pixels{50, 100, 150, 200, 250};
-    std::cout << "Original pixels: ";
-    for (auto v : test_pixels) {
-        std::cout << static_cast<int>(v) << " ";
-    }
-    std::cout << std::endl;
-
-    auto thresholded = nextcv::image::threshold(test_pixels, 128);
-    std::cout << "Thresholded (128): ";
-    for (auto v : thresholded) {
-        std::cout << static_cast<int>(v) << " ";
-    }
-    std::cout << std::endl;
-
     // Demonstrate NMS functionality
     std::cout << "\n=== NMS Demo ===" << std::endl;
     std::vector<nextcv::postprocessing::BoundingBox> boxes = {
@@ -65,17 +48,17 @@ int main() {
         {100, 100, 30, 30, 0.7f}, // Non-overlapping
         {20, 20, 40, 40, 0.6f}    // Overlapping, lowest confidence
     };
-    
+
     std::cout << "Original boxes: " << boxes.size() << std::endl;
     for (const auto& box : boxes) {
-        std::cout << "  (" << box.x << ", " << box.y << ", " << box.width << ", " << box.height 
+        std::cout << "  (" << box.x << ", " << box.y << ", " << box.width << ", " << box.height
                   << ") conf=" << box.confidence << std::endl;
     }
-    
+
     auto filtered_boxes = nextcv::postprocessing::nms(boxes, 0.5f);
     std::cout << "After NMS: " << filtered_boxes.size() << " boxes" << std::endl;
     for (const auto& box : filtered_boxes) {
-        std::cout << "  (" << box.x << ", " << box.y << ", " << box.width << ", " << box.height 
+        std::cout << "  (" << box.x << ", " << box.y << ", " << box.width << ", " << box.height
                   << ") conf=" << box.confidence << std::endl;
     }
 

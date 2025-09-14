@@ -65,13 +65,11 @@ namespace nextcv {
         std::string hello();
         std::string get_version();
     }
-    
+
     namespace image {
         // Image processing functions
-        PixelVector invert(const PixelVector& pixels);
-        PixelVector threshold(const PixelVector& pixels, Pixel threshold);
-    }
-    
+        PixelVector invert(const PixelVector& pixels);    }
+
     namespace postprocessing {
         // Post-processing functions
         std::vector<BoundingBox> nms(const std::vector<BoundingBox>& boxes, float threshold);

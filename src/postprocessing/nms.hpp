@@ -10,7 +10,7 @@ namespace postprocessing {
 struct BoundingBox {
     float x, y, width, height;
     float confidence;
-    
+
     BoundingBox(float x, float y, float w, float h, float conf)
         : x(x), y(y), width(w), height(h), confidence(conf) {}
 };
