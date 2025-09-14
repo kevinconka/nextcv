@@ -5,11 +5,11 @@ pure Python implementations in functional modules.
 
 Usage:
     import nextcv as cvx
-    
+
     # C++ wrapped functions
     cvx.image.invert(image)
     cvx.postprocessing.nms_fast(boxes, 0.5)
-    
+
     # Python implementations
     cvx.postprocessing.nms(boxes, 0.5)
     cvx.core.hello()
@@ -18,9 +18,7 @@ Usage:
 from importlib.metadata import PackageNotFoundError, version
 
 # Import modules
-from . import core
-from . import image
-from . import postprocessing
+from . import core, image, postprocessing
 
 try:
     __version__ = version("nextcv")

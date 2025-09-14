@@ -1,16 +1,61 @@
-target-version = "py38"
-line-length = 100
+# default config can be found https://docs.astral.sh/ruff/configuration/
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "docs",
+  "node_modules",
+  "site-packages",
+  ".venv",
+  "*egg-info",
+]
+
+line-length = 88
+indent-width = 4
+# target-version = "py312"  # Uncomment and set the target Python version if needed
 
 [lint]
-select = [
-  "E",  # pycodestyle errors
-  "F",  # pyflakes
-  "I",  # import sorting (isort)
-  "D",  # pydocstyle for docstring conventions
-  "PYI", # flake8-pyi for .pyi files
+select = [ # https://docs.astral.sh/ruff/rules/
+  "C",   # Complexity
+  "D",   # PyDocStyle
+  "E",   # PyCodeStyle Errors
+  "F",   # PyFlakes
+  "W",   # PyCodeStyle Warnings
+  "ANN", # flake8-annotations
+  "B",   # flake8-bugbear
+  "TC",  # flake8-type-checking
+  "PTH", # flake8-use-pathlib
+  "NPY", # NumPy specific rules
+  "TID", # flake8-tidy-imports
+  "SIM", # flake8-simplify
+  "I",   # isort
+  "PL",  # PyLint
+  "ERA", # eradicate
 ]
 ignore = [
-  "D100",  # Missing docstring in public module (allow for __init__.py)
+  "D105",    # undocumented magic method
+  "PLC0415", # import at top of file
 ]
 
 [lint.pydocstyle]
@@ -21,4 +66,3 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
 docstring-code-format = true
-
