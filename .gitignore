@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# ignore all files in .vscode except settings.json and extensions.json
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
 # Distribution / packaging
 .Python
 build/

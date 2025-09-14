@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-python.pylint",
+    "anysphere.cursorpyright",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "xaver.clang-format",
+    "ms-vscode.cmake-tools"
+  ],
+  "unwantedRecommendations": []
+}
