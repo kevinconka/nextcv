@@ -1,3 +1,5 @@
+# Makefile for NextCV, intended for C++ related development
+
 .DEFAULT_GOAL := help
 PRESET := uv-env
 
@@ -49,21 +51,6 @@ tidy-fix: build deps-ci ## Run clang-tidy --fix on all C++ files
 clean: ## Remove build directory
 	rm -rf $(BUILD_DIR)
 	@echo "✅ Clean complete"
-
-.PHONY: docs
-docs: ## Build documentation
-	@echo "🔄 Building documentation..."
-	python3 build_docs.py
-
-.PHONY: docs-serve
-docs-serve: ## Serve documentation locally
-	@echo "🌐 Serving documentation at http://127.0.0.1:8000"
-	mkdocs serve
-
-.PHONY: docs-deploy
-docs-deploy: ## Deploy documentation to GitHub Pages
-	@echo "🚀 Deploying documentation to GitHub Pages..."
-	mkdocs gh-deploy
 
 # Catch-all for file arguments (allows 'make tidy file1.cpp file2.cpp')
 %:
