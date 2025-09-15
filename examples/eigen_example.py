@@ -5,10 +5,10 @@ import numpy as np
 import sys
 import os
 
-# Add the build directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'build', 'nextcv', '_cpp', 'src'))
+# Add the workspace to Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from nextcv_py import linalg as cpp_linalg
+from nextcv.linalg import matvec
 
 def main():
     print("NextCV Eigen Matrix-Vector Multiplication Example")
@@ -30,10 +30,10 @@ def main():
     print()
     
     # Compute using NextCV (Eigen)
-    y_cpp = cpp_linalg.matvec(A, x)
+    y_nextcv = matvec(A, x)
     print(f"Result y = A @ x using NextCV (Eigen):")
-    print(f"  Shape: {y_cpp.shape}, dtype: {y_cpp.dtype}")
-    print(f"  Values: {y_cpp}")
+    print(f"  Shape: {y_nextcv.shape}, dtype: {y_nextcv.dtype}")
+    print(f"  Values: {y_nextcv}")
     print()
     
     # Compare with NumPy
@@ -44,7 +44,7 @@ def main():
     print()
     
     # Verify they match
-    if np.allclose(y_cpp, y_np, rtol=1e-6, atol=1e-6):
+    if np.allclose(y_nextcv, y_np, rtol=1e-6, atol=1e-6):
         print("✓ Results match perfectly!")
     else:
         print("✗ Results differ!")

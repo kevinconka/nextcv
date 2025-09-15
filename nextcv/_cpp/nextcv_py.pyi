@@ -31,4 +31,23 @@ def nms(
     """
     ...
 
-__all__ = ["hello", "invert", "nms"]
+class linalg:
+    """Linear algebra utilities using Eigen."""
+    
+    @staticmethod
+    def matvec(A: NDArray[np.float32], x: NDArray[np.float32]) -> NDArray[np.float32]:
+        """Multiply matrix A (M×N) by vector x (N) → y (M). Uses Eigen.
+
+        Args:
+            A: Input matrix of shape (M, N) with float32 dtype
+            x: Input vector of shape (N,) with float32 dtype
+
+        Returns:
+            NDArray[np.float32]: Result vector of shape (M,) with float32 dtype
+
+        Raises:
+            ValueError: If matrix and vector dimensions don't match
+        """
+        ...
+
+__all__ = ["hello", "invert", "nms", "linalg"]

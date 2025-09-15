@@ -18,7 +18,7 @@ Usage:
 from importlib.metadata import PackageNotFoundError, version
 
 # Import modules
-from . import core, image, postprocessing
+from . import core, image, postprocessing, linalg
 from .core import hello_cpp, hello_python
 
 try:
@@ -26,4 +26,4 @@ try:
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
-__all__ = ["core", "image", "postprocessing", "hello_cpp", "hello_python"]
+__all__ = ["core", "image", "postprocessing", "linalg", "hello_cpp", "hello_python"]
