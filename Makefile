@@ -1,3 +1,5 @@
+# Makefile for NextCV, intended for C++ related development
+
 .DEFAULT_GOAL := help
 PRESET := uv-env
 
