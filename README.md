@@ -19,12 +19,21 @@
 
 ## What is NextCV?
 
-**Fast computer vision in Python.** C++ performance with Python simplicity.
+**A pragmatic computer vision library that combines Python's ease with C++'s performance when it matters.**
 
-- **C++ speed** + **Python ease** via pybind11
-- **Modern tooling** (uv, scikit-build-core)
-- **Cross-platform** (macOS, Linux)
-- **CI/CD** (GitHub Actions)
+### 🎯 Our Philosophy
+
+- **Python for Prototyping** - Rapid development and experimentation
+- **C++ for Performance** - When speed is critical and no suitable libraries exist
+- **Strategic C++** - We don't rewrite everything in C++, we choose wisely
+- **C++ Standalone** - C++ code can be used independently in C++-only projects
+
+### 🚀 Key Features
+
+- **Smart Performance** - C++ where it adds real value, Python everywhere else
+- **Modern Tooling** - uv, scikit-build-core, clang-tidy, pre-commit
+- **Cross-platform** - macOS, Linux support
+- **Production Ready** - CI/CD, comprehensive testing, code quality tools
 
 ---
 
@@ -187,10 +196,22 @@ We welcome bug fixes, new features, documentation improvements, and code quality
 
 ## 🏛️ Architecture
 
-NextCV is built with a clean, modular architecture:
-- **C++ Core**: High-performance algorithms and data structures
-- **Python Bindings**: Seamless integration with NumPy and Python ecosystem
-- **Modern Build System**: CMake + scikit-build-core for reliable cross-platform builds
+NextCV follows a pragmatic, modular architecture:
+
+### **Python-First Design**
+- **Primary Interface**: Python for ease of use and rapid prototyping
+- **Strategic C++**: Only where performance is critical and no suitable libraries exist
+- **Fallback Support**: Every C++ function has a Python implementation for debugging
+
+### **C++ Standalone Capability**
+- **Independent Usage**: C++ code can be used in C++-only projects
+- **CMake Integration**: `find_package(NextCV)` for C++ projects
+- **Precautionary Feature**: Available but not the primary focus
+
+### **Modern Build System**
+- **CMake + scikit-build-core**: Reliable cross-platform builds
+- **Code Quality**: clang-tidy, pre-commit, comprehensive testing
+- **CI/CD**: Automated testing and quality checks
 
 ---
 

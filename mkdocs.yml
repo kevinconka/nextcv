@@ -45,10 +45,15 @@ theme:
         name: Switch to system preference
 
 nav:
-  - Home:
-    - Overview: index.md
-    - Getting Started: getting-started.md
-    - PyBind11 Guide: pybind11-guide.md
+  - Home: index.md
+  - PyBind11 Guide:
+      - Overview: pybind11/index.md
+      - Simple Tutorial: pybind11/simple-tutorial.md
+      - When to Use C++: pybind11/when-to-use-cpp.md
+      - PyBind11 Basics: pybind11/pybind11-basics.md
+      - Testing: pybind11/testing.md
+      - Best Practices: pybind11/best-practices.md
+      - Resources: pybind11/resources.md
   - API Reference: reference/
   - Examples: examples/
 
@@ -111,9 +116,9 @@ plugins:
       handlers:
         python:
           inventories:
-          - https://docs.python.org/3/objects.inv
-          - https://numpy.org/doc/stable/objects.inv
-          - https://opencv-python.readthedocs.io/en/latest/objects.inv
+            - https://docs.python.org/3/objects.inv
+            - https://numpy.org/doc/stable/objects.inv
+            - https://opencv-python.readthedocs.io/en/latest/objects.inv
           options:
             docstring_style: "google"
             docstring_options:
@@ -133,5 +138,5 @@ plugins:
             signature_crossrefs: true
             summary: true
             extensions:
-              - griffe_fieldz: {include_inherited: true}
+              - griffe_fieldz: { include_inherited: true }
               - griffe_pydantic
