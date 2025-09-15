@@ -32,7 +32,7 @@
 
 ```bash
 # Using uv (recommended)
-uv add nextcv
+uv add git+https://github.com/kevinconka/nextcv.git
 
 # Or with pip
 pip install git+https://github.com/kevinconka/nextcv.git
@@ -53,12 +53,14 @@ target_link_libraries(your_target PRIVATE NextCV::nextcv)
 ```bash
 uv add nextcv
 uv run python -c "import nextcv; print(nextcv.hello_cpp())"
+# Hello from NextCV (C++)
 uv run python -c "import nextcv; print(nextcv.hello_python())"
+# Hello from NextCV (Python)
 ```
 
 **Performance demo:**
 ```python
-import timeit
+from timeit import timeit
 import numpy as np
 from nextcv.postprocessing import nms_cpp, nms_np
 
@@ -67,8 +69,8 @@ rng = np.random.default_rng(42)
 bboxes = rng.uniform(0, 100, (N, 4)).astype(np.float32)
 scores = rng.uniform(0.1, 1, N).astype(np.float32)
 
-t_cpp = timeit.timeit("nms_cpp(bboxes, scores, 0.5)", globals=globals(), number=100)
-t_np = timeit.timeit("nms_np(bboxes, scores, 0.5)", globals=globals(), number=100)
+t_cpp = timeit("nms_cpp(bboxes, scores, 0.5)", globals=globals(), number=100)
+t_np  = timeit("nms_np(bboxes, scores, 0.5)", globals=globals(), number=100)
 
 print(f"nms_cpp: {t_cpp:.2f} ms/call")
 print(f"nms_np:  {t_np:.2f} ms/call")

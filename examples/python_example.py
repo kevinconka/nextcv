@@ -38,7 +38,7 @@ def demonstrate_core_functionality() -> None:
     print("Core functionality:")
     from nextcv.core import hello_cpp, hello_python
 
-    print(f"   hello(): {hello_cpp()}")  # C++ if available, Python fallback
+    print(f"   hello_cpp(): {hello_cpp()}")  # C++ if available, Python fallback
     print(f"   hello_python(): {hello_python()}")  # Always Python
     print()
 
@@ -55,7 +55,7 @@ def demonstrate_image_processing(test_image: np.ndarray) -> None:
 def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> None:
     """Demonstrate NMS functionality with performance timing."""
     print("Post-processing (NMS timing comparison):")
-    from nextcv.postprocessing import nms_cpp, nms_cv2, nms_np
+    from nextcv.postprocessing import nms_cpp, nms_np
 
     print(f"   Dataset: {len(test_boxes)} bounding boxes")
     print()
@@ -66,12 +66,6 @@ def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> N
     cpp_time = time.perf_counter() - start_time
     print(f"   nms_cpp(): {len(result_cpp)} boxes kept in {cpp_time * 1000:.2f}ms")
 
-    # Time OpenCV implementation
-    start_time = time.perf_counter()
-    result_cv2 = nms_cv2(test_boxes, test_scores, 0.5)
-    cv2_time = time.perf_counter() - start_time
-    print(f"   nms_cv2(): {len(result_cv2)} boxes kept in {cv2_time * 1000:.2f}ms")
-
     # Time NumPy implementation
     start_time = time.perf_counter()
     result_np = nms_np(test_boxes, test_scores, 0.5)
@@ -81,10 +75,9 @@ def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> N
     # Performance comparison
     print()
     print("Performance comparison:")
-    fastest_time = min(cpp_time, cv2_time, np_time)
+    fastest_time = min(cpp_time, np_time)
     print(f"   Fastest: {fastest_time * 1000:.2f}ms")
     print(f"   C++ speedup: {cpp_time / fastest_time:.1f}x")
-    print(f"   OpenCV speedup: {cv2_time / fastest_time:.1f}x")
     print(f"   NumPy speedup: {np_time / fastest_time:.1f}x")
     print()
 
