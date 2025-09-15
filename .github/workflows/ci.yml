@@ -147,6 +147,7 @@ jobs:
           ignore: "nextcv/_cpp/src/bindings/*"
           style: "file" # Use .clang-format config file
           tidy-checks: "" # Use .clang-tidy config file
+          database: "build/compile_commands.json" # Path to compile_commands.json
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
