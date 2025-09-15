@@ -13,12 +13,16 @@ else:
 
 
 def _import_cpp():  # noqa
-    from nextcv._cpp.nextcv_py import nms  # noqa
+    from nextcv._cpp.nextcv_py import postprocessing as _cpp_postprocessing  # noqa
 
-    return nms
+    return _cpp_postprocessing
 
 
-nms_cpp = _import_cpp()
+# Import the C++ postprocessing module
+_cpp_postprocessing = _import_cpp()
+
+# Expose the nms function
+nms_cpp = _cpp_postprocessing.nms
 
 
 def iou_np(

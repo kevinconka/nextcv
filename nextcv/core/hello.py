@@ -2,9 +2,9 @@
 
 
 def _import_cpp():  # noqa
-    from nextcv._cpp.nextcv_py import hello as _hello  # noqa
+    from nextcv._cpp.nextcv_py import core as _core_cpp  # noqa
 
-    return _hello
+    return _core_cpp
 
 
 def hello_python() -> str:
@@ -12,4 +12,8 @@ def hello_python() -> str:
     return "Hello from NextCV (Python)"
 
 
-hello_cpp = _import_cpp()
+# Import the C++ core module
+_core_cpp = _import_cpp()
+
+# Expose the hello function
+hello_cpp = _core_cpp.hello

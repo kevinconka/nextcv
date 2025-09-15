@@ -18,7 +18,7 @@ Usage:
 from importlib.metadata import PackageNotFoundError, version
 
 # Import modules
-from . import core, image, postprocessing, linalg
+from . import core, image, linalg, postprocessing
 from .core import hello_cpp, hello_python
 
 try:
