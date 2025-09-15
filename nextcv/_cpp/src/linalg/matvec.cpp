@@ -1,11 +1,12 @@
 #include "matvec.hpp"
 
+#include <Eigen/src/Core/Matrix.h>
 #include <stdexcept>
 #include <string>
 
 namespace nextcv::linalg {
 
-// NOLINTNEXTLINE(misc-include-cleaner)
+// NOLINTNEXTLINE(misc-include-cleaner,bugprone-easily-swappable-parameters)
 auto matvec(const Eigen::Ref<const Eigen::MatrixXf>& matrix,
             const Eigen::Ref<const Eigen::VectorXf>& vector) -> Eigen::VectorXf {
     if (matrix.cols() != vector.size()) {

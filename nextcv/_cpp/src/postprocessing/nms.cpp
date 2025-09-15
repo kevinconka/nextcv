@@ -1,6 +1,7 @@
 #include "nms.hpp"
 #include <Eigen/src/Core/Matrix.h>
 #include <algorithm>
+#include <cstddef>
 #include <numeric>
 #include <vector>
 
@@ -17,24 +18,24 @@ auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float thr
         (bboxes.col(2) - bboxes.col(0)).cwiseProduct(bboxes.col(3) - bboxes.col(1));
 
     // Sort by scores
-    std::vector<int> indices(scores.size());
+    std::vector<int> indices(static_cast<std::size_t>(scores.size()));
     std::iota(indices.begin(), indices.end(), 0);
     std::sort(indices.begin(), indices.end(),
               [&](int i, int j) -> bool { return scores(i) > scores(j); });
 
     std::vector<int> keep;
-    std::vector<bool> is_suppressed(scores.size(), false);
+    std::vector<bool> is_suppressed(static_cast<std::size_t>(scores.size()), false);
 
-    for (int i = 0; i < scores.size(); ++i) {
-        int idx = indices[i];
-        if (is_suppressed[idx]) {
+    for (int i = 0; i < static_cast<int>(scores.size()); ++i) {
+        int idx = indices[static_cast<std::size_t>(i)];
+        if (is_suppressed[static_cast<std::size_t>(idx)]) {
             continue;
         }
         keep.push_back(idx);
 
-        for (int j = i + 1; j < scores.size(); ++j) {
-            int other_idx = indices[j];
-            if (is_suppressed[other_idx]) {
+        for (int j = i + 1; j < static_cast<int>(scores.size()); ++j) {
+            int other_idx = indices[static_cast<std::size_t>(j)];
+            if (is_suppressed[static_cast<std::size_t>(other_idx)]) {
                 continue;
             }
 
@@ -53,7 +54,7 @@ auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float thr
             float iou = inter_area / union_area;
 
             if (iou > threshold) {
-                is_suppressed[other_idx] = true;
+                is_suppressed[static_cast<std::size_t>(other_idx)] = true;
             }
         }
     }
