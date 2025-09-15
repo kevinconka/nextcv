@@ -5,17 +5,6 @@ PRESET := uv-env
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
     STDLIB_FLAG := -stdlib=libc++
-    # Add Homebrew LLVM to PATH for macOS if not already present
-    LLVM_PATH := $(shell brew --prefix llvm 2>/dev/null)
-    $(info LLVM_PATH: $(LLVM_PATH))
-    $(info PATH: $(PATH))
-    ifneq ($(LLVM_PATH),)
-        ifeq (,$(findstring $(LLVM_PATH)/bin,$(PATH)))
-            $(info Adding LLVM to PATH)
-            export PATH := $(LLVM_PATH)/bin:$(PATH)
-            $(info PATH: $(PATH))
-        endif
-    endif
 else
     STDLIB_FLAG :=
 endif
@@ -33,23 +22,27 @@ help: ## Show available commands
 	@echo "---------------"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: deps
-deps: ## Check if cmake and clang-tidy are available
+.PHONY: deps-build
+deps-build: ## Check if cmake and clang-tidy are available
 	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
+	@echo "✅ Build Dependencies OK ($(UNAME_S))"
+
+.PHONY: deps-ci
+deps-ci: ## Check if cmake and clang-tidy are available for CI
 	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1)
-	@echo "✅ Dependencies OK ($(UNAME_S))"
+	@echo "✅ CI Dependencies OK ($(UNAME_S))"
 
 .PHONY: build
-build: deps ## Configure and build the project
+build: deps-build ## Configure and build the project
 	cmake --preset $(PRESET)
 	cmake --build --preset $(PRESET)
 
 .PHONY: tidy
-tidy: build ## Run clang-tidy on all C++ files
+tidy: build deps-ci ## Run clang-tidy on all C++ files
 	$(TIDY_CMD)
 
 .PHONY: tidy-fix
-tidy-fix: build ## Run clang-tidy --fix on all C++ files
+tidy-fix: build deps-ci ## Run clang-tidy --fix on all C++ files
 	find $(CPP_FILES) -exec $(TIDY_BASE) --fix {} -- $(STDLIB_FLAG) \;
 
 .PHONY: clean
