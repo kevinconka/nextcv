@@ -28,7 +28,7 @@ jobs:
 
       - name: 🔍 Get python changed files
         id: changed-python-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             **/*.py
@@ -36,7 +36,7 @@ jobs:
 
       - name: 🔍 Get cpp changed files
         id: changed-cpp-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             **/*.c
