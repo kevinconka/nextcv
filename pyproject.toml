@@ -30,6 +30,8 @@ dev = [
   "ruff>=0.5",
   "ipykernel",
 ]
+
+[project.optional-dependencies]
 docs = [
   "mkdocs-material[git]>=9.6.9",
   "mkdocstrings[python]>=0.29.0",
