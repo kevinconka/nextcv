@@ -8,7 +8,11 @@
     }
   },
   "[cpp]": {
-    "editor.defaultFormatter": "xaver.clang-format"
+    "editor.defaultFormatter": "xaver.clang-format",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.clang-format": "explicit",
+      "source.fixAll.clang-tidy": "explicit"
+    }
   },
   "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
   "pylint.args": [

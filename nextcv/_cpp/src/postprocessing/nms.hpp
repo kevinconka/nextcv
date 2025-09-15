@@ -1,19 +1,12 @@
 #pragma once
 
-#include "../core/types.hpp"
+#include <array>
 #include <vector>
 
-namespace nextcv {
-namespace postprocessing {
+namespace nextcv::postprocessing {
 
-// Bounding box structure
-struct BoundingBox {
-    float x, y, width, height;
-    float confidence;
-
-    BoundingBox(float x_val, float y_val, float w, float h, float conf)
-        : x(x_val), y(y_val), width(w), height(h), confidence(conf) {}
-};
+// Default IoU threshold for NMS
+constexpr float default_nms_threshold = 0.5F;
 
 /**
  * @brief Apply Non-Maximum Suppression to bounding boxes (numpy array version)
@@ -22,8 +15,7 @@ struct BoundingBox {
  * @param threshold IoU threshold for suppression
  * @return Indices of boxes to keep after NMS
  */
-std::vector<int> nms(const std::vector<std::array<float, 4>>& bboxes,
-                     const std::vector<float>& scores, float threshold = 0.5f);
+auto nms(const std::vector<std::array<float, 4>>& bboxes, const std::vector<float>& scores,
+         float threshold = default_nms_threshold) -> std::vector<int>;
 
-} // namespace postprocessing
-} // namespace nextcv
+} // namespace nextcv::postprocessing

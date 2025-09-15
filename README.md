@@ -17,278 +17,175 @@
 
 ---
 
-<div align="center">
+## What is NextCV?
 
-## 🚀 What is NextCV?
+**Fast computer vision in Python.** C++ performance with Python simplicity.
 
-</div>
-
-NextCV is a **modern, minimal computer vision library** that combines the raw performance of C++ with the ease of use that Python developers love. Built from the ground up with contemporary tooling, it offers a clean API for both languages while maintaining the speed and efficiency that computer vision applications demand.
-
-Think of it as **OpenCV reimagined** for the modern development workflow—with better packaging, cleaner APIs, and tooling that just works.
-
-### ✨ Key Features
-
-- **🚀 High Performance**: C++ core with Python bindings via pybind11
-- **📦 Modern Packaging**: Built with scikit-build-core and managed with uv
-- **🐍 Python-First**: Seamless NumPy integration and intuitive APIs
-- **⚡ C++ Ready**: Header-only design with CMake integration
-- **🔧 Developer Friendly**: Modern tooling, comprehensive testing, and clear documentation
-- **📊 Cross-Platform**: Works on Windows, macOS, and Linux
+- **C++ speed** + **Python ease** via pybind11
+- **Modern tooling** (uv, scikit-build-core)
+- **Cross-platform** (macOS, Linux)
+- **CI/CD** (GitHub Actions)
 
 ---
 
-<div align="center">
-
 ## 🛠️ Installation
-
-</div>
-
-### Python (Recommended)
 
 ```bash
 # Using uv (recommended)
 uv add nextcv
 
 # Or with pip
-pip install nextcv
-
-# Or install directly from source
 pip install git+https://github.com/kevinconka/nextcv.git
 ```
 
-### C++
+### C++ (CMake)
 
 ```cmake
-# In your CMakeLists.txt
 find_package(NextCV REQUIRED)
 target_link_libraries(your_target PRIVATE NextCV::nextcv)
 ```
 
 ---
 
-<div align="center">
-
 ## 🎯 Quick Start
 
-</div>
-
-### Python Example
-
-```python
-import nextcv
-import numpy as np
-
-# Simple hello world
-print(nextcv.hello())
-
-# Pixel inversion with NumPy arrays
-data = np.array([0, 64, 128, 192, 255], dtype=np.uint8)
-inverted = nextcv.invert(data)
-print(f"Original:  {data}")
-print(f"Inverted:  {inverted}")
-# Output: Original:  [  0  64 128 192 255]
-#         Inverted:  [255 191 127  63   0]
+**Install and run:**
+```bash
+uv add nextcv
+uv run python -c "import nextcv; print(nextcv.hello_cpp())"
+uv run python -c "import nextcv; print(nextcv.hello_python())"
 ```
 
-### C++ Example
+**Performance demo:**
+```python
+import timeit
+import numpy as np
+from nextcv.postprocessing import nms_cpp, nms_np
 
-```cpp
-#include "nextcv/invert.hpp"
-#include <iostream>
-#include <vector>
+N = 1_000
+rng = np.random.default_rng(42)
+bboxes = rng.uniform(0, 100, (N, 4)).astype(np.float32)
+scores = rng.uniform(0.1, 1, N).astype(np.float32)
 
-int main() {
-    std::vector<uint8_t> pixels{0, 64, 128, 192, 255};
-    auto inverted = nextcv::invert(pixels);
+t_cpp = timeit.timeit("nms_cpp(bboxes, scores, 0.5)", globals=globals(), number=100)
+t_np = timeit.timeit("nms_np(bboxes, scores, 0.5)", globals=globals(), number=100)
 
-    for (auto pixel : inverted) {
-        std::cout << static_cast<int>(pixel) << " ";
-    }
-    // Output: 255 191 127 63 0
-}
+print(f"nms_cpp: {t_cpp:.2f} ms/call")
+print(f"nms_np:  {t_np:.2f} ms/call")
+
+>>> nms_cpp: 0.17 ms/call
+>>> nms_np:  2.22 ms/call
+```
+
+**Or run the full example:**
+```bash
+uv run python examples/python_example.py
 ```
 
 ---
-
-<div align="center">
 
 ## 🏗️ Building from Source
 
-</div>
-
-### Prerequisites
-
-- **Python 3.8+**
-- **C++17 compatible compiler** (GCC 7+, Clang 5+, MSVC 2019+)
-- **CMake 3.20+**
-- **uv** (recommended) or pip
-
-### Development Setup
+**Prerequisites**: Python 3.8+, C++17 compiler, CMake 3.20+, uv
 
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/kevinconka/nextcv.git
 cd nextcv
 
-# Install pre-commit hooks (recommended)
+# Install pre-commit hooks
 uvx pre-commit install
 
-# Python development
-uv sync
-uv run pytest
-uv build
-
-# C++ development
-cmake -B build -DNEXTCV_BUILD_EXAMPLES=ON
-cmake --build build
-./build/examples/cpp_example
-```
-
-### Running Examples
-
-```bash
-# Python example
-uv run python examples/python_example.py
-
-# C++ example
-./build/examples/cpp_example
+# Development
+uv sync && uv run pytest
+cmake -B build -DNEXTCV_BUILD_EXAMPLES=ON && cmake --build build
 ```
 
 ---
 
-<div align="center">
-
-## 🔧 Code Quality & Pre-commit
-
-</div>
-
-This project uses [pre-commit](https://pre-commit.com/) to ensure code quality and consistency. Pre-commit hooks automatically run checks and fixes on your code before each commit.
-
-### Setup Pre-commit
+## 🧪 Development & Testing
 
 ```bash
-# Install the git hook scripts
-uvx pre-commit install
-
-# (Optional) Run against all files
-uvx pre-commit run --all-files
-```
-
-### What Pre-commit Does
-
-The configured hooks will automatically:
-- **Format code** with Ruff and clang-format
-- **Remove unused imports** with pycln
-- **Check for security issues** with gitleaks
-- **Validate YAML/JSON** files
-- **Remove trailing whitespace** and fix line endings
-- **Check for large files** and case conflicts
-- **Ensure test files** follow naming conventions
-
-### Manual Usage
-
-```bash
-# Run all hooks on staged files
-uvx pre-commit run
-
-# Run specific hook
-uvx pre-commit run ruff
-
-# Update hook versions
-uvx pre-commit autoupdate
-```
-
----
-
-<div align="center">
-
-## 🧪 Testing
-
-</div>
-
-```bash
-# Run Python tests
+# Run tests
 uv run pytest tests/ -v
 
-# Run C++ tests
-cmake -B build -DNEXTCV_BUILD_TESTS=ON
-cmake --build build
-ctest --test-dir build
+# Code quality (pre-commit)
+uvx pre-commit install
+uvx pre-commit run --all-files
 ```
 
 ---
 
 ## 🤝 Contributing
 
-We'd love your help making NextCV better! Whether you're fixing bugs, adding features, or improving documentation, every contribution matters.
+1. Fork the repository and create a feature branch
+2. Write tests for your changes
+3. Submit a pull request
 
-### How to Contribute
+### Development Tools Setup
 
-1. **Fork the repository** and create a feature branch
-2. **Write tests** for your changes (we love good test coverage!)
-3. **Run the test suite** to ensure everything works
-4. **Submit a pull request** with a clear description of your changes
+The Makefile automatically detects and uses the best available tools. Just install the dependencies:
 
-### What We're Looking For
+**Linux (Ubuntu/Debian)**
+```bash
+sudo apt-get install -y cmake clang-tidy
+```
 
-- 🐛 **Bug fixes** and performance improvements
-- ✨ **New algorithms** and computer vision features
-- 📖 **Documentation** improvements and examples
-- 🧪 **Tests** that make us go "wow, we didn't think of that"
-- 🎨 **Code quality** improvements and refactoring
+**macOS**
+```bash
+brew install llvm cmake
 
-### Development Guidelines
+# Add LLVM to PATH (auto-detects shell)
+if [ -n "$ZSH_VERSION" ]; then
+  echo 'export PATH="$(brew --prefix llvm)/bin:$PATH"' >> ~/.zshrc
+elif [ -n "$BASH_VERSION" ]; then
+  echo 'export PATH="$(brew --prefix llvm)/bin:$PATH"' >> ~/.bashrc
+fi
 
-- Follow the existing code style and patterns
-- Add tests for new functionality
-- Update documentation as needed
-- Keep commits focused and well-described
+# Reload shell
+source ~/.zshrc    # or ~/.bashrc
+
+make check-deps    # Check if all dependencies are installed
+```
+
+### Development Workflow
+
+**Pre-commit Setup**
+```bash
+uvx pre-commit install
+uvx pre-commit run --all-files
+```
+
+**Python Development**
+```bash
+uv sync
+uv run pytest tests/ -v
+uv run ruff check .
+uv run ruff format .
+```
+
+**C++ Development**
+```bash
+# Use the Makefile for C++ development
+make help                    # See all available targets
+```
+
+**Manual C++ Commands** (if you prefer raw commands)
+```bash
+cmake -B build -DNEXTCV_BUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build
+clang-format -i src/**/*.{cpp,hpp}
+clang-tidy src/**/*.cpp
+```
+
+We welcome bug fixes, new features, documentation improvements, and code quality enhancements.
 
 ---
-
-<div align="center">
-
-## 📋 Project Status
-
-</div>
-
-**Current Version**: 0.0.1 (Experimental)
-
-This is an experimental project in active development. The API may change between versions as we refine the design and add new features.
-
-### Roadmap
-
-- [ ] Core image processing functions
-- [ ] Feature detection algorithms
-- [ ] Machine learning integration
-- [ ] GPU acceleration support
-- [ ] Extended platform support
-
----
-
-<div align="center">
 
 ## 🏛️ Architecture
 
-</div>
-
 NextCV is built with a clean, modular architecture:
-
-```
-┌─────────────────┐    ┌─────────────────┐
-│   Python API    │    │    C++ API      │
-│   (pybind11)    │    │   (Headers)     │
-└─────────┬───────┘    └─────────┬───────┘
-          │                      │
-          └──────────┬───────────┘
-                     │
-          ┌──────────▼───────────┐
-          │    C++ Core Library  │
-          │   (High Performance) │
-          └──────────────────────┘
-```
-
 - **C++ Core**: High-performance algorithms and data structures
 - **Python Bindings**: Seamless integration with NumPy and Python ecosystem
 - **Modern Build System**: CMake + scikit-build-core for reliable cross-platform builds
@@ -305,16 +202,9 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
-<div align="center">
-
 ## 🙏 Acknowledgments
 
-</div>
-
-- Built with [pybind11](https://github.com/pybind/pybind11) for Python-C++ interop
-- Powered by [scikit-build-core](https://github.com/scikit-build/scikit-build-core) for modern Python packaging
-- Managed with [uv](https://github.com/astral-sh/uv) for fast dependency resolution
-- Inspired by the computer vision community and open source projects
+Built with [pybind11](https://github.com/pybind/pybind11), [scikit-build-core](https://github.com/scikit-build/scikit-build-core), and [uv](https://github.com/astral-sh/uv).
 
 ---
 

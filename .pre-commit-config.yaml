@@ -11,6 +11,7 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+        exclude: ^(.vscode/settings\\.json|.*\\.ipynb)$
       - id: check-yaml
         exclude: mkdocs.yml
       - id: check-added-large-files
@@ -43,3 +44,10 @@ repos:
     hooks:
       - id: clang-format
         types_or: [c, c++, cuda]
+
+  # - repo: https://github.com/pocc/pre-commit-hooks
+  #   rev: v1.3.5
+  #   hooks:
+  #     - id: clang-tidy
+  #       args: [--config-file=.clang-tidy]
+  #       types_or: [c++, c]

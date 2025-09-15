@@ -1,0 +1,38 @@
+# .clang-tidy (stricter CI preset)
+Checks: >
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  readability-*,
+  -readability-identifier-length,
+  cppcoreguidelines-avoid-goto,
+  cppcoreguidelines-interfaces-global-init,
+  cppcoreguidelines-narrowing-conversions,
+  misc-include-cleaner
+
+WarningsAsErrors: true # CI gate
+HeaderFilterRegex: "^(nextcv/_cpp/src/|include/)"
+FormatStyle: file
+
+CheckOptions:
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+
+  - key: misc-include-cleaner.DeduplicateFindings
+    value: true
+  - key: misc-include-cleaner.ExcludeDirs
+    value: "third_party|.venv|build"

@@ -37,16 +37,16 @@ py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
 
 } // namespace
 
-PYBIND11_MODULE(nextcv_py, m) {
-    m.doc() = "NextCV pybind11 bindings";
+PYBIND11_MODULE(nextcv_py, module) {
+    module.doc() = "NextCV pybind11 bindings";
 
     // Core functions
-    m.def("hello", &nextcv::core::hello, "Return a greeting from NextCV C++");
+    module.def("hello", &nextcv::core::hello, "Return a greeting from NextCV C++");
 
     // Image processing functions
-    m.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
+    module.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
 
-    m.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
-          py::arg("threshold") = 0.5f,
-          "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
+    module.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
+               py::arg("threshold") = 0.5f,
+               "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
 }
