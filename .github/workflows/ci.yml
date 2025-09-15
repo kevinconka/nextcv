@@ -144,12 +144,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          version: "21"
           ignore: "nextcv/_cpp/src/bindings/*"
           style: "file" # Use .clang-format config file
           tidy-checks: "" # Use .clang-tidy config file
           database: "build/compile_commands.json" # Path to compile_commands.json
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+          no-lgtm: false
 
       - name: Fail fast if linting failed
         if: steps.cpp-linter.outputs.checks-failed > 0
