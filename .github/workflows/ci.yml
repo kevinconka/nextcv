@@ -132,6 +132,11 @@ jobs:
         if: steps.cpp-linter.outputs.checks-failed > 0
         run: exit 1
 
+      - name: 📝 Generate and Check Python Stubs
+        run: |
+          make stubs
+          git diff --exit-code nextcv/_cpp/ || (echo "::error file=nextcv/_cpp/::Python stubs or ruff fixes are out of date. Please run 'make stubs' and commit the changes." && exit 1)
+
       - name: 🔨 Build C++ Examples
         run: |
           # Use Makefile for consistent build process

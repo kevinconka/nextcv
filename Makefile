@@ -31,7 +31,7 @@ deps: ## Check for required dependencies
 	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && (echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1))
 	@command -v clang-format >/dev/null || (echo "❌ clang-format not found" && (echo "   Install: macOS → brew install clang-format | Linux → apt install clang-format" && exit 1))
 	@command -v pybind11-stubgen >/dev/null || (echo "❌ pybind11-stubgen not found" && (echo "   Install: uv pip install pybind11-stubgen" && exit 1))
-	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   curl -LsSf https://astral.sh/uv/install.sh | sh" && exit 1))
+	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   Install: uv pip install uvx" && exit 1))
 	@echo "✅ Dependencies OK ($(OS))"
 
 .PHONY: build
@@ -46,24 +46,25 @@ format: deps ## Run clang-format on all C++ files
 
 .PHONY: ruff-fix
 ruff-fix: deps ## Run ruff formatter and linter with safe fixes
-	@echo "Running ruff format..."
 	@uvx ruff format .
-	@echo "Running ruff check with safe fixes..."
-	@uvx ruff check . --fix
-	@echo "Running ruff format again to catch any new formatting issues..."
+	@uvx ruff check . --fix --exit-zero
 	@uvx ruff format .
 
 .PHONY: ruff-fix-unsafe
 ruff-fix-unsafe: deps ## Run ruff linter with unsafe fixes
 	@echo "Running ruff check with unsafe fixes..."
-	@uvx ruff check . --fix --unsafe-fixes
+	@uvx ruff format .
+	@uvx ruff check . --fix --unsafe-fixes --exit-zero
+	@uvx ruff format .
 
 .PHONY: stubs
 stubs: clean ## Generate Python stubs for the C++ module
 	@echo "Syncing environment..."
-	@uv sync --reinstall
+	@uv sync
 	@echo "Generating stubs for C++ module..."
 	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
+	@echo "Running ruff-fix-unsafe after stub generation..."
+	@$(MAKE) ruff-fix-unsafe # Call the ruff-fix-unsafe target
 
 .PHONY: tidy
 tidy: build ## Run clang-tidy on all C++ files
