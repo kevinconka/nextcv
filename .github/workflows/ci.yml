@@ -140,6 +140,9 @@ jobs:
           uv sync
           uv build
 
+      - name: 🐛 Debug Print compile_commands.json
+        run: cat build/compile_commands.json
+
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
         id: cpp-linter
@@ -151,6 +154,7 @@ jobs:
           style: "file" # Use .clang-format config file
           tidy-checks: "" # Use .clang-tidy config file
           database: "build/compile_commands.json" # Path to compile_commands.json
+          verbosity: "debug" # Debug: Print clang-tidy commands
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
           no-lgtm: false
