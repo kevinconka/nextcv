@@ -65,6 +65,17 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v5
 
+      - name: 🔧 Install Eigen3 (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
+
+      - name: 🔧 Install Eigen3 (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install eigen
+
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -107,6 +118,17 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v5
+
+      - name: 🔧 Install Eigen3 (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
+
+      - name: 🔧 Install Eigen3 (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install eigen
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
