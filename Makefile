@@ -7,9 +7,13 @@ ifeq ($(UNAME_S),Darwin)
     STDLIB_FLAG := -stdlib=libc++
     # Add Homebrew LLVM to PATH for macOS if not already present
     LLVM_PATH := $(shell brew --prefix llvm 2>/dev/null)
+    $(info LLVM_PATH: $(LLVM_PATH))
+    $(info PATH: $(PATH))
     ifneq ($(LLVM_PATH),)
         ifeq (,$(findstring $(LLVM_PATH)/bin,$(PATH)))
+            $(info Adding LLVM to PATH)
             export PATH := $(LLVM_PATH)/bin:$(PATH)
+            $(info PATH: $(PATH))
         endif
     endif
 else
