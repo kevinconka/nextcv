@@ -1,0 +1,137 @@
+site_name: NextCV
+site_url: https://kevinconka.github.io/nextcv
+watch: [mkdocs.yml, README.md, nextcv]
+
+repo_url: https://github.com/kevinconka/nextcv
+repo_name: kevinconka/nextcv
+
+theme:
+  name: material
+  font:
+    text: Roboto
+    code: Fira Code
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.path
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+nav:
+  - Home:
+    - Overview: index.md
+    - Getting Started: getting-started.md
+    - PyBind11 Guide: pybind11-guide.md
+  - API Reference: reference/
+  - Examples: examples/
+
+markdown_extensions:
+  - abbr
+  - attr_list
+  - toc:
+      permalink: ⚓︎
+      permalink_title: Link to Heading
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.snippets:
+      check_paths: true
+      base_path:
+        - !relative
+        - !relative $docs_dir
+        - !relative $config_dir
+      auto_append:
+        - includes/abbreviations.md
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.smartsymbols
+  - pymdownx.magiclink
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+  - autorefs:
+      resolve_closest: true
+  - section-index
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enabled: !ENV [DEPLOY, false]
+      enable_creation_date: true
+      type: timeago
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+        - docs/gen_cli_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          inventories:
+          - https://docs.python.org/3/objects.inv
+          - https://numpy.org/doc/stable/objects.inv
+          - https://opencv-python.readthedocs.io/en/latest/objects.inv
+          options:
+            docstring_style: "google"
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: spacy
+            filters: []
+            inherited_members: false
+            merge_init_into_class: true
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: true
+            show_root_members_full_path: true
+            show_signature_annotations: true
+            show_source: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: true
+            extensions:
+              - griffe_fieldz: {include_inherited: true}
+              - griffe_pydantic
