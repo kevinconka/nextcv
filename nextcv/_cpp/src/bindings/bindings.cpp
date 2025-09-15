@@ -2,10 +2,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <pybind11/eigen.h>   // Eigen <-> NumPy conversions
 
 #include "../core/hello.hpp"
 #include "../image/invert.hpp"
 #include "../postprocessing/nms.hpp"
+#include "../linalg/matvec.hpp"
 
 namespace py = pybind11;
 
@@ -49,4 +51,17 @@ PYBIND11_MODULE(nextcv_py, module) {
     module.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
                py::arg("threshold") = 0.5f,
                "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
+
+    // Linear algebra submodule
+    auto linalg = module.def_submodule("linalg", "Linear algebra utilities");
+
+    // Accepts np.float32 arrays; returns np.float32 vector.
+    linalg.def(
+        "matvec",
+        [](const Eigen::Ref<const Eigen::MatrixXf>& A,
+           const Eigen::Ref<const Eigen::VectorXf>& x) {
+          return nextcv::linalg::matvec(A, x);
+        },
+        py::arg("A"), py::arg("x"),
+        R"doc(Multiply matrix A (M×N) by vector x (N) → y (M). Uses Eigen.)doc");
 }
