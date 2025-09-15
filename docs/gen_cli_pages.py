@@ -13,8 +13,14 @@ root = Path(__file__).parent.parent
 with mkdocs_gen_files.open("cli/index.md", "w") as fd:
     print("# CLI Reference", file=fd)
     print("", file=fd)
-    print("NextCV currently focuses on Python API usage. "
-    "CLI tools will be added in future releases.", file=fd)
+    print(
+        "NextCV currently focuses on Python API usage. "
+        "CLI tools will be added in future releases.",
+        file=fd,
+    )
     print("", file=fd)
-    print("For now, check out the [API Reference](../reference/) "
-    "for all available functionality.", file=fd)
+    print(
+        "For now, check out the [API Reference](../reference/) "
+        "for all available functionality.",
+        file=fd,
+    )
