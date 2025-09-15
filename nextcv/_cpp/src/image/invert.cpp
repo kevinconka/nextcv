@@ -1,6 +1,5 @@
 #include "invert.hpp"
 #include "../core/types.hpp"
-#include "../core/utils.hpp"
 #include <algorithm>
 #include <iterator>
 #include <limits>
@@ -12,16 +11,12 @@ auto invert(const core::PixelVector& pixels) -> core::PixelVector {
     out.reserve(pixels.size());
 
     std::transform(pixels.begin(), pixels.end(), std::back_inserter(out),
-                   [](core::Pixel p) -> core::Pixel {
-                       return static_cast<core::Pixel>(std::numeric_limits<core::Pixel>::max() - p);
+                   [](core::Pixel pixel) -> core::Pixel {
+                       return static_cast<core::Pixel>(std::numeric_limits<core::Pixel>::max() -
+                                                       pixel);
                    });
 
     return out;
-}
-
-auto invert(const core::PixelVector& pixels, const core::ImageSize& size) -> core::PixelVector {
-    core::validateArrayContiguity(pixels, size);
-    return invert(pixels);
 }
 
 } // namespace nextcv::image

@@ -6,6 +6,7 @@ Checks: >
   performance-*,
   modernize-*,
   readability-*,
+  -readability-identifier-length,
   cppcoreguidelines-avoid-goto,
   cppcoreguidelines-interfaces-global-init,
   cppcoreguidelines-narrowing-conversions,
