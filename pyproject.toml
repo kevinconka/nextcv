@@ -29,6 +29,7 @@ dev = [
   "pytest-cov>=4.0",
   "ruff>=0.5",
   "ipykernel",
+  "pybind11-stubgen",
 ]
 
 [project.optional-dependencies]
@@ -54,6 +55,7 @@ wheel.packages = ["nextcv"]
 cmake.version = ">=3.20"
 build-dir = "build"
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+cmake.args = ["-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
 
 # setuptools_scm configuration
 # https://setuptools-scm.readthedocs.io/en/latest/config/

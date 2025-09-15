@@ -1,68 +1,63 @@
 #include "nms.hpp"
+#include <Eigen/src/Core/Matrix.h>
 #include <algorithm>
-#include <array>
-#include <cstddef>
 #include <numeric>
 #include <vector>
 
 namespace nextcv::postprocessing {
 
-auto nms(const std::vector<std::array<float, 4>>& bboxes, const std::vector<float>& scores,
-         float threshold) -> std::vector<int> {
-    if (bboxes.empty() || scores.empty() || bboxes.size() != scores.size()) {
+auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float threshold)
+    -> std::vector<int> {
+    if (bboxes.rows() == 0) {
         return {};
     }
 
-    // Create indices and sort by scores (descending)
-    std::vector<int> indices(bboxes.size());
+    // Areas of bboxes
+    Eigen::VectorXf areas =
+        (bboxes.col(2) - bboxes.col(0)).cwiseProduct(bboxes.col(3) - bboxes.col(1));
+
+    // Sort by scores
+    std::vector<int> indices(scores.size());
     std::iota(indices.begin(), indices.end(), 0);
+    std::sort(indices.begin(), indices.end(),
+              [&](int i, int j) -> bool { return scores(i) > scores(j); });
 
-    std::sort(indices.begin(), indices.end(), [&scores](int a, int b) -> bool {
-        return scores[static_cast<size_t>(a)] > scores[static_cast<size_t>(b)];
-    });
+    std::vector<int> keep;
+    std::vector<bool> is_suppressed(scores.size(), false);
 
-    std::vector<int> result;
-    std::vector<bool> suppressed(bboxes.size(), false);
-
-    for (size_t i = 0; i < indices.size(); ++i) {
-        if (suppressed[static_cast<size_t>(indices[i])]) {
+    for (int i = 0; i < scores.size(); ++i) {
+        int idx = indices[i];
+        if (is_suppressed[idx]) {
             continue;
         }
+        keep.push_back(idx);
 
-        result.push_back(indices[i]);
-
-        // Suppress boxes with high IoU
-        for (size_t j = i + 1; j < indices.size(); ++j) {
-            if (suppressed[static_cast<size_t>(indices[j])]) {
+        for (int j = i + 1; j < scores.size(); ++j) {
+            int other_idx = indices[j];
+            if (is_suppressed[other_idx]) {
                 continue;
             }
 
-            // Calculate IoU
-            const auto& box1 = bboxes[static_cast<size_t>(indices[i])];
-            const auto& box2 = bboxes[static_cast<size_t>(indices[j])];
-
             // Intersection
-            float x1 = std::max(box1[0], box2[0]);
-            float y1 = std::max(box1[1], box2[1]);
-            float x2 = std::min(box1[2], box2[2]);
-            float y2 = std::min(box1[3], box2[3]);
+            float ix1 = std::max(bboxes(idx, 0), bboxes(other_idx, 0));
+            float iy1 = std::max(bboxes(idx, 1), bboxes(other_idx, 1));
+            float ix2 = std::min(bboxes(idx, 2), bboxes(other_idx, 2));
+            float iy2 = std::min(bboxes(idx, 3), bboxes(other_idx, 3));
 
-            float intersection = std::max(0.0F, x2 - x1) * std::max(0.0F, y2 - y1);
+            float inter_area = std::max(0.0F, ix2 - ix1) * std::max(0.0F, iy2 - iy1);
 
-            // Areas
-            float area1 = (box1[2] - box1[0]) * (box1[3] - box1[1]);
-            float area2 = (box2[2] - box2[0]) * (box2[3] - box2[1]);
-            float union_area = area1 + area2 - intersection;
+            // Union
+            float union_area = areas(idx) + areas(other_idx) - inter_area;
 
-            float iou = intersection / union_area;
+            // IoU
+            float iou = inter_area / union_area;
 
             if (iou > threshold) {
-                suppressed[static_cast<size_t>(indices[j])] = true;
+                is_suppressed[other_idx] = true;
             }
         }
     }
-
-    return result;
+    return keep;
 }
 
 } // namespace nextcv::postprocessing

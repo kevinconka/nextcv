@@ -3,20 +3,21 @@
 .DEFAULT_GOAL := help
 PRESET := uv-env
 
-# Cross-platform detection
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    STDLIB_FLAG := -stdlib=libc++
-else
-    STDLIB_FLAG :=
-endif
-
 # Common paths and patterns
 SRC_DIR := nextcv/_cpp/src
 BUILD_DIR := build
-CPP_FILES := $(SRC_DIR) -name '*.cpp' -not -path '*/bindings/*'
-TIDY_BASE := clang-tidy -p $(BUILD_DIR) --header-filter='$(SRC_DIR)/.*'
-TIDY_CMD := find $(CPP_FILES) -exec $(TIDY_BASE) {} -- $(STDLIB_FLAG) \;
+CPP_FILES := $(shell find $(SRC_DIR) -name '*.cpp' -not -path '*/bindings/*')
+
+# Cross-platform detection for clang-tidy
+OS := $(shell uname -s)
+CLANG_TIDY_EXTRA_FLAGS :=
+ifeq ($(OS), Darwin)
+    SDK_PATH := $(shell xcrun --show-sdk-path)
+    CLANG_TIDY_EXTRA_FLAGS += --extra-arg='-isysroot' --extra-arg='$(SDK_PATH)'
+endif
+
+# Clang-Tidy base command
+CLANG_TIDY_BASE_CMD := @clang-tidy -p $(BUILD_DIR) $(CLANG_TIDY_EXTRA_FLAGS)
 
 .PHONY: help
 help: ## Show available commands
@@ -24,34 +25,62 @@ help: ## Show available commands
 	@echo "---------------"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: deps-build
-deps-build: ## Check if cmake and clang-tidy are available
+.PHONY: deps
+deps: ## Check for required dependencies
 	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
-	@echo "✅ Build Dependencies OK ($(UNAME_S))"
-
-.PHONY: deps-ci
-deps-ci: ## Check if cmake and clang-tidy are available for CI
-	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1)
-	@echo "✅ CI Dependencies OK ($(UNAME_S))"
+	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && (echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1))
+	@command -v clang-format >/dev/null || (echo "❌ clang-format not found" && (echo "   Install: macOS → brew install clang-format | Linux → apt install clang-format" && exit 1))
+	@command -v pybind11-stubgen >/dev/null || (echo "❌ pybind11-stubgen not found" && (echo "   Install: uv pip install pybind11-stubgen" && exit 1))
+	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   curl -LsSf https://astral.sh/uv/install.sh | sh" && exit 1))
+	@echo "✅ Dependencies OK ($(OS))"
 
 .PHONY: build
-build: deps-build ## Configure and build the project
+build: deps ## Configure and build the project
 	cmake --preset $(PRESET)
 	cmake --build --preset $(PRESET)
 
+.PHONY: format
+format: deps ## Run clang-format on all C++ files
+	@echo "Running clang-format..."
+	@clang-format -i $(CPP_FILES)
+
+.PHONY: ruff-fix
+ruff-fix: deps ## Run ruff formatter and linter with safe fixes
+	@echo "Running ruff format..."
+	@uvx ruff format .
+	@echo "Running ruff check with safe fixes..."
+	@uvx ruff check . --fix
+	@echo "Running ruff format again to catch any new formatting issues..."
+	@uvx ruff format .
+
+.PHONY: ruff-fix-unsafe
+ruff-fix-unsafe: deps ## Run ruff linter with unsafe fixes
+	@echo "Running ruff check with unsafe fixes..."
+	@uvx ruff check . --fix --unsafe-fixes
+
+.PHONY: stubs
+stubs: clean ## Generate Python stubs for the C++ module
+	@echo "Syncing environment..."
+	@uv sync --reinstall
+	@echo "Generating stubs for C++ module..."
+	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
+
 .PHONY: tidy
-tidy: build deps-ci ## Run clang-tidy on all C++ files
-	$(TIDY_CMD)
+tidy: build ## Run clang-tidy on all C++ files
+	@echo "Running clang-tidy on all files..."
+	$(CLANG_TIDY_BASE_CMD) $(CPP_FILES)
+
+.PHONY: tidy-file
+tidy-file: build ## Run clang-tidy on a specific file. Usage: make tidy-file FILE=path/to/file.cpp
+	@echo "Running clang-tidy on $(FILE)..."
+	$(CLANG_TIDY_BASE_CMD) $(FILE)
 
 .PHONY: tidy-fix
-tidy-fix: build deps-ci ## Run clang-tidy --fix on all C++ files
-	find $(CPP_FILES) -exec $(TIDY_BASE) --fix {} -- $(STDLIB_FLAG) \;
+tidy-fix: build ## Run clang-tidy --fix on all C++ files
+	@echo "Running clang-tidy --fix on all files..."
+	$(CLANG_TIDY_BASE_CMD) --fix $(CPP_FILES)
 
 .PHONY: clean
 clean: ## Remove build directory
 	rm -rf $(BUILD_DIR)
 	@echo "✅ Clean complete"
-
-# Catch-all for file arguments (allows 'make tidy file1.cpp file2.cpp')
-%:
-	@:

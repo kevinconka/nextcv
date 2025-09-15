@@ -1,8 +1,15 @@
-#include <pybind11/eigen.h> // Eigen <-> NumPy conversions
+#include <Eigen/Core>
+#include <cstdint>
+#include <cstring>
+#include <pybind11/buffer_info.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <stdexcept>
+#include <vector>
 
 #include "../core/hello.hpp"
 #include "../image/invert.hpp"
@@ -13,12 +20,12 @@ namespace py = pybind11;
 
 namespace {
 
-py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
+auto invert(const py::array_t<std::uint8_t>& input) -> py::array_t<std::uint8_t> {
     // Get buffer info from numpy array
     py::buffer_info buf_info = input.request();
 
     // Ensure array is C-contiguous for efficient processing
-    if (!(input.flags() & py::array::c_style)) {
+    if ((input.flags() & py::array::c_style) == 0) {
         throw std::runtime_error("Input array must be C-contiguous");
     }
 
@@ -63,9 +70,9 @@ PYBIND11_MODULE(nextcv_py, module) {
     linalg.def(
         "matvec",
         [](const Eigen::Ref<const Eigen::MatrixXf>& matrix,
-           const Eigen::Ref<const Eigen::VectorXf>& x) {
-            return nextcv::linalg::matvec(matrix, x);
+           const Eigen::Ref<const Eigen::VectorXf>& vector) -> Eigen::VectorXf {
+            return nextcv::linalg::matvec(matrix, vector);
         },
-        py::arg("A"), py::arg("x"),
-        R"doc(Multiply matrix A (MxN) by vector x (N) → y (M). Uses Eigen.)doc");
+        py::arg("matrix"), py::arg("vector"),
+        R"doc(Multiply matrix (MxN) by vector (N) → y (M). Uses Eigen.)doc");
 }

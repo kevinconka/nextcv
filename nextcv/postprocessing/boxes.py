@@ -12,14 +12,7 @@ else:
     NDArray = np.ndarray
 
 
-def _import_cpp():  # noqa
-    from nextcv._cpp.nextcv_py import postprocessing as _cpp_postprocessing  # noqa
-
-    return _cpp_postprocessing
-
-
-# Import the C++ postprocessing module
-_cpp_postprocessing = _import_cpp()
+from nextcv._cpp import postprocessing as _cpp_postprocessing
 
 # Expose the nms function
 nms_cpp = _cpp_postprocessing.nms

@@ -1,14 +1,11 @@
 #pragma once
 #include <Eigen/Core>
-#include <stdexcept>
-#include <string>
 
 namespace nextcv::linalg {
 
-// Multiply A (M×N) by x (N) → y (M).
+// Multiply matrix (M×N) by vector (N) → y (M).
 // Using Ref avoids copies and enables zero-copy views from NumPy when contiguous.
-auto matvec(const Eigen::Ref<const Eigen::MatrixXf>& A,
-            const Eigen::Ref<const Eigen::VectorXf>& x)
-    -> Eigen::VectorXf;
+auto matvec(const Eigen::Ref<const Eigen::MatrixXf>& matrix,
+            const Eigen::Ref<const Eigen::VectorXf>& vector) -> Eigen::VectorXf;
 
-}  // namespace nextcv::linalg
+} // namespace nextcv::linalg

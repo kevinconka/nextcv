@@ -1,15 +1,19 @@
 #include "matvec.hpp"
 
+#include <stdexcept>
+#include <string>
+
 namespace nextcv::linalg {
 
-auto matvec(const Eigen::Ref<const Eigen::MatrixXf>& A,
-            const Eigen::Ref<const Eigen::VectorXf>& x) -> Eigen::VectorXf {
-  if (A.cols() != x.size()) {
-    throw std::invalid_argument(
-        "matvec: shape mismatch: A is " + std::to_string(A.rows()) + "x" +
-        std::to_string(A.cols()) + ", x is " + std::to_string(x.size()));
-  }
-  return A * x;  // Eigen handles allocation and optimized kernel
+// NOLINTNEXTLINE(misc-include-cleaner)
+auto matvec(const Eigen::Ref<const Eigen::MatrixXf>& matrix,
+            const Eigen::Ref<const Eigen::VectorXf>& vector) -> Eigen::VectorXf {
+    if (matrix.cols() != vector.size()) {
+        throw std::invalid_argument(
+            "matvec: shape mismatch: matrix is " + std::to_string(matrix.rows()) + "x" +
+            std::to_string(matrix.cols()) + ", vector is " + std::to_string(vector.size()));
+    }
+    return matrix * vector; // Eigen handles allocation and optimized kernel
 }
 
-}  // namespace nextcv::linalg
+} // namespace nextcv::linalg
