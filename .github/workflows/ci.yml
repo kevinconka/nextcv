@@ -136,7 +136,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: 🔧 Install dependencies
-        run: uv sync
+        run: |
+          uv sync
+          uv build
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
