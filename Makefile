@@ -5,6 +5,13 @@ PRESET := uv-env
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
     STDLIB_FLAG := -stdlib=libc++
+    # Add Homebrew LLVM to PATH for macOS if not already present
+    LLVM_PATH := $(shell brew --prefix llvm 2>/dev/null)
+    ifneq ($(LLVM_PATH),)
+        ifeq (,$(findstring $(LLVM_PATH)/bin,$(PATH)))
+            export PATH := $(LLVM_PATH)/bin:$(PATH)
+        endif
+    endif
 else
     STDLIB_FLAG :=
 endif

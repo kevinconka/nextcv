@@ -36,7 +36,9 @@ option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
 
 # Find Python and pybind11 (compatible with scikit-build-core)
 if(NEXTCV_BUILD_PYTHON)
-  find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  # Try to find NumPy component, but don't fail if not found (for scikit-build-core)
+  find_package(Python3 COMPONENTS NumPy QUIET)
 
   # For scikit-build-core, pybind11 is provided via Python
   find_package(pybind11 CONFIG QUIET)
