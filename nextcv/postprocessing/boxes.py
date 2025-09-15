@@ -5,15 +5,20 @@ from typing import TYPE_CHECKING
 import cv2
 import numpy as np
 
-from nextcv._cpp.nextcv_py import nms as nms_cpp
-
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 else:
     # At runtime, just alias to ndarray so code still runs
     NDArray = np.ndarray
 
-__all__ = ["nms_cpp", "nms_np", "nms_cv2"]
+
+def _import_cpp():  # noqa
+    from nextcv._cpp.nextcv_py import nms  # noqa
+
+    return nms
+
+
+nms_cpp = _import_cpp()
 
 
 def iou_np(
