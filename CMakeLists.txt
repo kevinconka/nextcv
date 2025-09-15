@@ -26,7 +26,7 @@ if(MSVC)
 else()
   add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2)
+    add_compile_options(-Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wnull-dereference -Wdouble-promotion -Wformat=2)
   endif()
 endif()
 
@@ -36,7 +36,7 @@ option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
 
 # Find Python and pybind11 (compatible with scikit-build-core)
 if(NEXTCV_BUILD_PYTHON)
-  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
   # For scikit-build-core, pybind11 is provided via Python
   find_package(pybind11 CONFIG QUIET)
