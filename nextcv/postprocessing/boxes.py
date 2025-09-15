@@ -12,6 +12,15 @@ else:
     NDArray = np.ndarray
 
 
+def _import_cpp():  # noqa
+    from nextcv._cpp.nextcv_py import nms  # noqa
+
+    return nms
+
+
+nms_cpp = _import_cpp()
+
+
 def iou_np(
     target_box: NDArray,
     boxes: NDArray,

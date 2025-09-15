@@ -7,7 +7,7 @@ name = "nextcv"
 dynamic = ["version"] # <-- let setuptools-scm derive version
 description = "NextCV is like OpenCV but with modern tooling. A minimal, experimental CV library (C++ core + pybind11)."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Kevin Serrano", email = "kserranov@gmail.com" }]
 keywords = ["computer-vision", "cpp", "pybind11", "scikit-build-core"]
@@ -29,6 +29,18 @@ dev = [
   "pytest-cov>=4.0",
   "ruff>=0.5",
   "ipykernel",
+]
+
+[project.optional-dependencies]
+docs = [
+  "mkdocs-material[git]>=9.6.9",
+  "mkdocstrings[python]>=0.29.0",
+  "mkdocs-gen-files>=0.5.0",
+  "mkdocs-literate-nav>=0.6.2",
+  "mkdocs-section-index>=0.3.9",
+  "mkdocs-minify-plugin>=0.8.0",
+  "griffe-fieldz>=0.2.1",
+  "griffe-pydantic>=1.1.3",
 ]
 
 [project.urls]
