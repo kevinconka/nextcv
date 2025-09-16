@@ -16,6 +16,7 @@ constexpr float default_nms_threshold = 0.5F;
  * @return Indices of boxes to keep after NMS
  */
 auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores,
-         float threshold = default_nms_threshold) -> std::vector<int>;
+         float threshold = default_nms_threshold)
+    -> std::vector<int>; // NOLINT(bugprone-easily-swappable-parameters)
 
 } // namespace nextcv::postprocessing
