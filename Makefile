@@ -84,7 +84,7 @@ ruff-fix-unsafe: ## Run ruff linter with unsafe fixes
 .PHONY: stubs
 stubs: clean ## Generate Python stubs for the C++ module
 	@echo "Syncing environment..."
-	@uv sync
+	@uv sync --reinstall
 	@echo "Generating stubs for C++ module..."
 	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
 	@echo "Running ruff-fix-unsafe after stub generation..."

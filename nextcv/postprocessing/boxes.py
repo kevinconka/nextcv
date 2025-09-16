@@ -1,9 +1,12 @@
 """Bounding box postprocessing functions."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-import cv2
 import numpy as np
+
+from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -12,10 +15,20 @@ else:
     NDArray = np.ndarray
 
 
-from nextcv._cpp import postprocessing as _cpp_postprocessing
+def nms_cpp(
+    bboxes: NDArray,
+    scores: NDArray,
+    iou_thresh: float,
+) -> NDArray[np.int32]:
+    """Non-Maximum-Supression (NMS) algorithm to remove overlapping bounding boxes.
 
-# Expose the nms function
-nms_cpp = _cpp_postprocessing.nms
+    Args:
+        bboxes: The bounding boxes as
+            (top_left_x, top_left_y, bottom_right_x, bottom_right_y).
+        scores: The confidence scores for each bounding box.
+        iou_thresh: The threshold for intersection over union.
+    """
+    return _nms(bboxes, scores, iou_thresh)
 
 
 def iou_np(
@@ -65,8 +78,6 @@ def nms_np(
             (top_left_x, top_left_y, bottom_right_x, bottom_right_y).
         scores: The confidence scores for each bounding box.
         iou_thresh: The threshold for intersection over union.
-        classes: The class labels for each bounding box.
-            if None, all boxes are treated as the same class (agnostic NMS).
 
     Returns:
         The indices of the bounding boxes to keep.
@@ -95,25 +106,3 @@ def nms_np(
         order = order[idxs + 1]  # +1 because we removed the first element
 
     return np.nonzero(keep)[0]  # indices of boxes to keep
-
-
-def nms_cv2(
-    bboxes: NDArray,
-    scores: NDArray,
-    iou_thresh: float,
-) -> NDArray:
-    """Non-Maximum-Supression (NMS) using OpenCV's dnn.NMSBoxes().
-
-    Args:
-        bboxes: The bounding boxes as
-            (top_left_x, top_left_y, bottom_right_x, bottom_right_y).
-        scores: The confidence scores for each bounding box.
-        iou_thresh: The threshold for intersection over union.
-
-    Returns:
-        The indices of the bounding boxes to keep.
-    """
-    indices = cv2.dnn.NMSBoxes(
-        bboxes, scores, score_threshold=0.0, nms_threshold=iou_thresh
-    )
-    return np.array(indices, dtype=np.int32)
