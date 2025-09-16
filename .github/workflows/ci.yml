@@ -171,6 +171,8 @@ jobs:
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
           no-lgtm: false
+          extra-args: >
+            ${{ startsWith(matrix.os, 'macos') && '-isysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk' || '' }}
 
       - name: Fail fast if linting failed
         if: steps.cpp-linter.outputs.checks-failed > 0
