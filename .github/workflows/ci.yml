@@ -138,8 +138,6 @@ jobs:
       - name: 🔧 Install dependencies
         run: |
           uv sync
-          uv run make clean
-          uv run make build
 
       - name: 🐛 Debug Print compile_commands.json
         run: cat build/compile_commands.json
@@ -156,8 +154,8 @@ jobs:
           tidy-checks: "" # Use .clang-tidy config file
           database: "build/compile_commands.json" # Path to compile_commands.json
           extra-args: >
-            ${{ startsWith(matrix.os, 'ubuntu') && '-isystem /usr/include/eigen3' || '' }}
-            ${{ startsWith(matrix.os, 'macos') && '-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk' || '' }}
+            ${{ startsWith(matrix.os, 'ubuntu') && '-isystem=/usr/include/eigen3' || '' }}
+            ${{ startsWith(matrix.os, 'macos') && '-isysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk' || '' }}
           verbosity: "debug" # Debug: Print clang-tidy commands
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}

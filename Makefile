@@ -28,11 +28,15 @@ help: ## Show available commands
 .PHONY: deps
 deps: ## Check for required dependencies
 	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
-	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && (echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1))
-	@command -v clang-format >/dev/null || (echo "❌ clang-format not found" && (echo "   Install: macOS → brew install clang-format | Linux → apt install clang-format" && exit 1))
 	@command -v pybind11-stubgen >/dev/null || (echo "❌ pybind11-stubgen not found" && (echo "   Install: uv pip install pybind11-stubgen" && exit 1))
 	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   Install: uv pip install uvx" && exit 1))
 	@echo "✅ Dependencies OK ($(OS))"
+
+.PHONY: deps-clang
+deps-clang: ## Check for clang-tidy and clang-format
+	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && (echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1))
+	@command -v clang-format >/dev/null || (echo "❌ clang-format not found" && (echo "   Install: macOS → brew install clang-format | Linux → apt install clang-format" && exit 1))
+	@echo "✅ Clang-Tidy and Clang-Format OK ($(OS))"
 
 .PHONY: build
 build: deps ## Configure and build the project
@@ -67,17 +71,17 @@ stubs: clean ## Generate Python stubs for the C++ module
 	@$(MAKE) ruff-fix-unsafe # Call the ruff-fix-unsafe target
 
 .PHONY: tidy
-tidy: build ## Run clang-tidy on all C++ files
+tidy: build deps-clang ## Run clang-tidy on all C++ files
 	@echo "Running clang-tidy on all files..."
 	$(CLANG_TIDY_BASE_CMD) $(CPP_FILES)
 
 .PHONY: tidy-file
-tidy-file: build ## Run clang-tidy on a specific file. Usage: make tidy-file FILE=path/to/file.cpp
+tidy-file: build deps-clang ## Run clang-tidy on a specific file. Usage: make tidy-file FILE=path/to/file.cpp
 	@echo "Running clang-tidy on $(FILE)..."
 	$(CLANG_TIDY_BASE_CMD) $(FILE)
 
 .PHONY: tidy-fix
-tidy-fix: build ## Run clang-tidy --fix on all C++ files
+tidy-fix: build deps-clang ## Run clang-tidy --fix on all C++ files
 	@echo "Running clang-tidy --fix on all files..."
 	$(CLANG_TIDY_BASE_CMD) --fix $(CPP_FILES)
 
