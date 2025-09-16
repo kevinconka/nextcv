@@ -125,6 +125,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libeigen3-dev
 
+      - name: 🐛 Debug Find Eigen/Core (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          find /usr/include -name "Core" 2>/dev/null || true
+          find /usr/local/include -name "Core" 2>/dev/null || true
+
+      - name: 🐛 Debug Print C++ Include Paths (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          echo "CPATH: $CPATH"
+          echo "CPLUS_INCLUDE_PATH: $CPLUS_INCLUDE_PATH"
+          echo "LIBRARY_PATH: $LIBRARY_PATH"
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+
       - name: 🔧 Install Eigen3 (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
