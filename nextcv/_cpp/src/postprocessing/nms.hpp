@@ -15,8 +15,8 @@ constexpr float default_nms_threshold = 0.5F;
  * @param threshold IoU threshold for suppression
  * @return Indices of boxes to keep after NMS
  */
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores,
-         float threshold = default_nms_threshold)
-    -> std::vector<int>; // NOLINT(bugprone-easily-swappable-parameters)
+         float threshold = default_nms_threshold) -> std::vector<int>;
 
 } // namespace nextcv::postprocessing
