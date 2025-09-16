@@ -1,22 +1,31 @@
+#include <Eigen/Core>
+#include <cstdint>
+#include <cstring>
+#include <pybind11/buffer_info.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <stdexcept>
+#include <vector>
 
 #include "../core/hello.hpp"
 #include "../image/invert.hpp"
+#include "../linalg/matvec.hpp"
 #include "../postprocessing/nms.hpp"
 
 namespace py = pybind11;
 
 namespace {
 
-py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
+auto invert(const py::array_t<std::uint8_t>& input) -> py::array_t<std::uint8_t> {
     // Get buffer info from numpy array
     py::buffer_info buf_info = input.request();
 
     // Ensure array is C-contiguous for efficient processing
-    if (!(input.flags() & py::array::c_style)) {
+    if ((input.flags() & py::array::c_style) == 0) {
         throw std::runtime_error("Input array must be C-contiguous");
     }
 
@@ -40,13 +49,30 @@ py::array_t<std::uint8_t> invert(const py::array_t<std::uint8_t>& input) {
 PYBIND11_MODULE(nextcv_py, module) {
     module.doc() = "NextCV pybind11 bindings";
 
-    // Core functions
-    module.def("hello", &nextcv::core::hello, "Return a greeting from NextCV C++");
+    // Core submodule
+    auto core = module.def_submodule("core", "Core utilities");
+    core.def("hello", &nextcv::core::hello, "Return a greeting from NextCV C++");
 
-    // Image processing functions
-    module.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
+    // Image processing submodule
+    auto image = module.def_submodule("image", "Image processing utilities");
+    image.def("invert", &invert, "Invert n-dimensional array of 8-bit pixels, preserving shape");
 
-    module.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
-               py::arg("threshold") = 0.5f,
-               "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
+    // Post-processing submodule
+    auto postprocessing = module.def_submodule("postprocessing", "Post-processing utilities");
+    postprocessing.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
+                       py::arg("threshold") = nextcv::postprocessing::default_nms_threshold,
+                       "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
+
+    // Linear algebra submodule
+    auto linalg = module.def_submodule("linalg", "Linear algebra utilities");
+
+    // Accepts np.float32 arrays; returns np.float32 vector.
+    linalg.def(
+        "matvec",
+        [](const Eigen::Ref<const Eigen::MatrixXf>& matrix,
+           const Eigen::Ref<const Eigen::VectorXf>& vector) -> Eigen::VectorXf {
+            return nextcv::linalg::matvec(matrix, vector);
+        },
+        py::arg("matrix"), py::arg("vector"),
+        R"doc(Multiply matrix (MxN) by vector (N) → y (M). Uses Eigen.)doc");
 }

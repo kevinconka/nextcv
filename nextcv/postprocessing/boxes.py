@@ -12,13 +12,10 @@ else:
     NDArray = np.ndarray
 
 
-def _import_cpp():  # noqa
-    from nextcv._cpp.nextcv_py import nms  # noqa
+from nextcv._cpp import postprocessing as _cpp_postprocessing
 
-    return nms
-
-
-nms_cpp = _import_cpp()
+# Expose the nms function
+nms_cpp = _cpp_postprocessing.nms
 
 
 def iou_np(

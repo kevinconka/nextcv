@@ -1,5 +1,8 @@
 # Modern CMake with automatic source discovery
 
+# Eigen (header-only)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+
 # Create NextCV core library
 file(GLOB_RECURSE NEXTCV_SOURCES "*.cpp")
 list(FILTER NEXTCV_SOURCES EXCLUDE REGEX "bindings/.*")
@@ -13,6 +16,9 @@ target_include_directories(nextcv
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include/nextcv>
 )
+
+# Link Eigen to the core library
+target_link_libraries(nextcv PUBLIC Eigen3::Eigen)
 
 # Set library properties
 set_target_properties(nextcv PROPERTIES
@@ -31,7 +37,7 @@ if(NEXTCV_BUILD_PYTHON)
   pybind11_add_module(nextcv_py MODULE ${BINDINGS_SOURCES})
 
   # Link core library
-  target_link_libraries(nextcv_py PRIVATE nextcv)
+  target_link_libraries(nextcv_py PRIVATE nextcv pybind11::module pybind11::headers)
 
   # Ensure NumPy includes are available (fallback if CMake find_package fails)
   if(NOT Python3_NumPy_INCLUDE_DIRS)

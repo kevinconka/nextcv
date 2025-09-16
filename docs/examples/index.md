@@ -38,6 +38,20 @@ filtered = cvx.postprocessing.nms(boxes, scores, threshold=0.5)
 print(f"Kept {len(filtered)} out of {len(boxes)} boxes")
 ```
 
+## 🔢 Linear Algebra Module
+
+```python
+import numpy as np
+import nextcv as cvx
+
+# Matrix-vector multiplication using Eigen
+A = np.random.randn(4, 3).astype(np.float32)
+x = np.random.randn(3).astype(np.float32)
+
+y = cvx.linalg.matvec(A, x)
+print(f"Result shape: {y.shape}, dtype: {y.dtype}")
+```
+
 ---
 
 <div align="center">

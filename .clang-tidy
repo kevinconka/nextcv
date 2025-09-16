@@ -36,3 +36,5 @@ CheckOptions:
     value: true
   - key: misc-include-cleaner.ExcludeDirs
     value: "third_party|.venv|build"
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: "Eigen/.*"

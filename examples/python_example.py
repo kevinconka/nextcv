@@ -52,6 +52,44 @@ def demonstrate_image_processing(test_image: np.ndarray) -> None:
     print()
 
 
+def demonstrate_linear_algebra() -> None:
+    """Demonstrate linear algebra functionality with Eigen."""
+    print("Linear algebra (Eigen matrix-vector multiplication):")
+    from nextcv.linalg import matvec
+
+    # Create test data
+    rng = np.random.default_rng(42)
+
+    # Matrix A: 4x3
+    A = rng.standard_normal((4, 3)).astype(np.float32)
+    print(f"   Matrix A ({A.shape}):")
+    print(f"   {A}")
+
+    # Vector x: 3x1
+    x = rng.standard_normal((3,)).astype(np.float32)
+    print(f"   Vector x ({x.shape}):")
+    print(f"   {x}")
+
+    # Compute using NextCV (Eigen)
+    y_nextcv = matvec(A, x)
+    print("   Result y = A @ x using NextCV (Eigen):")
+    print(f"     Shape: {y_nextcv.shape}, dtype: {y_nextcv.dtype}")
+    print(f"     Values: {y_nextcv}")
+
+    # Compare with NumPy
+    y_np = A @ x
+    print("   Result y = A @ x using NumPy:")
+    print(f"     Shape: {y_np.shape}, dtype: {y_np.dtype}")
+    print(f"     Values: {y_np}")
+
+    # Verify they match
+    if np.allclose(y_nextcv, y_np, rtol=1e-6, atol=1e-6):
+        print("   ✓ Results match perfectly!")
+    else:
+        print("   ✗ Results differ!")
+    print()
+
+
 def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> None:
     """Demonstrate NMS functionality with performance timing."""
     print("Post-processing (NMS timing comparison):")
@@ -94,6 +132,7 @@ def main() -> None:
     # Run demonstrations
     demonstrate_core_functionality()
     demonstrate_image_processing(test_image)
+    demonstrate_linear_algebra()
     demonstrate_nms_timing(test_boxes, test_scores)
 
 

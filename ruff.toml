@@ -1,5 +1,7 @@
 # default config can be found https://docs.astral.sh/ruff/configuration/
 
+required-version = "0.13.0"
+
 exclude = [
   ".bzr",
   ".direnv",

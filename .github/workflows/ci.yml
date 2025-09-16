@@ -65,6 +65,17 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v5
 
+      - name: 🔧 Install Eigen3 (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
+
+      - name: 🔧 Install Eigen3 (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install eigen
+
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -78,6 +89,15 @@ jobs:
           uv run ruff check ${{ needs.changed-files.outputs.python }}
           uv run ruff format --check ${{ needs.changed-files.outputs.python }}
 
+      - name: 📝 Generate and Check Python Stubs
+        run: |
+          uv run make stubs
+          git diff nextcv/_cpp/ || true
+          git diff --exit-code nextcv/_cpp/ || (
+            echo "::error::Python stubs are out of date. Run 'make stubs' and commit changes."
+            exit 1
+          )
+
       - name: 🧪 Run Tests
         run: |
           uv run pytest \
@@ -86,7 +106,6 @@ jobs:
             --cov-report=xml \
             --junitxml=pytest.xml \
             | tee pytest-coverage.txt
-
       - name: 📊 Coverage Comment (Ubuntu only)
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@main
@@ -108,13 +127,26 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v5
 
+      - name: 🔧 Install Eigen3 (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
+
+      - name: 🔧 Install Eigen3 (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install eigen
+
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: 🔧 Install dependencies
-        run: uv sync
+        run: |
+          uv sync
+          uv build
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
@@ -122,11 +154,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          ignore: "nextcv/_cpp/src/bindings/*"
           style: "file" # Use .clang-format config file
-          tidy-checks: "" # Use .clang-tidy config file
+          tidy-checks: | # Overrides Checks in .clang-tidy config file
+            ${{ startsWith(matrix.os, 'macos') && '-bugprone-easily-swappable-parameters' || '' }}
+          version: "21"
+          ignore: "nextcv/_cpp/src/bindings/*"
+          database: "build/compile_commands.json" # Path to compile_commands.json
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+          no-lgtm: false
 
       - name: Fail fast if linting failed
         if: steps.cpp-linter.outputs.checks-failed > 0
