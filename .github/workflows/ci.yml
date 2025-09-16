@@ -138,8 +138,8 @@ jobs:
       - name: 🔧 Install dependencies
         run: |
           uv sync
-          make clean
-          make build
+          uv run make clean
+          uv run make build
 
       - name: 🐛 Debug Print compile_commands.json
         run: cat build/compile_commands.json
