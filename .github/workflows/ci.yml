@@ -155,7 +155,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: "file" # Use .clang-format config file
-          tidy-checks: "-misc-include-cleaner" # Overrides Checks in .clang-tidy config file
+          tidy-checks: | # Overrides Checks in .clang-tidy config file
+            ${{ startsWith(matrix.os, 'macos') && '-bugprone-easily-swappable-parameters' || '' }}
           version: "21"
           ignore: "nextcv/_cpp/src/bindings/*"
           database: "build/compile_commands.json" # Path to compile_commands.json
