@@ -89,6 +89,11 @@ jobs:
           uv run ruff check ${{ needs.changed-files.outputs.python }}
           uv run ruff format --check ${{ needs.changed-files.outputs.python }}
 
+      - name: 📝 Generate and Check Python Stubs
+        run: |
+          uv run make stubs
+          git diff --exit-code nextcv/_cpp/ || (echo "::error file=nextcv/_cpp/::Python stubs or ruff fixes are out of date. Please run 'make stubs' and commit the changes." && exit 1)
+
       - name: 🧪 Run Tests
         run: |
           uv run pytest \
@@ -97,7 +102,6 @@ jobs:
             --cov-report=xml \
             --junitxml=pytest.xml \
             | tee pytest-coverage.txt
-
       - name: 📊 Coverage Comment (Ubuntu only)
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@main
@@ -125,20 +129,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libeigen3-dev
 
-      - name: 🐛 Debug Find Eigen/Core (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          find /usr/include -name "Core" 2>/dev/null || true
-          find /usr/local/include -name "Core" 2>/dev/null || true
-
-      - name: 🐛 Debug Print C++ Include Paths (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          echo "CPATH: $CPATH"
-          echo "CPLUS_INCLUDE_PATH: $CPLUS_INCLUDE_PATH"
-          echo "LIBRARY_PATH: $LIBRARY_PATH"
-          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-
       - name: 🔧 Install Eigen3 (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
@@ -152,9 +142,7 @@ jobs:
       - name: 🔧 Install dependencies
         run: |
           uv sync
-
-      - name: 🐛 Debug Print compile_commands.json
-        run: cat build/compile_commands.json
+          uv build
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
@@ -166,22 +154,14 @@ jobs:
           tidy-checks: "-misc-include-cleaner" # Overrides Checks in .clang-tidy config file
           version: "21"
           ignore: "nextcv/_cpp/src/bindings/*"
-          database: "build/compile_commands.json"
-          verbosity: "debug" # Debug: Print clang-tidy commands
+          database: "build/compile_commands.json" # Path to compile_commands.json
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
           no-lgtm: false
-          extra-args: >
-            ${{ startsWith(matrix.os, 'macos') && '-isysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk' || '' }}
 
       - name: Fail fast if linting failed
         if: steps.cpp-linter.outputs.checks-failed > 0
         run: exit 1
-
-      - name: 📝 Generate and Check Python Stubs
-        run: |
-          make stubs
-          git diff --exit-code nextcv/_cpp/ || (echo "::error file=nextcv/_cpp/::Python stubs or ruff fixes are out of date. Please run 'make stubs' and commit the changes." && exit 1)
 
       - name: 🔨 Build C++ Examples
         run: |

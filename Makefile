@@ -25,50 +25,30 @@ help: ## Show available commands
 	@echo "---------------"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: deps
-deps: ## Check for required dependencies
-	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
-	@command -v pybind11-stubgen >/dev/null || (echo "❌ pybind11-stubgen not found" && (echo "   Install: uv pip install pybind11-stubgen" && exit 1))
-	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   Install: uv pip install uvx" && exit 1))
-	@echo "✅ Dependencies OK ($(OS))"
-
+# Environment and dependency checks
 .PHONY: deps-clang
 deps-clang: ## Check for clang-tidy and clang-format
 	@command -v clang-tidy >/dev/null || (echo "❌ clang-tidy not found" && (echo "   Install: macOS → brew install llvm | Linux → apt install clang-tidy" && exit 1))
 	@command -v clang-format >/dev/null || (echo "❌ clang-format not found" && (echo "   Install: macOS → brew install clang-format | Linux → apt install clang-format" && exit 1))
 	@echo "✅ Clang-Tidy and Clang-Format OK ($(OS))"
 
+# Build and clean
 .PHONY: build
-build: deps ## Configure and build the project
+build: ## Configure and build the project
+	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
 	cmake --preset $(PRESET)
 	cmake --build --preset $(PRESET)
 
+.PHONY: clean
+clean: ## Remove build directory
+	rm -rf $(BUILD_DIR)
+	@echo "✅ Clean complete"
+
+# Code formatting and linting
 .PHONY: format
-format: deps ## Run clang-format on all C++ files
+format: deps-clang ## Run clang-format on all C++ files
 	@echo "Running clang-format..."
 	@clang-format -i $(CPP_FILES)
-
-.PHONY: ruff-fix
-ruff-fix: deps ## Run ruff formatter and linter with safe fixes
-	@uvx ruff format .
-	@uvx ruff check . --fix --exit-zero
-	@uvx ruff format .
-
-.PHONY: ruff-fix-unsafe
-ruff-fix-unsafe: deps ## Run ruff linter with unsafe fixes
-	@echo "Running ruff check with unsafe fixes..."
-	@uvx ruff format .
-	@uvx ruff check . --fix --unsafe-fixes --exit-zero
-	@uvx ruff format .
-
-.PHONY: stubs
-stubs: clean ## Generate Python stubs for the C++ module
-	@echo "Syncing environment..."
-	@uv sync
-	@echo "Generating stubs for C++ module..."
-	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
-	@echo "Running ruff-fix-unsafe after stub generation..."
-	@$(MAKE) ruff-fix-unsafe # Call the ruff-fix-unsafe target
 
 .PHONY: tidy
 tidy: build deps-clang ## Run clang-tidy on all C++ files
@@ -85,7 +65,27 @@ tidy-fix: build deps-clang ## Run clang-tidy --fix on all C++ files
 	@echo "Running clang-tidy --fix on all files..."
 	$(CLANG_TIDY_BASE_CMD) --fix $(CPP_FILES)
 
-.PHONY: clean
-clean: ## Remove build directory
-	rm -rf $(BUILD_DIR)
-	@echo "✅ Clean complete"
+# Python tooling
+.PHONY: ruff-fix
+ruff-fix: ## Run ruff formatter and linter with safe fixes
+	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   Install: uv pip install uvx" && exit 1))
+	@uvx ruff format .
+	@uvx ruff check . --fix --exit-zero
+	@uvx ruff format .
+
+.PHONY: ruff-fix-unsafe
+ruff-fix-unsafe: ## Run ruff linter with unsafe fixes
+	@echo "Running ruff check with unsafe fixes..."
+	@command -v uvx >/dev/null || (echo "❌ uvx not found" && (echo "   Install: uv pip install uvx" && exit 1))
+	@uvx ruff format .
+	@uvx ruff check . --fix --unsafe-fixes --exit-zero
+	@uvx ruff format .
+
+.PHONY: stubs
+stubs: clean ## Generate Python stubs for the C++ module
+	@echo "Syncing environment..."
+	@uv sync
+	@echo "Generating stubs for C++ module..."
+	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
+	@echo "Running ruff-fix-unsafe after stub generation..."
+	@$(MAKE) ruff-fix-unsafe # Call the ruff-fix-unsafe target
