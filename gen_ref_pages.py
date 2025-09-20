@@ -10,6 +10,10 @@ root = Path(__file__).parent.parent
 src = root / "nextcv"
 
 for path in sorted(src.rglob("*.py")):
+    # Skip _cpp paths
+    if "_cpp" in path.parts:
+        continue
+
     module_path = path.relative_to(src).with_suffix("")
     doc_path = path.relative_to(src).with_suffix(".md")
     full_doc_path = Path("reference", doc_path)
