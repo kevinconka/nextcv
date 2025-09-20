@@ -35,8 +35,6 @@ We use C++ for the heavy lifting, so you don't have to. It's not magic, it's jus
 
 > Write Python. When it's slow, we make it fast.
 
-You get to stay in your happy place, and we handle the ugly parts. You're welcome.
-
 ---
 
 ## Does it actually work?
@@ -70,7 +68,7 @@ print(f"   nms_cpp(): {len(result_cpp)} boxes kept in {cpp_time * 1000:.2f}ms")
 print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
 ```
 
-**The numbers don't lie.** The C++ version is significantly faster. It's not even a fair fight.
+**The numbers don't lie.** The C++ version is significantly faster.
 
 ---
 
