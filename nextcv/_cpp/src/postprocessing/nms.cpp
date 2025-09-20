@@ -7,9 +7,8 @@
 
 namespace nextcv::postprocessing {
 
-auto nms(const Eigen::MatrixXf& bboxes,
-         const Eigen::VectorXf& scores, // NOLINT(bugprone-easily-swappable-parameters)
-         float threshold) -> Eigen::VectorXi {
+auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float threshold)
+    -> Eigen::VectorXi {
     if (bboxes.rows() == 0) {
         return Eigen::VectorXi(0);
     }
