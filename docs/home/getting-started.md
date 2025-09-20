@@ -2,19 +2,35 @@
 
 This guide will walk you through installing NextCV and running your first performance demo.
 
-## 1. Installation
+## 1. Prerequisites
 
-You can install NextCV using `uv` (recommended) or `pip`.
+=== "Linux"
 
-```bash
-# Using uv (recommended)
-uv add git+https://github.com/kevinconka/nextcv.git
+    ```bash
+    sudo apt-get install libeigen3-dev cmake
+    ```
 
-# Or with pip
-pip install git+https://github.com/kevinconka/nextcv.git
-```
+=== "macOS"
 
-## 2. Performance Demo
+    ```bash
+    brew install eigen cmake
+    ```
+
+## 2. Installation
+
+=== "pip"
+
+      ```bash
+      pip install git+https://github.com/kevinconka/nextcv.git
+      ```
+
+=== "uv"
+
+      ```bash
+      uv add git+https://github.com/kevinconka/nextcv.git
+      ```
+
+## 3. Performance Demo
 
 This example demonstrates the performance difference between the C++ and NumPy implementations of Non-Maximum Suppression (NMS).
 
@@ -54,9 +70,9 @@ Post-processing (NMS timing comparison):
    nms_np(): 949 boxes kept in 65.39ms
 ```
 
-## 3. Next Steps
+## 4. Next Steps
 
 Now that you have NextCV installed, you can start exploring the API.
 
-- **Explore the API:** Check out the [API Reference](reference/) for a full list of available functions.
-- **Learn about our philosophy:** Read our guide on [When to Use C++](pybind11/when-to-use-cpp.md) to understand our approach to performance.
+- **Explore the API:** Check out the [API Reference](../reference) for a full list of available functions.
+- **Learn about our philosophy:** Read our guide on [When to Use C++](../pybind11/when-to-use-cpp.md) to understand our approach to performance.

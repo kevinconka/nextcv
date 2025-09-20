@@ -35,8 +35,6 @@ We use C++ for the heavy lifting, so you don't have to. It's not magic, it's jus
 
 > Write Python. When it's slow, we make it fast.
 
-You get to stay in your happy place, and we handle the ugly parts. You're welcome.
-
 ---
 
 ## Does it actually work?
@@ -70,22 +68,38 @@ print(f"   nms_cpp(): {len(result_cpp)} boxes kept in {cpp_time * 1000:.2f}ms")
 print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
 ```
 
-**The numbers don't lie.** The C++ version is significantly faster. It's not even a fair fight.
+**The numbers don't lie.** The C++ version is significantly faster.
 
 ---
 
 ## How do I use it?
+
+### Prerequisites
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install libeigen3-dev cmake
+
+# MacOS
+brew install eigen cmake
+```
 
 ### Installation
 
 Get it, obviously. Use `uv` if you know what's good for you.
 
 ```bash
-# Using uv (recommended)
-uv add git+https://github.com/kevinconka/nextcv.git
-
-# Or with pip, if you must
+# traditional pip
 pip install git+https://github.com/kevinconka/nextcv.git
+
+# uv
+uv add git+https://github.com/kevinconka/nextcv.git
+```
+
+### Check it's working
+
+```bash
+uv run python -c "import nextcv; print(nextcv.__version__)"
 ```
 
 ### Contributing
@@ -94,18 +108,19 @@ If you think you can make this better, feel free. Just don't break anything.
 
 1.  **Fork it.**
 2.  **Create a branch.** (`git checkout -b my-brilliant-idea`)
-3.  **Set up the environment.**
+3.  **Install uv (if you don't have it).**
+4.  **Set up the environment.**
     ```bash
     uv sync
     uvx pre-commit install
     ```
-4.  **Write code.** And tests. Don't forget the tests.
-5.  **Run the checks.**
+5.  **Write code.** And tests. Don't forget the tests.
+6.  **Run the checks.**
     ```bash
     uv run pytest
     uvx pre-commit run --all-files
     ```
-6.  **Open a pull request.** Make it a good one.
+7.  **Open a pull request.** Make it a good one.
 
 ---
 
