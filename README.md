@@ -108,7 +108,17 @@ If you think you can make this better, feel free. Just don't break anything.
 
 1.  **Fork it.**
 2.  **Create a branch.** (`git checkout -b my-brilliant-idea`)
-3.  **Install uv (if you don't have it).**
+3.  **Install dependencies.**
+
+    ```bash
+    # Install uv (if you don't have it)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Install clang-format (for C++ code formatting)
+    # macOS: brew install clang-format
+    # Ubuntu/Debian: sudo apt-get install clang-format
+    ```
+
 4.  **Set up the environment.**
     ```bash
     uv sync
