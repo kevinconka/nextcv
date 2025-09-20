@@ -78,8 +78,6 @@ print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
 
 ### Prerequisites
 
-NextCV requires **Eigen3** and **CMake** for building. Install them first:
-
 **macOS:**
 
 ```bash
@@ -99,11 +97,11 @@ sudo apt-get install libeigen3-dev cmake
 Get it, obviously. Use `uv` if you know what's good for you.
 
 ```bash
-# Using uv (recommended)
-uv add git+https://github.com/kevinconka/nextcv.git
-
-# Or with pip, if you must
+# traditional pip
 pip install git+https://github.com/kevinconka/nextcv.git
+
+# uv
+uv add git+https://github.com/kevinconka/nextcv.git
 ```
 
 ### Contributing
