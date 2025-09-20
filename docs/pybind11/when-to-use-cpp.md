@@ -1,68 +1,54 @@
 # When to Use C++
 
-Before you touch C++, ask yourself: **do I really need it?** C++ adds complexity, so use it only when it makes a meaningful impact.
+Before you write a single line of C++, ask yourself one question: **Do I really need it?**
 
-!!! tip "The TL;DR"
-    Only use C++ when you have a real performance bottleneck that can't be solved with existing Python tools.
+C++ adds complexity. Use it only when it provides a *meaningful* impact.
 
-## 🧠 The Decision Tree
+!!! tip "The Golden Rule"
+    Only use C++ for real performance bottlenecks that can't be solved with existing Python tools like NumPy or Numba.
 
-=== "Question 1: Existing Solutions?"
-    **Does a good Python library already exist?**
-    ✅ Yes → Use it, don't reinvent the wheel.
-    ❌ No → Continue to Question 2.
+## 🧠 The Decision-Making Flowchart
 
-=== "Question 2: Performance Critical?"
-    **Is this operation actually slow in Python?**
-    ❌ No → Stick with Python (premature optimization ≠ productivity).
-    ✅ Yes → Continue to Question 3.
+Here's a simple flowchart to guide your decision:
 
-=== "Question 3: Real Bottleneck?"
-    **Is it a *real* production bottleneck?**
-    ❌ No → Python is fine (users won't notice).
-    ✅ Yes → Continue to Question 4.
-
-=== "Question 4: C++ Advantage?"
-    **Would C++ optimizations (SIMD, memory layout) make a big difference?**
-    ❌ No → Try [NumPy](https://numpy.org/) or [Numba](https://numba.pydata.org/) first.
-    ✅ Yes → 🚀 Write it in C++.
+```mermaid
+graph LR
+    A[Start] --> B{A good Python library exists?};
+    B -- ✅ Yes --> C[Use it!];
+    B -- ❌ No --> D{Is it a real performance bottleneck?};
+    D -- ❌ No --> E[Stick with Python];
+    D -- ✅ Yes --> F{Can it be optimized with NumPy/Numba?};
+    F -- ✅ Yes --> G[Use NumPy/Numba];
+    F -- ❌ No --> H[🚀 Write it in C++];
+```
 
 ## ✅ Good Use Cases
 
-!!! example "Real-World Examples"
+When does C++ make sense? Here are a few examples:
 
-    === "Non-Maximum Suppression (NMS)"
-        - **Why:** Tight inner loops over many bounding boxes → Python too slow.
-        - **Evidence:** [NMS benchmarks](https://github.com/ultralytics/yolov5/issues/5793) show 5–10× speedups with C++.
-        - **Typical Use:** Object detection post-processing.
-
-    === "Hungarian Algorithm"
-        - **Why:** Matching problem grows O(n³), so Python overhead hurts fast.
-        - **Evidence:** [SciPy's linear_sum_assignment](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html) is implemented in C for this reason.
-        - **Typical Use:** Tracking and object assignment.
-
-    === "Low-Level Hardware Access"
-        - **Why:** Direct hardware control needs low-level access that Python can't provide.
-        - **Evidence:** Libraries like WiringPi and pigpio are C-based for reliable timing.
-        - **Typical Use:** IMU sensors, GPIO control, I2C/SPI communication.
+| Use Case | Why C++? | Example |
+| :--- | :--- | :--- |
+| **Non-Maximum Suppression** | Tight loops over thousands of boxes | `nextcv.postprocessing.nms` |
+| **Hungarian Algorithm** | Complex algorithm with O(n³) complexity | `scipy.optimize.linear_sum_assignment` |
+| **Low-Level Hardware** | Direct memory access for sensors/GPIO | Interfacing with custom hardware |
 
 ## 🚩 Common Pitfalls
 
-!!! danger "Watch Out For These"
-    | Pitfall | Description | Better Approach |
-    |---------|-------------|-----------------|
-    | 🏃‍♂️ **"C++ is faster!"** | Assuming C++ automatically means better performance | - Profile with cProfile first<br>- Get concrete performance numbers<br>- Document real bottlenecks |
-    | 🔧 **Reinventing the Wheel** | Writing C++ code for solved problems | - Check SciPy/NumPy first<br>- Use battle-tested implementations<br>- Focus on actual gaps |
+Avoid these common traps:
+
+| Pitfall | Description | Better Approach |
+| :--- | :--- | :--- |
+| 🏃‍♂️ **"C++ is always faster!"** | Assuming C++ is a magic bullet. | **Profile first.** Get concrete numbers. |
+| 🔧 **Reinventing the Wheel** | Writing C++ for a solved problem. | Check SciPy, NumPy, and other libraries first. |
 
 ## ✅ Final Checklist
 
-!!! note "Before You Start"
-    Use this checklist before diving into C++:
+Use this checklist before you start writing C++:
 
-    - [ ] No good Python library exists
-    - [ ] Profiling shows a clear bottleneck
-    - [ ] Production workload hits this bottleneck
-    - [ ] C++ will give meaningful gains
-    - [ ] Team can maintain the C++ code
+- [ ] No good Python library exists for the task.
+- [ ] Profiling shows a clear, measurable bottleneck.
+- [ ] The bottleneck is a real issue in production.
+- [ ] C++ will provide a significant (e.g., >5x) speedup.
+- [ ] The team is comfortable maintaining the C++ code.
 
-    If you check all boxes — go for it. Otherwise, stay in Python land. 🐍
+If you can't check all these boxes, stick with Python. 🐍

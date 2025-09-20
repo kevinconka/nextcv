@@ -45,14 +45,17 @@ theme:
         name: Switch to system preference
 
 nav:
-  - Home: index.md
+  - Home:
+      - Home: home/index.md
+      - Getting Started: home/getting-started.md
+      - Contributing: home/contributing.md
   - PyBind11 Guide:
-      - Overview: pybind11/index.md
-      - Simple Tutorial: pybind11/simple-tutorial.md
+      - PyBind11 Overview: pybind11/index.md
+      - PyBind11 Tutorial: pybind11/simple-tutorial.md
       - When to Use C++: pybind11/when-to-use-cpp.md
       - PyBind11 Basics: pybind11/pybind11-basics.md
-      - Testing: pybind11/testing.md
-      - Best Practices: pybind11/best-practices.md
+      - PyBind11 Testing: pybind11/testing.md
+      - PyBind11 Best Practices: pybild11/best-practices.md
       - Resources: pybind11/resources.md
   - API Reference: reference/
   - Examples: examples/
@@ -66,6 +69,8 @@ markdown_extensions:
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
