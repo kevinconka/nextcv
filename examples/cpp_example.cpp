@@ -29,18 +29,6 @@ int main() {
     }
     std::cout << std::endl;
 
-    // Verify the inversion worked correctly
-    std::vector<std::uint8_t> expected{255, 191, 127, 63, 0};
-    bool correct = (inverted == expected);
-    std::cout << "Verification: " << (correct ? "PASSED" : "FAILED") << std::endl;
-
-    // Demonstrate with a single pixel
-    std::cout << "\n=== Single Pixel Test ===" << std::endl;
-    std::vector<std::uint8_t> single_pixel{100};
-    auto single_inverted = nextcv::image::invert(single_pixel);
-    std::cout << "100 -> " << static_cast<int>(single_inverted[0]) << " (expected: " << (255 - 100)
-              << ")" << std::endl;
-
     // Demonstrate NMS functionality
     std::cout << "\n=== NMS Demo ===" << std::endl;
     std::vector<std::array<float, 4>> bboxes = {
