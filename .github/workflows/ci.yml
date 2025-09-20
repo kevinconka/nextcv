@@ -58,6 +58,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.9"]
+        include:
+          - os: ubuntu-latest
+            setup-deps: |
+              sudo apt-get update
+              sudo apt-get install -y libeigen3-dev
+          - os: macos-latest
+            setup-deps: |
+              brew install eigen
     runs-on: ${{ matrix.os }}
     if: ${{ needs.changed-files.outputs.python != '' || needs.changed-files.outputs.cpp != '' }}
     timeout-minutes: 15
@@ -65,23 +73,15 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v5
 
-      - name: 🔧 Install Eigen3 (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
-
-      - name: 🔧 Install Eigen3 (macOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          brew install eigen
+      - name: 🔧 Install System Dependencies
+        run: ${{ matrix.setup-deps }}
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: 🔧 Install dependencies
+      - name: 🔧 Install Python Dependencies
         run: uv sync
 
       - name: ✨ Lint & Format Check
@@ -106,6 +106,7 @@ jobs:
             --cov-report=xml \
             --junitxml=pytest.xml \
             | tee pytest-coverage.txt
+
       - name: 📊 Coverage Comment (Ubuntu only)
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@main
@@ -120,33 +121,20 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.9"]
+        include:
+          - os: ubuntu-latest
+            setup-deps: |
+              sudo apt-get update
+              sudo apt-get install -y libeigen3-dev cmake
+          - os: macos-latest
+            setup-deps: |
+              brew install eigen cmake
     runs-on: ${{ matrix.os }}
     if: ${{ needs.changed-files.outputs.cpp != '' }}
     timeout-minutes: 10
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v5
-
-      - name: 🔧 Install Eigen3 (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
-
-      - name: 🔧 Install Eigen3 (macOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          brew install eigen
-
-      - name: 📦 Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: 🔧 Install dependencies
-        run: |
-          uv sync
-          uv build
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
@@ -168,14 +156,32 @@ jobs:
         if: steps.cpp-linter.outputs.checks-failed > 0
         run: exit 1
 
-      - name: 🔨 Build C++ Examples
+      - name: 🔧 Install System Dependencies
+        run: ${{ matrix.setup-deps }}
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 🔧 Install Python Package
         run: |
-          # Use Makefile for consistent build process
-          make build
-          # Run the example (if it exists)
-          if [ -f "./build/examples/cpp_example" ]; then
-            ./build/examples/cpp_example
-          fi
+          pip install .
+
+      - name: 🧪 Test User C++ Project Integration
+        run: |
+          # Test user project that uses NextCV as a dependency
+          cd examples
+
+          # Build the example project
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
+
+          # Run the example
+          ./cpp_example
+
+          echo "✅ User C++ project integration test completed successfully!"
 
   status:
     name: overall
