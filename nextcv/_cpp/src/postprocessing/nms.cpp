@@ -7,11 +7,10 @@
 
 namespace nextcv::postprocessing {
 
-auto nms(const Eigen::MatrixXf& bboxes,
-         const Eigen::VectorXf& scores, // NOLINT(bugprone-easily-swappable-parameters)
-         float threshold) -> std::vector<int> {
+auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float threshold)
+    -> Eigen::VectorXi {
     if (bboxes.rows() == 0) {
-        return {};
+        return Eigen::VectorXi(0);
     }
 
     // Areas of bboxes
@@ -59,7 +58,13 @@ auto nms(const Eigen::MatrixXf& bboxes,
             }
         }
     }
-    return keep;
+
+    // Convert std::vector<int> to Eigen::VectorXi
+    Eigen::VectorXi result(static_cast<int>(keep.size()));
+    for (std::size_t i = 0; i < keep.size(); ++i) {
+        result(static_cast<int>(i)) = keep[i];
+    }
+    return result;
 }
 
 } // namespace nextcv::postprocessing
