@@ -91,10 +91,14 @@ def nms_np(
 
     keep = np.zeros_like(scores, dtype=bool)  # which boxes (idx) to keep
 
-    while order.size > 1:
+    while order.size > 0:
         # take current highest confidence box
         i = order[0]
         keep[i] = True
+
+        # If this is the last box, we're done
+        if order.size == 1:
+            break
 
         # calculate intersection over union with all other boxes
         ovr = iou_np(bboxes[i], bboxes[order[1:]], areas[i], areas[order[1:]])
@@ -105,4 +109,5 @@ def nms_np(
         # update order by removing suppressed boxes
         order = order[idxs + 1]  # +1 because we removed the first element
 
-    return np.nonzero(keep)[0]  # indices of boxes to keep
+    keep_indices = np.nonzero(keep)[0]
+    return keep_indices[np.argsort(scores[keep_indices])[::-1]]
