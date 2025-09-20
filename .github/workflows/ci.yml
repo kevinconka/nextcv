@@ -159,9 +159,7 @@ jobs:
           tidy-checks: | # Overrides Checks in .clang-tidy config file
             ${{ startsWith(matrix.os, 'macos') && '-bugprone-easily-swappable-parameters' || '' }}
           version: "21"
-          ignore: |
-            nextcv/_cpp/src/bindings/*
-            examples/*
+          ignore: "nextcv/_cpp/src/bindings/*|examples/*"
           database: "build/compile_commands.json" # Path to compile_commands.json
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
