@@ -6,31 +6,31 @@ This guide will walk you through installing NextCV and running your first perfor
 
 NextCV requires **Eigen3** for linear algebra operations. Install it first:
 
-=== "macOS"
-
-    ```bash
-    # Using Homebrew (recommended)
-    brew install eigen
-    ```
-
 === "Linux"
 
     ```bash
-    # Ubuntu/Debian
     sudo apt-get install libeigen3-dev
+    ```
+
+=== "macOS"
+
+    ```bash
+    brew install eigen
     ```
 
 ## 2. Installation
 
-You can install NextCV using `uv` (recommended) or `pip`.
+=== "pip"
 
-```bash
-# Using uv (recommended)
-uv add git+https://github.com/kevinconka/nextcv.git
+      ```bash
+      pip install git+https://github.com/kevinconka/nextcv.git
+      ```
 
-# Or with pip
-pip install git+https://github.com/kevinconka/nextcv.git
-```
+=== "uv"
+
+      ```bash
+      uv add git+https://github.com/kevinconka/nextcv.git
+      ```
 
 ## 3. Performance Demo
 
@@ -76,5 +76,5 @@ Post-processing (NMS timing comparison):
 
 Now that you have NextCV installed, you can start exploring the API.
 
-- **Explore the API:** Check out the [API Reference](reference/) for a full list of available functions.
-- **Learn about our philosophy:** Read our guide on [When to Use C++](pybind11/when-to-use-cpp.md) to understand our approach to performance.
+- **Explore the API:** Check out the [API Reference](../reference) for a full list of available functions.
+- **Learn about our philosophy:** Read our guide on [When to Use C++](../pybind11/when-to-use-cpp.md) to understand our approach to performance.

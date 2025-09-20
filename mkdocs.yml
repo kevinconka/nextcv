@@ -55,7 +55,7 @@ nav:
       - When to Use C++: pybind11/when-to-use-cpp.md
       - PyBind11 Basics: pybind11/pybind11-basics.md
       - PyBind11 Testing: pybind11/testing.md
-      - PyBind11 Best Practices: pybild11/best-practices.md
+      - PyBind11 Best Practices: pybind11/best-practices.md
       - Resources: pybind11/resources.md
   - API Reference: reference/
   - Examples: examples/
@@ -113,7 +113,7 @@ plugins:
   - gen-files:
       scripts:
         - docs/gen_ref_pages.py
-        - docs/gen_cli_pages.py
+        # - docs/gen_cli_pages.py
   - literate-nav:
       nav_file: SUMMARY.md
   - mkdocstrings:
