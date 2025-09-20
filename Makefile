@@ -39,9 +39,58 @@ build: ## Configure and build the project
 	cmake --preset $(PRESET)
 	cmake --build --preset $(PRESET)
 
+.PHONY: install
+install: build ## Install NextCV headers and create pkg-config files
+	@echo "Installing NextCV headers and pkg-config files..."
+	@command -v python >/dev/null || (echo "❌ python not found" && exit 1)
+	@command -v pkg-config >/dev/null || (echo "❌ pkg-config not found" && echo "   Install: macOS → brew install pkg-config | Linux → apt install pkg-config" && exit 1)
+	
+	# Get NextCV installation path
+	@NEXTCV_INSTALL_DIR=$$(python -c "import nextcv; import os; print(os.path.dirname(nextcv.__file__))") && \
+	NEXTCV_INCLUDE_DIR="$$NEXTCV_INSTALL_DIR/_cpp/src" && \
+	NEXTCV_PREFIX="$$NEXTCV_INSTALL_DIR" && \
+	echo "Installing to: $$NEXTCV_PREFIX" && \
+	
+	# Create pkg-config directory
+	mkdir -p "$$NEXTCV_PREFIX/pkgconfig" && \
+	
+	# Create nextcv.pc file
+	cat > "$$NEXTCV_PREFIX/pkgconfig/nextcv.pc" << EOF
+prefix=$$NEXTCV_PREFIX
+exec_prefix=\$${prefix}
+libdir=\$${exec_prefix}/_cpp/src
+includedir=\$${prefix}/_cpp/src
+
+Name: NextCV
+Description: NextCV - A minimal, experimental CV library
+Version: 0.1.0
+Cflags: -I\$${includedir}
+Libs: -L\$${libdir}
+EOF
+	@echo "✅ NextCV installed successfully"
+	@echo "   Headers: $$NEXTCV_PREFIX/_cpp/src"
+	@echo "   pkg-config: $$NEXTCV_PREFIX/pkgconfig/nextcv.pc"
+
+.PHONY: build-examples
+build-examples: install ## Build C++ examples (requires NextCV to be installed)
+	@echo "Building C++ examples..."
+	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
+	@cd examples && \
+		mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && \
+		cmake .. && \
+		make -j$$(if command -v nproc >/dev/null; then nproc; else sysctl -n hw.ncpu; fi)
+	@echo "✅ C++ examples built successfully"
+
+.PHONY: run-examples
+run-examples: build-examples ## Build and run C++ examples
+	@echo "Running C++ examples..."
+	@cd examples/$(BUILD_DIR) && ./cpp_example
+	@echo "✅ C++ examples completed successfully"
+
 .PHONY: clean
 clean: ## Remove build directory
 	rm -rf $(BUILD_DIR)
+	rm -rf examples/$(BUILD_DIR)
 	@echo "✅ Clean complete"
 
 # Code formatting and linting

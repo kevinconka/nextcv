@@ -172,17 +172,9 @@ jobs:
       - name: 🧪 Test User C++ Project Integration
         run: |
           # Test user project that uses NextCV as a dependency
-          cd examples
-
-          # Build the example project
-          mkdir build && cd build
-          cmake ..
-          make -j$(nproc)
-
-          # Run the example
-          ./cpp_example
-
-          echo "✅ User C++ project integration test completed successfully!"
+          # Set PKG_CONFIG_PATH to find the NextCV pkg-config file
+          export PKG_CONFIG_PATH="$(python -c "import nextcv; import os; print(os.path.join(os.path.dirname(nextcv.__file__), 'pkgconfig'))"):$PKG_CONFIG_PATH"
+          make run-examples
 
   status:
     name: overall
