@@ -10,7 +10,7 @@ def hello_cpp() -> str:
 
 def hello_python() -> str:
     """Python implementation of hello function."""
-    return "Hello from NextCV (Python)"
+    return "Hello from Python"
 
 
 __all__ = ["hello_python", "hello_cpp"]
