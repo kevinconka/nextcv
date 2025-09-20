@@ -78,18 +78,12 @@ print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
 
 ### Prerequisites
 
-**macOS:**
-
-```bash
-# Using Homebrew (recommended)
-brew install eigen cmake
-```
-
-**Linux:**
-
 ```bash
 # Ubuntu/Debian
 sudo apt-get install libeigen3-dev cmake
+
+# MacOS
+brew install eigen cmake
 ```
 
 ### Installation
@@ -110,18 +104,19 @@ If you think you can make this better, feel free. Just don't break anything.
 
 1.  **Fork it.**
 2.  **Create a branch.** (`git checkout -b my-brilliant-idea`)
-3.  **Set up the environment.**
+3.  **Install uv (if you don't have it).**
+4.  **Set up the environment.**
     ```bash
     uv sync
     uvx pre-commit install
     ```
-4.  **Write code.** And tests. Don't forget the tests.
-5.  **Run the checks.**
+5.  **Write code.** And tests. Don't forget the tests.
+6.  **Run the checks.**
     ```bash
     uv run pytest
     uvx pre-commit run --all-files
     ```
-6.  **Open a pull request.** Make it a good one.
+7.  **Open a pull request.** Make it a good one.
 
 ---
 
