@@ -96,7 +96,7 @@ pip install git+https://github.com/kevinconka/nextcv.git
 uv add git+https://github.com/kevinconka/nextcv.git
 ```
 
-### Usage
+### Check it's working
 
 ```bash
 uv run python -c "import nextcv; print(nextcv.__version__)"
