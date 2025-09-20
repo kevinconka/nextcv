@@ -51,7 +51,7 @@ jobs:
           echo "C++ changed files:"
           echo "${{ steps.changed-cpp-files.outputs.all_changed_files }}"
 
-  test:
+  python-checks:
     needs: changed-files
     strategy:
       fail-fast: false
@@ -113,7 +113,7 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
 
-  cpp-check:
+  cpp-checks:
     needs: changed-files
     strategy:
       fail-fast: false
