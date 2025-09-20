@@ -78,9 +78,4 @@ install(FILES
 
 # Headers are installed by src/CMakeLists.txt
 
-# Examples (integrated, not installed)
-if(NEXTCV_BUILD_EXAMPLES)
-  add_executable(cpp_example examples/cpp_example.cpp)
-  target_link_libraries(cpp_example PRIVATE nextcv)
-  set_target_properties(cpp_example PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
-endif()
+# Examples are built separately for testing purposes

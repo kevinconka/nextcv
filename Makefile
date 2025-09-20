@@ -42,6 +42,7 @@ build: ## Configure and build the project
 .PHONY: clean
 clean: ## Remove build directory
 	rm -rf $(BUILD_DIR)
+	rm -rf examples/$(BUILD_DIR)
 	@echo "✅ Clean complete"
 
 # Code formatting and linting

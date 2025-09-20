@@ -51,13 +51,21 @@ jobs:
           echo "C++ changed files:"
           echo "${{ steps.changed-cpp-files.outputs.all_changed_files }}"
 
-  test:
+  python-checks:
     needs: changed-files
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.9"]
+        include:
+          - os: ubuntu-latest
+            setup-deps: |
+              sudo apt-get update
+              sudo apt-get install -y libeigen3-dev
+          - os: macos-latest
+            setup-deps: |
+              brew install eigen
     runs-on: ${{ matrix.os }}
     if: ${{ needs.changed-files.outputs.python != '' || needs.changed-files.outputs.cpp != '' }}
     timeout-minutes: 15
@@ -65,23 +73,15 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v5
 
-      - name: 🔧 Install Eigen3 (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
-
-      - name: 🔧 Install Eigen3 (macOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          brew install eigen
+      - name: 🔧 Install System Dependencies
+        run: ${{ matrix.setup-deps }}
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: 🔧 Install dependencies
+      - name: 🔧 Install Python Dependencies
         run: uv sync
 
       - name: ✨ Lint & Format Check
@@ -106,6 +106,7 @@ jobs:
             --cov-report=xml \
             --junitxml=pytest.xml \
             | tee pytest-coverage.txt
+
       - name: 📊 Coverage Comment (Ubuntu only)
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@main
@@ -113,40 +114,19 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
 
-  cpp-check:
+  cpp-checks:
     needs: changed-files
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.9"]
+
     runs-on: ${{ matrix.os }}
     if: ${{ needs.changed-files.outputs.cpp != '' }}
     timeout-minutes: 10
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v5
-
-      - name: 🔧 Install Eigen3 (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
-
-      - name: 🔧 Install Eigen3 (macOS)
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          brew install eigen
-
-      - name: 📦 Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: 🔧 Install dependencies
-        run: |
-          uv sync
-          uv build
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
@@ -158,7 +138,7 @@ jobs:
           tidy-checks: | # Overrides Checks in .clang-tidy config file
             ${{ startsWith(matrix.os, 'macos') && '-bugprone-easily-swappable-parameters' || '' }}
           version: "21"
-          ignore: "nextcv/_cpp/src/bindings/*"
+          ignore: "nextcv/_cpp/src/bindings/*|examples/*"
           database: "build/compile_commands.json" # Path to compile_commands.json
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
@@ -168,11 +148,23 @@ jobs:
         if: steps.cpp-linter.outputs.checks-failed > 0
         run: exit 1
 
-      - name: 🔨 Build C++ Examples
+  status:
+    name: overall
+    needs: [python-checks, cpp-checks]
+    runs-on: ubuntu-latest
+    if: always() # run even if others are skipped/fail
+    steps:
+      - name: Decide overall result
         run: |
-          # Use Makefile for consistent build process
-          make build
-          # Run the example (if it exists)
-          if [ -f "./build/examples/cpp_example" ]; then
-            ./build/examples/cpp_example
+          fail=0
+          # If a needed job ran and failed, mark failure
+          [[ "${{ needs.python-checks.result }}" == "failure" ]] && fail=1
+          [[ "${{ needs.cpp-checks.result }}" == "failure" ]] && fail=1
+
+          if [ $fail -eq 1 ]; then
+            echo "Some checks failed."
+            exit 1
+          else
+            echo "All required checks passed or were skipped."
+            exit 0
           fi

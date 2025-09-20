@@ -108,19 +108,37 @@ If you think you can make this better, feel free. Just don't break anything.
 
 1.  **Fork it.**
 2.  **Create a branch.** (`git checkout -b my-brilliant-idea`)
-3.  **Install uv (if you don't have it).**
-4.  **Set up the environment.**
+3.  **Install Python tools.**
+
+    ```bash
+    # Install uv (if you don't have it)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+
+4.  **Install C++ tools.**
+
+    ```bash
+    # macOS
+    brew install clang-format llvm
+    # Add LLVM to PATH (add to ~/.zshrc or ~/.bash_profile)
+    echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.zshrc
+
+    # Ubuntu/Debian
+    sudo apt-get install clang-format clang-tidy
+    ```
+
+5.  **Set up the environment.**
     ```bash
     uv sync
     uvx pre-commit install
     ```
-5.  **Write code.** And tests. Don't forget the tests.
-6.  **Run the checks.**
+6.  **Write code.** And tests. Don't forget the tests.
+7.  **Run the checks.**
     ```bash
     uv run pytest
     uvx pre-commit run --all-files
     ```
-7.  **Open a pull request.** Make it a good one.
+8.  **Open a pull request.** Make it a good one.
 
 ---
 
