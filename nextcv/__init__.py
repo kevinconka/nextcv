@@ -19,11 +19,11 @@ from importlib.metadata import PackageNotFoundError, version
 
 # Import modules
 from . import core, image, linalg, postprocessing
-from .core import hello_cpp, hello_python
 
 try:
     __version__ = version("nextcv")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
-__all__ = ["core", "image", "postprocessing", "linalg", "hello_cpp", "hello_python"]
+__all__ = ["core", "image", "postprocessing", "linalg"]
+__all__ += core.__all__
