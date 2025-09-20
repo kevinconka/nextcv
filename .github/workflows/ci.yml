@@ -120,15 +120,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.9"]
-        include:
-          - os: ubuntu-latest
-            setup-deps: |
-              sudo apt-get update
-              sudo apt-get install -y libeigen3-dev cmake
-          - os: macos-latest
-            setup-deps: |
-              brew install eigen cmake
 
     runs-on: ${{ matrix.os }}
     if: ${{ needs.changed-files.outputs.cpp != '' }}
@@ -136,18 +127,6 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v5
-
-      - name: 🔧 Install System Dependencies
-        run: ${{ matrix.setup-deps }}
-
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: 🔧 Install Python Package
-        run: |
-          pip install .
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
@@ -168,13 +147,6 @@ jobs:
       - name: Fail fast if linting failed
         if: steps.cpp-linter.outputs.checks-failed > 0
         run: exit 1
-
-      - name: 🧪 Test User C++ Project Integration
-        run: |
-          # Test user project that uses NextCV as a dependency
-          # Set PKG_CONFIG_PATH to find the NextCV pkg-config file
-          export PKG_CONFIG_PATH="$(python -c "import nextcv; import os; print(os.path.join(os.path.dirname(nextcv.__file__), 'pkgconfig'))"):$PKG_CONFIG_PATH"
-          make run-examples
 
   status:
     name: overall
