@@ -44,32 +44,17 @@ install: build ## Install NextCV headers and create pkg-config files
 	@echo "Installing NextCV headers and pkg-config files..."
 	@command -v python >/dev/null || (echo "❌ python not found" && exit 1)
 	@command -v pkg-config >/dev/null || (echo "❌ pkg-config not found" && echo "   Install: macOS → brew install pkg-config | Linux → apt install pkg-config" && exit 1)
-	
-	# Get NextCV installation path
 	@NEXTCV_INSTALL_DIR=$$(python -c "import nextcv; import os; print(os.path.dirname(nextcv.__file__))") && \
-	NEXTCV_INCLUDE_DIR="$$NEXTCV_INSTALL_DIR/_cpp/src" && \
+	NEXTCV_VERSION=$$(python -c "import nextcv; print(nextcv.__version__)") && \
 	NEXTCV_PREFIX="$$NEXTCV_INSTALL_DIR" && \
 	echo "Installing to: $$NEXTCV_PREFIX" && \
-	
-	# Create pkg-config directory
 	mkdir -p "$$NEXTCV_PREFIX/pkgconfig" && \
-	
-	# Create nextcv.pc file
-	cat > "$$NEXTCV_PREFIX/pkgconfig/nextcv.pc" << EOF
-prefix=$$NEXTCV_PREFIX
-exec_prefix=\$${prefix}
-libdir=\$${exec_prefix}/_cpp/src
-includedir=\$${prefix}/_cpp/src
-
-Name: NextCV
-Description: NextCV - A minimal, experimental CV library
-Version: 0.1.0
-Cflags: -I\$${includedir}
-Libs: -L\$${libdir}
-EOF
-	@echo "✅ NextCV installed successfully"
-	@echo "   Headers: $$NEXTCV_PREFIX/_cpp/src"
-	@echo "   pkg-config: $$NEXTCV_PREFIX/pkgconfig/nextcv.pc"
+	sed -e "s|@NEXTCV_PREFIX@|$$NEXTCV_PREFIX|g" \
+	    -e "s|@NEXTCV_VERSION@|$$NEXTCV_VERSION|g" \
+	    examples/nextcv.pc.in > "$$NEXTCV_PREFIX/pkgconfig/nextcv.pc" && \
+	echo "✅ NextCV installed successfully" && \
+	echo "   Headers: $$NEXTCV_PREFIX/_cpp/src" && \
+	echo "   pkg-config: $$NEXTCV_PREFIX/pkgconfig/nextcv.pc"
 
 .PHONY: build-examples
 build-examples: install ## Build C++ examples (requires NextCV to be installed)

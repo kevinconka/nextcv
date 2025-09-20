@@ -1,0 +1,10 @@
+prefix=@NEXTCV_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/_cpp/src
+includedir=${prefix}/_cpp/src
+
+Name: NextCV
+Description: NextCV - A minimal, experimental CV library
+Version: @NEXTCV_VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir}
