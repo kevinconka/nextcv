@@ -176,3 +176,24 @@ jobs:
           if [ -f "./build/examples/cpp_example" ]; then
             ./build/examples/cpp_example
           fi
+
+  status:
+    name: overall
+    needs: [python-checks, cpp-checks]
+    runs-on: ubuntu-latest
+    if: always() # run even if others are skipped/fail
+    steps:
+      - name: Decide overall result
+        run: |
+          fail=0
+          # If a needed job ran and failed, mark failure
+          [[ "${{ needs.python-checks.result }}" == "failure" ]] && fail=1
+          [[ "${{ needs.cpp-checks.result }}" == "failure" ]] && fail=1
+
+          if [ $fail -eq 1 ]; then
+            echo "Some checks failed."
+            exit 1
+          else
+            echo "All required checks passed or were skipped."
+            exit 0
+          fi
