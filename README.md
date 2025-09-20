@@ -78,21 +78,21 @@ print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
 
 ### Prerequisites
 
-NextCV requires **Eigen3** for linear algebra operations. Install it first:
+NextCV requires **Eigen3** and **CMake** for building. Install them first:
 
-=== "macOS"
+**macOS:**
 
-    ```bash
-    # Using Homebrew (recommended)
-    brew install eigen
-    ```
+```bash
+# Using Homebrew (recommended)
+brew install eigen cmake
+```
 
-=== "Linux"
+**Linux:**
 
-    ```bash
-    # Ubuntu/Debian
-    sudo apt-get install libeigen3-dev
-    ```
+```bash
+# Ubuntu/Debian
+sudo apt-get install libeigen3-dev cmake
+```
 
 ### Installation
 

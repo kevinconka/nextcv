@@ -4,18 +4,16 @@ This guide will walk you through installing NextCV and running your first perfor
 
 ## 1. Prerequisites
 
-NextCV requires **Eigen3** for linear algebra operations. Install it first:
-
 === "Linux"
 
     ```bash
-    sudo apt-get install libeigen3-dev
+    sudo apt-get install libeigen3-dev cmake
     ```
 
 === "macOS"
 
     ```bash
-    brew install eigen
+    brew install eigen cmake
     ```
 
 ## 2. Installation
