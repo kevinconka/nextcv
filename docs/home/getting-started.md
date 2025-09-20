@@ -2,7 +2,25 @@
 
 This guide will walk you through installing NextCV and running your first performance demo.
 
-## 1. Installation
+## 1. Prerequisites
+
+NextCV requires **Eigen3** for linear algebra operations. Install it first:
+
+=== "macOS"
+
+    ```bash
+    # Using Homebrew (recommended)
+    brew install eigen
+    ```
+
+=== "Linux"
+
+    ```bash
+    # Ubuntu/Debian
+    sudo apt-get install libeigen3-dev
+    ```
+
+## 2. Installation
 
 You can install NextCV using `uv` (recommended) or `pip`.
 
@@ -14,7 +32,7 @@ uv add git+https://github.com/kevinconka/nextcv.git
 pip install git+https://github.com/kevinconka/nextcv.git
 ```
 
-## 2. Performance Demo
+## 3. Performance Demo
 
 This example demonstrates the performance difference between the C++ and NumPy implementations of Non-Maximum Suppression (NMS).
 
@@ -54,7 +72,7 @@ Post-processing (NMS timing comparison):
    nms_np(): 949 boxes kept in 65.39ms
 ```
 
-## 3. Next Steps
+## 4. Next Steps
 
 Now that you have NextCV installed, you can start exploring the API.
 
