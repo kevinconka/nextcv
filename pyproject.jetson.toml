@@ -1,0 +1,72 @@
+[build-system]
+requires = [
+  "scikit-build>=0.10",
+  "pybind11>=2.10",
+  "setuptools-scm<=8",
+  "wheel",
+  "cmake",
+  "ninja",
+]
+build-backend = "setuptools.build_meta"
+
+dependencies = ["numpy>=1.19.0", "opencv-python>=4.4.0"]
+
+# setuptools_scm configuration
+# https://setuptools-scm.readthedocs.io/en/latest/config/
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
+
+# pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-q --cov -s"
+
+# Coverage settings
+[tool.coverage.run]
+source = ["nextcv"]
+
+[tool.coverage.report]
+include = ["nextcv/*"]
+exclude_lines = ["if TYPE_CHECKING"]
+show_missing = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+# Pylint settings
+[tool.pylint]
+ignored-modules = [
+  "cv2",                   # doesn't ship with proper type stubs by default
+  "nextcv._cpp.nextcv_py", # stubs for C++ module
+]
+jobs = 0
+ignore = ["tests", "docs", "build", ".venv"]
+ignore-paths = [".*tests.*.py$", ".*pyi$"]
+max-args = 10
+max-attributes = 10
+max-line-length = 88
+min-similarity-lines = 6
+max-positional-arguments = 10 # counts also args with default values ?
+disable = [
+  "import-outside-toplevel",       # lazy loading
+  "missing-function-docstring",    # handled by ruff
+  "logging-fstring-interpolation",
+  "too-few-public-methods",
+  "broad-exception-caught",
+]
+good-names-rgxs = [
+  "^K.*$", # Camera intrinsics matrix prefix
+  "^R.*$", # Rotation matrix prefix
+  "^H.*$", # Homography matrix prefix
+  "^B.*$", # Batch size prefix
+  "^C.*$", # Channel size prefix
+  "^H.*$", # Height prefix
+  "^W.*$", # Width prefix
+]
