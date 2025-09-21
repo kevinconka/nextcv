@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.25)
 
+# Set CMake policy to suppress warnings before any find_package calls
+cmake_policy(SET CMP0148 NEW)
+
 # Prevent in-source builds
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory.")
@@ -39,6 +42,9 @@ if(NEXTCV_BUILD_PYTHON)
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   # Try to find NumPy component, but don't fail if not found (for scikit-build-core)
   find_package(Python3 COMPONENTS NumPy QUIET)
+
+  # Set pybind11 to use modern Python detection
+  set(PYBIND11_FINDPYTHON ON)
 
   # For scikit-build-core, pybind11 is provided via Python
   find_package(pybind11 CONFIG QUIET)
