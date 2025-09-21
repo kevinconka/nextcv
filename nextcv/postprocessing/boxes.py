@@ -1,7 +1,5 @@
 """Bounding box postprocessing functions."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -16,10 +14,10 @@ else:
 
 
 def nms_cpp(
-    bboxes: NDArray,
-    scores: NDArray,
+    bboxes: "NDArray",
+    scores: "NDArray",
     iou_thresh: float,
-) -> NDArray[np.int32]:
+) -> "NDArray[np.int32]":
     """Non-Maximum-Supression (NMS) algorithm to remove overlapping bounding boxes.
 
     Args:
@@ -32,12 +30,12 @@ def nms_cpp(
 
 
 def iou_np(
-    target_box: NDArray,
-    boxes: NDArray,
-    target_area: NDArray,
-    areas: NDArray,
+    target_box: "NDArray",
+    boxes: "NDArray",
+    target_area: "NDArray",
+    areas: "NDArray",
     inclusive: bool = False,
-) -> NDArray:
+) -> "NDArray":
     """Calculate intersection over union of target box with all others.
 
     Args:
@@ -67,10 +65,10 @@ def iou_np(
 
 
 def nms_np(
-    bboxes: NDArray,
-    scores: NDArray,
+    bboxes: "NDArray",
+    scores: "NDArray",
     iou_thresh: float,
-) -> NDArray:
+) -> "NDArray":
     """Non-Maximum-Supression (NMS) algorithm to remove overlapping bounding boxes.
 
     Args:
