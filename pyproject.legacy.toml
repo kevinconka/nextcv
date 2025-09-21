@@ -9,6 +9,11 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+# scikit-build configuration for legacy builds
+[tool.scikit-build]
+build-dir = "build"
+wheel.dist-dir = "dist"
+
 # setuptools_scm configuration
 # https://setuptools-scm.readthedocs.io/en/latest/config/
 [tool.setuptools_scm]
