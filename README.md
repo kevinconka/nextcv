@@ -2,7 +2,7 @@
 
 # NextCV
 
-**Python's ease, C++'s speed. Finally.**
+**Python's ease, C++'s speed. Finally.** ⚡
 
 </div>
 
@@ -25,19 +25,17 @@
 
 ---
 
-## What is this?
+## What is this? 🤔
 
-It's a computer vision library. You write Python, because you're not a masochist. But when your code inevitably becomes a bottleneck, you need speed. That's where we come in.
-
-We use C++ for the heavy lifting, so you don't have to. It's not magic, it's just good engineering.
+It's a computer vision library. You write Python, because you're not a masochist. But when your code inevitably becomes a bottleneck, you need speed. That's where this library can help.
 
 **The philosophy is simple:**
 
-> Write Python. When it's slow, we make it fast.
+> Write Python. When it's slow, make it fast with C++.
 
 ---
 
-## Does it actually work?
+## Does it actually work? 🚀
 
 Yes. Here's a Non-Maximum Suppression (NMS) benchmark. We pitted our C++ implementation against a standard NumPy version.
 
@@ -68,11 +66,11 @@ print(f"   nms_cpp(): {len(result_cpp)} boxes kept in {cpp_time * 1000:.2f}ms")
 print(f"   nms_np(): {len(result_np)} boxes kept in {np_time * 1000:.2f}ms")
 ```
 
-**The numbers don't lie.** The C++ version is significantly faster.
+Fingers' crossed, the C++ version is significantly faster. 🎯
 
 ---
 
-## How do I use it?
+## How do I use it? 🛠️
 
 ### Prerequisites
 
@@ -84,38 +82,42 @@ sudo apt-get install libeigen3-dev cmake
 brew install eigen cmake
 ```
 
-### Installation
-
-Get it, obviously. Use `uv` if you know what's good for you.
+### Installation 📦
 
 ```bash
 # traditional pip
 pip install git+https://github.com/kevinconka/nextcv.git
 
-# uv
+# uv if you know what's good for you
 uv add git+https://github.com/kevinconka/nextcv.git
 ```
 
-### Check it's working
+### Check it's working ✅
 
 ```bash
 uv run python -c "import nextcv; print(nextcv.__version__)"
 ```
 
-### Building from source
+### Building from source 🔨
 
 This project uses a dual-configuration approach to support both modern development and legacy compatibility:
 
 - **Modern builds** (Python 3.9+): Uses `scikit-build-core` with `pyproject.toml`
-- **Legacy builds** (Python 3.6+): Uses `scikit-build` with `pyproject.legacy.toml` + `setup.py`
+- **Legacy builds** (Python 3.6...3.8): Uses `scikit-build` with `pyproject.legacy.toml` + `setup.py`
 
-**For development (Python 3.9+):**
+**For development:**
 
 ```bash
+# create a virtual environment
+python -m venv .venv
+source .venv/bin/activate
 pip install -e .
+
+# or let uv handle it for you
+uv sync
 ```
 
-**For Jetson boards (Python 3.6+):**
+**For legacy builds (Python 3.6...3.8):**
 
 ```bash
 # Copy legacy config and build
@@ -123,18 +125,15 @@ cp pyproject.legacy.toml pyproject.toml
 pip install -e .
 ```
 
-The CI/CD automatically tests both configurations across Python 3.6, 3.8, and 3.9.
-
-### Contributing
+### Contributing 🤝
 
 If you think you can make this better, feel free. Just don't break anything.
 
 1.  **Fork it.**
 2.  **Create a branch.** (`git checkout -b my-brilliant-idea`)
-3.  **Install Python tools.**
+3.  **Install UV (if you don't have it yet).**
 
     ```bash
-    # Install uv (if you don't have it)
     curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
 
@@ -167,6 +166,6 @@ If you think you can make this better, feel free. Just don't break anything.
 
 <div align="center">
 
-**That's it. Now you know.**
+**That's it. Now you know.** 🎉
 
 </div>
