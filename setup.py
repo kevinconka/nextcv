@@ -8,7 +8,7 @@ Build Commands:
     cp pyproject.legacy.toml pyproject.toml
 
     # Build wheel package
-    pip wheel --no-deps .
+    pip wheel --no-deps -w dist .
 
     # Install in development mode
     pip install -e .
@@ -18,14 +18,8 @@ Note:
     scikit-build-core instead.
 """
 
-import os
-
 from setuptools import find_packages
 from skbuild import setup  # This line replaces 'from setuptools import setup'
-
-# Set custom build and dist directories for scikit-build
-os.environ.setdefault("SKBUILD_BUILD_DIR", "build")
-os.environ.setdefault("SKBUILD_DIST_DIR", "dist")
 
 setup(
     name="nextcv",
