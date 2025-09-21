@@ -83,12 +83,6 @@ jobs:
       - name: 🔧 Install System Dependencies
         run: ${{ matrix.setup-deps }}
 
-      - name: 🐧 Setup Legacy Configuration
-        if: matrix.legacy == true
-        run: |
-          echo "Setting up legacy build for Python ${{ matrix.python-version }} compatibility..."
-          cp pyproject.legacy.toml pyproject.toml
-
       - name: 📦 Install python
         if: matrix.legacy == true
         uses: actions/setup-python@v4
@@ -104,6 +98,8 @@ jobs:
       - name: 🔧 Install Python Dependencies (Legacy)
         if: matrix.legacy == true
         run: |
+          echo "Overriding pyproject.toml with pyproject.legacy.toml..."
+          cp pyproject.legacy.toml pyproject.toml
           echo "Installing with pip for legacy Python ${{ matrix.python-version }}..."
           pip install -e ".[dev]"
 
