@@ -56,14 +56,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.9"]
         include:
           - os: ubuntu-latest
+            python-version: "3.6"
+            legacy: true
+            setup-deps: |
+              sudo apt-get update
+              sudo apt-get install -y libeigen3-dev
+          - os: ubuntu-latest
+            python-version: "3.10"
+            legacy: false
             setup-deps: |
               sudo apt-get update
               sudo apt-get install -y libeigen3-dev
           - os: macos-latest
+            python-version: "3.10"
+            legacy: false
             setup-deps: |
               brew install eigen
     runs-on: ${{ matrix.os }}
@@ -76,20 +84,37 @@ jobs:
       - name: 🔧 Install System Dependencies
         run: ${{ matrix.setup-deps }}
 
+      - name: 🐧 Setup Legacy Configuration
+        if: matrix.legacy == true
+        run: |
+          echo "Setting up legacy build for Python ${{ matrix.python-version }} compatibility..."
+          cp pyproject.legacy.toml pyproject.toml
+
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: 🔧 Install Python Dependencies
-        run: uv sync
+      - name: 🔧 Install Python Dependencies (Legacy)
+        if: matrix.legacy == true
+        run: |
+          echo "Installing with pip for legacy Python ${{ matrix.python-version }}..."
+          pip install -e ".[dev]"
+
+      - name: 🔧 Install Python Dependencies (Modern)
+        if: matrix.legacy != true
+        run: |
+          echo "Installing with uv for modern Python ${{ matrix.python-version }}..."
+          uv sync
 
       - name: ✨ Lint & Format Check
+        if: matrix.legacy != true
         run: |
           uv run ruff check ${{ needs.changed-files.outputs.python }}
           uv run ruff format --check ${{ needs.changed-files.outputs.python }}
 
       - name: 📝 Generate and Check Python Stubs
+        if: matrix.legacy != true
         run: |
           uv run make stubs
           git diff nextcv/_cpp/ || true
@@ -98,8 +123,19 @@ jobs:
             exit 1
           )
 
-      - name: 🧪 Run Tests
+      - name: 🧪 Run Tests (Legacy)
+        if: matrix.legacy == true
         run: |
+          echo "Running tests with pytest for legacy Python ${{ matrix.python-version }}..."
+          pytest \
+            --cov-report=term-missing:skip-covered \
+            --junitxml=pytest.xml \
+            | tee pytest-coverage.txt
+
+      - name: 🧪 Run Tests (Modern)
+        if: matrix.legacy != true
+        run: |
+          echo "Running tests with uv for modern Python ${{ matrix.python-version }}..."
           uv run pytest \
             --cov-report=term-missing:skip-covered \
             --junitxml=pytest.xml \
