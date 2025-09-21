@@ -57,12 +57,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: macos-latest-large # py3.6 supported on darwin x64
             python-version: "3.6"
             legacy: true
             setup-deps: |
-              sudo apt-get update
-              sudo apt-get install -y libeigen3-dev
+              brew install eigen
           - os: ubuntu-latest
             python-version: "3.10"
             legacy: false
