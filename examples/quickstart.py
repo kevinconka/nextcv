@@ -6,11 +6,20 @@ in the same modules, allowing you to choose the best implementation.
 """
 
 import time
+from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+else:
+    # At runtime, just alias to ndarray so code still runs
+    NDArray = np.ndarray
 
-def create_test_data(n_boxes: int = 10000) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+def create_test_data(
+    n_boxes: int = 10000,
+) -> Tuple["NDArray[np.uint8]", "NDArray[np.float32]", "NDArray[np.float32]"]:
     """Create test data for the examples.
 
     Args:
@@ -43,7 +52,7 @@ def demonstrate_core_functionality() -> None:
     print()
 
 
-def demonstrate_image_processing(test_image: np.ndarray) -> None:
+def demonstrate_image_processing(test_image: NDArray[np.uint8]) -> None:
     """Demonstrate image processing functionality."""
     print("Image processing:")
     from nextcv.image import invert
@@ -90,7 +99,10 @@ def demonstrate_linear_algebra() -> None:
     print()
 
 
-def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> None:
+def demonstrate_nms_timing(
+    test_boxes: "NDArray[np.float32]",
+    test_scores: "NDArray[np.float32]",
+) -> None:
     """Demonstrate NMS functionality with performance timing."""
     print("Post-processing (NMS timing comparison):")
     from nextcv.postprocessing import nms_cpp, nms_np
