@@ -74,5 +74,5 @@ Post-processing (NMS timing comparison):
 
 Now that you have NextCV installed, you can start exploring the API.
 
-- **Explore the API:** Check out the [API Reference](../reference) for a full list of available functions.
-- **Learn about our philosophy:** Read our guide on [When to Use C++](../pybind11/when-to-use-cpp.md) to understand our approach to performance.
+- **Explore the API:** Check out the [API Reference](reference) for a full list of available functions.
+- **Learn about our philosophy:** Read our guide on [When to Use C++](pybind11/when-to-use-cpp.md) to understand our approach to performance.

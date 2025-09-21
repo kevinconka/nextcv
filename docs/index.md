@@ -24,9 +24,9 @@ Ready to give it a try? Our [Getting Started](getting-started.md) guide will hav
 
 ## 🤔 Learn More
 
-- **[Why NextCV?](../pybind11/index.md)** Learn about our approach to "smart performance".
-- **[When to Use C++?](../pybind11/when-to-use-cpp.md)** Our guide to making pragmatic performance decisions.
-- **[API Reference](../reference)** A full list of available functions.
+- **[Why NextCV?](pybind11/index.md)** Learn about our approach to "smart performance".
+- **[When to Use C++?](pybind11/when-to-use-cpp.md)** Our guide to making pragmatic performance decisions.
+- **[API Reference](reference)** A full list of available functions.
 
 ---
 
