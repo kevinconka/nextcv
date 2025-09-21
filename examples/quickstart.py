@@ -122,10 +122,9 @@ def demonstrate_nms_timing(
     # Performance comparison
     print()
     print("Performance comparison:")
-    fastest_time = min(cpp_time, np_time)
-    print(f"   Fastest: {fastest_time * 1000:.2f}ms")
-    print(f"   C++ speedup: {cpp_time / fastest_time:.1f}x")
-    print(f"   NumPy speedup: {np_time / fastest_time:.1f}x")
+    print(f"   C++: {cpp_time * 1000:.2f}ms")
+    print(f"   NumPy: {np_time * 1000:.2f}ms")
+    print(f"   C++ is {np_time / cpp_time:.1f}x faster than NumPy")
     print()
 
 
