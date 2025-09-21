@@ -90,7 +90,14 @@ jobs:
           echo "Setting up legacy build for Python ${{ matrix.python-version }} compatibility..."
           cp pyproject.legacy.toml pyproject.toml
 
+      - name: 📦 Install python
+        if: matrix.legacy == true
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: 📦 Install uv
+        if: matrix.legacy != true
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -113,8 +120,8 @@ jobs:
           uv run ruff check ${{ needs.changed-files.outputs.python }}
           uv run ruff format --check ${{ needs.changed-files.outputs.python }}
 
-      - name: 📝 Generate and Check Python Stubs
-        if: matrix.legacy != true
+      - name: 📝 Generate and Check Python Stubs (Ubuntu only)
+        if: matrix.legacy != true && startsWith(matrix.os, 'ubuntu')
         run: |
           uv run make stubs
           git diff nextcv/_cpp/ || true
