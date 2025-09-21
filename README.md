@@ -102,6 +102,29 @@ uv add git+https://github.com/kevinconka/nextcv.git
 uv run python -c "import nextcv; print(nextcv.__version__)"
 ```
 
+### Building from source
+
+This project uses a dual-configuration approach to support both modern development and legacy compatibility:
+
+- **Modern builds** (Python 3.9+): Uses `scikit-build-core` with `pyproject.toml`
+- **Legacy builds** (Python 3.6+): Uses `scikit-build` with `pyproject.legacy.toml` + `setup.py`
+
+**For development (Python 3.9+):**
+
+```bash
+pip install -e .
+```
+
+**For Jetson boards (Python 3.6+):**
+
+```bash
+# Copy legacy config and build
+cp pyproject.legacy.toml pyproject.toml
+pip install -e .
+```
+
+The CI/CD automatically tests both configurations across Python 3.6, 3.8, and 3.9.
+
 ### Contributing
 
 If you think you can make this better, feel free. Just don't break anything.

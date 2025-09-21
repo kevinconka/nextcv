@@ -1,0 +1,39 @@
+[build-system]
+requires = [
+  "scikit-build>=0.10",
+  "pybind11>=2.10",
+  "setuptools-scm<=8",
+  "wheel",
+  "cmake",
+  "ninja",
+]
+build-backend = "setuptools.build_meta"
+
+# setuptools_scm configuration
+# https://setuptools-scm.readthedocs.io/en/latest/config/
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
+
+# pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-q --cov -s"
+
+# Coverage settings
+[tool.coverage.run]
+source = ["nextcv"]
+
+[tool.coverage.report]
+include = ["nextcv/*"]
+exclude_lines = ["if TYPE_CHECKING"]
+show_missing = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
