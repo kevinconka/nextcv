@@ -1,4 +1,4 @@
-"""NextCV: Computer Vision library with C++ and Python implementations.
+"""NextCV: Python-first computer vision library with C++ bdingings for speed.
 
 This package provides both high-performance C++ wrapped functions and
 pure Python implementations in functional modules.

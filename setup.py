@@ -11,7 +11,7 @@ Build Commands:
     pip wheel --no-deps -w dist .
 
     # Install in development mode
-    pip install -e .
+    pip install -e ".[dev]"
 
 Note:
     For modern Python environments (3.9+), use pyproject.toml directly with
@@ -29,7 +29,15 @@ setup(
     packages=find_packages(include=["nextcv*"]),
     python_requires=">=3.6",
     install_requires=[
-        "numpy>=1.19.0",
-        "opencv-python>=4.4.0",
+        "numpy<1.19.5; python_version == '3.6'",
+        "numpy>=1.19.0; python_version > '3.6'",
+        "opencv-python-headless<4.7; python_version < '3.8'",
+        "opencv-python-headless>=4.4; python_version >= '3.8'",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=7",
+            "pytest-cov>=4.0",
+        ]
+    },
 )
