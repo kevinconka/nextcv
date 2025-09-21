@@ -101,8 +101,9 @@ jobs:
       - name: 🧪 Run Tests
         run: |
           uv run pytest \
-            --cov-report=xml \
-            --cov-report=term-missing:skip-covered
+            --cov-report=term-missing:skip-covered \
+            --junitxml=pytest.xml \
+            | tee pytest-coverage.txt
 
       - name: 📊 Coverage Comment (Ubuntu only)
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
