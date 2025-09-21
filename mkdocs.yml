@@ -46,9 +46,9 @@ theme:
 
 nav:
   - Home:
-      - Home: home/index.md
-      - Getting Started: home/getting-started.md
-      - Contributing: home/contributing.md
+      - Home: index.md
+      - Getting Started: getting-started.md
+      - Contributing: contributing.md
   - PyBind11 Guide:
       - PyBind11 Overview: pybind11/index.md
       - PyBind11 Tutorial: pybind11/simple-tutorial.md
