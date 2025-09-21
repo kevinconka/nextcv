@@ -101,17 +101,15 @@ jobs:
       - name: 🧪 Run Tests
         run: |
           uv run pytest \
-            --cov-report=term-missing:skip-covered \
-            --cov-report=xml \
-            --junitxml=pytest.xml \
-            | tee pytest-coverage.txt
+            --cov-report=term-missing:skip-covered
 
       - name: 📊 Coverage Comment (Ubuntu only)
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: ./pytest-coverage.txt
+          pytest-xml-coverage-path: ./coverage.xml
           junitxml-path: ./pytest.xml
+          report-only-changed-files: true
 
   cpp-checks:
     needs: changed-files
