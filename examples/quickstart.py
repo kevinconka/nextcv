@@ -12,9 +12,6 @@ import numpy as np
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
-else:
-    # At runtime, just alias to ndarray so code still runs
-    NDArray = np.ndarray
 
 
 def create_test_data(
@@ -52,7 +49,7 @@ def demonstrate_core_functionality() -> None:
     print()
 
 
-def demonstrate_image_processing(test_image: NDArray[np.uint8]) -> None:
+def demonstrate_image_processing(test_image: "NDArray[np.uint8]") -> None:
     """Demonstrate image processing functionality."""
     print("Image processing:")
     from nextcv.image import invert

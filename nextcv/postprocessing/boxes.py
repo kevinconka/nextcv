@@ -8,9 +8,6 @@ from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
-else:
-    # At runtime, just alias to ndarray so code still runs
-    NDArray = np.ndarray
 
 
 def nms_cpp(
