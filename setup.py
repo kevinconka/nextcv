@@ -1,5 +1,6 @@
 # Legacy build configuration for Python 3.6+ compatibility
 # Used with pyproject.legacy.toml for Jetson boards and older Python versions
+from setuptools import find_packages
 from skbuild import setup  # This line replaces 'from setuptools import setup'
 
 setup(
@@ -7,7 +8,7 @@ setup(
     description="Python-first computer vision library with C++ bdingings for speed.",
     use_scm_version=True,  # ← dynamic versioning
     setup_requires=["setuptools-scm"],  # ensures scm runs before build
-    packages=["nextcv"],
+    packages=find_packages(include=["nextcv*"]),
     python_requires=">=3.6",
     install_requires=[
         "numpy>=1.19.0",
