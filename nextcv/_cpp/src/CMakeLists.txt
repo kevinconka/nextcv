@@ -39,22 +39,9 @@ if(NEXTCV_BUILD_PYTHON)
   # Link core library
   target_link_libraries(nextcv_py PRIVATE nextcv pybind11::module pybind11::headers)
 
-  # Ensure NumPy includes are available (fallback if CMake find_package fails)
-  if(NOT Python3_NumPy_INCLUDE_DIRS)
-    execute_process(
-      COMMAND ${Python3_EXECUTABLE} -c "import numpy; print(numpy.get_include(), end='')"
-      OUTPUT_VARIABLE Python3_NumPy_INCLUDE_DIRS
-      RESULT_VARIABLE NUMPY_RESULT
-    )
-    if(NOT NUMPY_RESULT EQUAL 0)
-      message(WARNING "Could not find NumPy include directory")
-    endif()
-  endif()
-
-  # Add Python and NumPy include directories for IDE and tooling support
+  # Add Python include directories for IDE and tooling support
   target_include_directories(nextcv_py SYSTEM PRIVATE
     ${Python3_INCLUDE_DIRS}
-    ${Python3_NumPy_INCLUDE_DIRS}
   )
 
   # Set Python module properties

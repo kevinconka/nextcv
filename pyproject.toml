@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "nextcv"
 dynamic = ["version"] # <-- let setuptools-scm derive version
-description = "NextCV is like OpenCV but with modern tooling. A minimal, experimental CV library (C++ core + pybind11)."
+description = "Python-first computer vision library with C++ bdingings for speed."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
@@ -19,7 +19,7 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-dependencies = ["numpy>=1.20.0", "opencv-python>=4.4.0"]
+dependencies = ["numpy>=1.19.0", "opencv-python>=4.4.0"]
 
 [dependency-groups]
 dev = [

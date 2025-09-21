@@ -15,7 +15,10 @@ Usage:
     cvx.core.hello()
 """
 
-from importlib.metadata import PackageNotFoundError, version
+try:
+    from importlib.metadata import PackageNotFoundError, version
+except ImportError:
+    from importlib_metadata import PackageNotFoundError, version  # python 3.6 and 3.7
 
 # Import modules
 from . import core, image, linalg, postprocessing

@@ -101,9 +101,7 @@ jobs:
       - name: 🧪 Run Tests
         run: |
           uv run pytest \
-            --cov=nextcv \
             --cov-report=term-missing:skip-covered \
-            --cov-report=xml \
             --junitxml=pytest.xml \
             | tee pytest-coverage.txt
 
@@ -113,6 +111,7 @@ jobs:
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
+          report-only-changed-files: true
 
   cpp-checks:
     needs: changed-files

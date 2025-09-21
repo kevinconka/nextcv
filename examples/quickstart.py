@@ -6,11 +6,17 @@ in the same modules, allowing you to choose the best implementation.
 """
 
 import time
+from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
-def create_test_data(n_boxes: int = 10000) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+def create_test_data(
+    n_boxes: int = 10000,
+) -> Tuple["NDArray[np.uint8]", "NDArray[np.float32]", "NDArray[np.float32]"]:
     """Create test data for the examples.
 
     Args:
@@ -43,7 +49,7 @@ def demonstrate_core_functionality() -> None:
     print()
 
 
-def demonstrate_image_processing(test_image: np.ndarray) -> None:
+def demonstrate_image_processing(test_image: "NDArray[np.uint8]") -> None:
     """Demonstrate image processing functionality."""
     print("Image processing:")
     from nextcv.image import invert
@@ -90,7 +96,10 @@ def demonstrate_linear_algebra() -> None:
     print()
 
 
-def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> None:
+def demonstrate_nms_timing(
+    test_boxes: "NDArray[np.float32]",
+    test_scores: "NDArray[np.float32]",
+) -> None:
     """Demonstrate NMS functionality with performance timing."""
     print("Post-processing (NMS timing comparison):")
     from nextcv.postprocessing import nms_cpp, nms_np
@@ -113,10 +122,7 @@ def demonstrate_nms_timing(test_boxes: np.ndarray, test_scores: np.ndarray) -> N
     # Performance comparison
     print()
     print("Performance comparison:")
-    fastest_time = min(cpp_time, np_time)
-    print(f"   Fastest: {fastest_time * 1000:.2f}ms")
-    print(f"   C++ speedup: {cpp_time / fastest_time:.1f}x")
-    print(f"   NumPy speedup: {np_time / fastest_time:.1f}x")
+    print(f"   C++ is {np_time / cpp_time:.1f}x faster than NumPy")
     print()
 
 
