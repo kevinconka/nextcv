@@ -85,7 +85,7 @@ jobs:
 
       - name: 📦 Install python
         if: matrix.legacy == true
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
