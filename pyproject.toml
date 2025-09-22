@@ -19,7 +19,12 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-dependencies = ["numpy>=1.19.0", "opencv-python>=4.4.0", "scipy>=1.7.0"]
+dependencies = [
+  "numpy>=1.19.0",
+  "opencv-python>=4.4.0",
+  "scipy>=1.7.0",
+  "pydantic<2.0.0",
+]
 
 [dependency-groups]
 dev = [
@@ -30,6 +35,8 @@ dev = [
   "ruff>=0.5",
   "ipykernel",
   "pybind11-stubgen",
+  "rich",
+  "pillow",
 ]
 
 [project.optional-dependencies]
@@ -106,6 +113,7 @@ disable = [
   "logging-fstring-interpolation",
   "too-few-public-methods",
   "broad-exception-caught",
+  "no-name-in-module",
 ]
 good-names-rgxs = [
   "^K.*$", # Camera intrinsics matrix prefix
