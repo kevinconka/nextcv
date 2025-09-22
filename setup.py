@@ -33,6 +33,8 @@ setup(
         "numpy>=1.19.0; python_version > '3.6'",
         "opencv-python-headless<4.7; python_version < '3.8'",
         "opencv-python-headless>=4.4; python_version >= '3.8'",
+        "scipy>=1.5.0; python_version < '3.8'",
+        "scipy>=1.7.0; python_version >= '3.8'",
     ],
     extras_require={
         "dev": [
