@@ -1,47 +1,50 @@
 """Sensor representation and manipulation utilities."""
 
-from dataclasses import dataclass, field
-from typing import Dict
+from typing import Any, Dict
 
 import numpy as np
+from pydantic import BaseModel, Field
 from scipy.spatial.transform import Rotation as R
 
 
-@dataclass
-class Camera:
+class Camera(BaseModel):
     """Represents a camera with its intrinsics and pose information."""
 
-    fx: float = field(metadata={"description": "Focal length along x-axis in pixels"})
-    fy: float = field(metadata={"description": "Focal length along y-axis in pixels"})
-    cx: float = field(metadata={"description": "Principal point x in pixels"})
-    cy: float = field(metadata={"description": "Principal point y in pixels"})
-    roll: float = field(metadata={"description": "Camera roll in degrees"})
-    pitch: float = field(metadata={"description": "Camera pitch in degrees"})
-    yaw: float = field(metadata={"description": "Camera yaw in degrees"})
+    fx: float = Field(description="Focal length along x-axis in pixels")
+    fy: float = Field(description="Focal length along y-axis in pixels")
+    cx: float = Field(description="Principal point x-coordinate in pixels")
+    cy: float = Field(description="Principal point y-coordinate in pixels")
+    roll: float = Field(
+        description="Camera roll angle in degrees (rotation around z-axis)"
+    )
+    pitch: float = Field(
+        description="Camera pitch angle in degrees (rotation around x-axis)"
+    )
+    yaw: float = Field(
+        description="Camera yaw angle in degrees (rotation around y-axis)"
+    )
 
     @classmethod
     def from_dict(
         cls,
-        intrinsics: Dict[str, float],
-        pose: Dict[str, float],
+        data: Dict[str, Any],
     ) -> "Camera":
         """Create a Camera instance from intrinsics and pose dictionaries.
 
         Args:
-            intrinsics: Dictionary with keys "fx", "fy", "cx", "cy"
-            pose: Dictionary with keys "roll", "pitch", "yaw" in degrees
+            data: Dictionary with keys "fx", "fy", "cx", "cy", "roll", "pitch", "yaw"
 
         Returns:
             Camera instance
         """
         return cls(
-            fx=intrinsics["fx"],
-            fy=intrinsics["fy"],
-            cx=intrinsics["cx"],
-            cy=intrinsics["cy"],
-            roll=pose["roll"],
-            pitch=pose["pitch"],
-            yaw=pose["yaw"],
+            fx=data["fx"],
+            fy=data["fy"],
+            cx=data["cx"],
+            cy=data["cy"],
+            roll=data["roll"],
+            pitch=data["pitch"],
+            yaw=data["yaw"],
         )
 
     @property
