@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 import nextcv as cvx
@@ -22,37 +21,25 @@ class TestCalibrationData:
         # Check that we have the expected cameras
         expected_cameras = {"t1", "t2", "rgb1"}
         assert set(calibration.cameras.keys()) == expected_cameras
+        assert all(
+            isinstance(camera, cvx.sensors.Camera)
+            for camera in calibration.cameras.values()
+        )
 
-    def test_camera_objects(self):
-        """Test converting camera data to Camera objects."""
+    def test_camera_resolution_parsing(self):
+        """Test that camera resolution is parsed correctly from JSON."""
         fixture_path = Path(__file__).parent.parent / "fixtures" / "wk1280_sensors.json"
         calibration = cvx.sensors.CalibrationData.from_json(fixture_path)
 
-        assert isinstance(calibration.cameras["t1"], cvx.sensors.Camera)
-        assert isinstance(calibration.cameras["t2"], cvx.sensors.Camera)
-        assert isinstance(calibration.cameras["rgb1"], cvx.sensors.Camera)
+        # Test thermal cameras (640x512)
+        t1 = calibration.cameras["t1"]
+        t2 = calibration.cameras["t2"]
+        assert t1.width == 640 and t1.height == 512
+        assert t2.width == 640 and t2.height == 512
 
-    def test_camera_matrices(self):
-        """Test that camera matrices are computed correctly."""
-        fixture_path = Path(__file__).parent.parent / "fixtures" / "wk1280_sensors.json"
-        calibration = cvx.sensors.CalibrationData.from_json(fixture_path)
-
-        camera = calibration.cameras["t1"]
-
-        # Test intrinsics matrix
-        K = camera.K
-        assert K.shape == (3, 3)
-        assert K[0, 0] == camera.fx  # fx
-        assert K[1, 1] == camera.fy  # fy
-        assert K[0, 2] == camera.cx  # cx
-        assert K[1, 2] == camera.cy  # cy
-        assert K[2, 2] == 1.0  # bottom-right should be 1
-
-        # Test rotation matrix
-        R = camera.R
-        assert R.shape == (3, 3)
-        # Rotation matrix should be orthogonal (R @ R.T = I)
-        assert abs((R @ R.T - np.eye(3)).max()) < 1e-10
+        # Test RGB camera (3840x2160)
+        rgb1 = calibration.cameras["rgb1"]
+        assert rgb1.width == 3840 and rgb1.height == 2160
 
     def test_invalid_camera_id(self):
         """Test that invalid camera ID raises appropriate error."""

@@ -8,8 +8,10 @@ from scipy.spatial.transform import Rotation as R
 
 
 class Camera(BaseModel):
-    """Represents a camera with its intrinsics and pose information."""
+    """Represents a camera with its intrinsics, pose, and image resolution."""
 
+    width: int = Field(description="Image width in pixels")
+    height: int = Field(description="Image height in pixels")
     fx: float = Field(description="Focal length along x-axis in pixels")
     fy: float = Field(description="Focal length along y-axis in pixels")
     cx: float = Field(description="Principal point x-coordinate in pixels")
@@ -32,12 +34,15 @@ class Camera(BaseModel):
         """Create a Camera instance from intrinsics and pose dictionaries.
 
         Args:
-            data: Dictionary with keys "fx", "fy", "cx", "cy", "roll", "pitch", "yaw"
+            data: Dictionary with keys "fx", "fy", "cx", "cy", "width", "height",
+                "roll", "pitch", "yaw"
 
         Returns:
             Camera instance
         """
         return cls(
+            width=data["width"],
+            height=data["height"],
             fx=data["fx"],
             fy=data["fy"],
             cx=data["cx"],
@@ -98,3 +103,32 @@ class Camera(BaseModel):
         # Compute the homography matrix
         H = K_target @ np.linalg.inv(R_target) @ R_source @ np.linalg.inv(K_source)
         return H
+
+    def crop(self, left: float, top: float, right: float, bottom: float) -> "Camera":
+        """Return a new Camera cropped by margins (left, top, right, bottom)."""
+        if any(v < 0 for v in (left, top, right, bottom)):
+            raise ValueError("Margins must be >= 0.")
+        if left + right >= self.width or top + bottom >= self.height:
+            raise ValueError("Crop exceeds image bounds.")
+
+        # Projective translation
+        T_crop = np.array(
+            [[1.0, 0.0, -left], [0.0, 1.0, -top], [0.0, 0.0, 1.0]], dtype=np.float64
+        )
+
+        Kp = T_crop @ self.K
+        fxp, fyp, cxp, cyp = Kp[0, 0], Kp[1, 1], Kp[0, 2], Kp[1, 2]
+
+        new_w = int(self.width - left - right)
+        new_h = int(self.height - top - bottom)
+
+        return self.copy(
+            update={
+                "width": new_w,
+                "height": new_h,
+                "fx": fxp,
+                "fy": fyp,
+                "cx": cxp,
+                "cy": cyp,
+            }
+        )

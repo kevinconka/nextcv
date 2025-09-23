@@ -119,6 +119,7 @@ good-names-rgxs = [
   "^K.*$", # Camera intrinsics matrix prefix
   "^R.*$", # Rotation matrix prefix
   "^H.*$", # Homography matrix prefix
+  "^T.*$", # Transformation matrix prefix
   "^B.*$", # Batch size prefix
   "^C.*$", # Channel size prefix
   "^H.*$", # Height prefix

@@ -33,6 +33,8 @@ class CalibrationData(BaseModel):
             cameras={
                 camera_id: Camera.from_dict(
                     {
+                        "width": camera_data["resolution"]["value"][0],
+                        "height": camera_data["resolution"]["value"][1],
                         "fx": camera_data["focal_length_x"]["value"],
                         "fy": camera_data["focal_length_y"]["value"],
                         "cx": camera_data["center_x"]["value"],

@@ -36,61 +36,29 @@ class StitchingConfig(BaseModel):
     )
 
 
-class VirtualCamera:
+class VirtualCamera(Camera):
     """Represents a virtual camera for stitching operations."""
 
-    def __init__(self, left_camera: Camera, right_camera: Camera) -> None:
-        """Create a virtual camera from left and right cameras.
+    @classmethod
+    def from_cameras(cls, left_camera: Camera, right_camera: Camera) -> "VirtualCamera":
+        """Create a virtual camera from left and right cameras."""
+        assert (left_camera.height, left_camera.width) == (
+            right_camera.height,
+            right_camera.width,
+        ), "Left and right cameras must have the same resolution."
 
-        Args:
-            left_camera: Left camera configuration
-            right_camera: Right camera configuration
-        """
-        self.left_camera = left_camera
-        self.right_camera = right_camera
-        self._compute_virtual_camera()
-
-    def _compute_virtual_camera(self) -> None:
-        """Compute virtual camera parameters for stitching."""
-        # Average focal lengths
-        self.fx = 0.5 * (self.left_camera.fx + self.right_camera.fx)
-        self.fy = 0.5 * (self.left_camera.fy + self.right_camera.fy)
-
-        # Average pitch (assuming cameras are roughly aligned)
-        self.pitch = 0.5 * (self.left_camera.pitch + self.right_camera.pitch)
-
-        # Virtual camera has no roll or yaw (aligned)
-        self.roll = 0.0
-        self.yaw = 0.0
-
-        # Compute virtual resolution (side-by-side)
-        # For 640x512 input images, we expect ~1280x512 output
-        # Use the principal points to estimate the original image dimensions
-        # Assuming principal point is roughly at center of original image
-        estimated_width = int(
-            2 * self.left_camera.cx
-        )  # This should be ~640 for 640x512
-        estimated_height = int(
-            2 * self.left_camera.cy
-        )  # This should be ~512 for 640x512
-
-        # For side-by-side stitching, double the width
-        self.width = estimated_width * 2  # Should be ~1280
-        self.height = estimated_height  # Should be ~512
-
-        # Principal point at center of virtual image
-        self.cx = self.width / 2
-        self.cy = self.height / 2
-
-        # Create virtual camera object
-        self.camera = Camera(
-            fx=self.fx,
-            fy=self.fy,
-            cx=self.cx,
-            cy=self.cy,
-            roll=self.roll,
-            pitch=self.pitch,
-            yaw=self.yaw,
+        width = left_camera.width + right_camera.width
+        height = left_camera.height
+        return cls(
+            width=width,
+            height=height,
+            fx=0.5 * (left_camera.fx + right_camera.fx),
+            fy=0.5 * (left_camera.fy + right_camera.fy),
+            cx=(width - 1) / 2,
+            cy=(height - 1) / 2,
+            roll=0.0,
+            pitch=0.5 * (left_camera.pitch + right_camera.pitch),
+            yaw=0.0,
         )
 
 
@@ -141,21 +109,24 @@ class LRStitcher(BaseStitcher):
         logger.info("Setting up LR stitcher...")
 
         # Create raw virtual camera (full size)
-        self.raw_virtual_camera = VirtualCamera(self.left_camera, self.right_camera)
+        self.raw_virtual_camera = VirtualCamera.from_cameras(
+            self.left_camera, self.right_camera
+        )
 
         # Project corners and compute margins for cropping
         projected_corners = self._project_camera_corners()
         margins = self._compute_margins(projected_corners)
+        top, bottom, left, right = margins.values()
 
         # Create cropped virtual camera (only overlapping region)
-        self.virtual_camera = self._create_cropped_virtual_camera(margins)
+        self.virtual_camera = self.raw_virtual_camera.crop(left, top, right, bottom)
 
         # Compute homographies from cropped virtual camera to input cameras
-        self.homography_virtual_to_left = (
-            self.virtual_camera.camera.compute_homography_to(self.left_camera)
+        self.homography_virtual_to_left = self.virtual_camera.compute_homography_to(
+            self.left_camera
         )
-        self.homography_virtual_to_right = (
-            self.virtual_camera.camera.compute_homography_to(self.right_camera)
+        self.homography_virtual_to_right = self.virtual_camera.compute_homography_to(
+            self.right_camera
         )
 
         # Compute intersection polygon for proper blending
@@ -238,10 +209,10 @@ class LRStitcher(BaseStitcher):
             Dictionary with projected corner coordinates
         """
         # Get homographies from raw virtual camera to input cameras
-        hom_raw_to_left = self.raw_virtual_camera.camera.compute_homography_to(
+        hom_raw_to_left = self.raw_virtual_camera.compute_homography_to(
             self.left_camera
         )
-        hom_raw_to_right = self.raw_virtual_camera.camera.compute_homography_to(
+        hom_raw_to_right = self.raw_virtual_camera.compute_homography_to(
             self.right_camera
         )
 
@@ -359,51 +330,6 @@ class LRStitcher(BaseStitcher):
             "left": symmetric_margin,
             "right": symmetric_margin,
         }
-
-    def _create_cropped_virtual_camera(
-        self, margins: Dict[str, float]
-    ) -> "VirtualCamera":
-        """Create a cropped virtual camera with only the overlapping region.
-
-        Args:
-            margins: Dictionary with margin values
-
-        Returns:
-            Cropped virtual camera
-        """
-        # Calculate cropped dimensions
-        cropped_width = int(
-            self.raw_virtual_camera.width - margins["left"] - margins["right"]
-        )
-        cropped_height = int(
-            self.raw_virtual_camera.height - margins["top"] - margins["bottom"]
-        )
-
-        # Create cropped virtual camera
-        cropped_camera = Camera(
-            fx=self.raw_virtual_camera.fx,
-            fy=self.raw_virtual_camera.fy,
-            cx=self.raw_virtual_camera.cx - margins["left"],
-            cy=self.raw_virtual_camera.cy - margins["top"],
-            roll=self.raw_virtual_camera.roll,
-            pitch=self.raw_virtual_camera.pitch,
-            yaw=self.raw_virtual_camera.yaw,
-        )
-
-        # Create virtual camera object with cropped dimensions
-        cropped_virtual = VirtualCamera.__new__(VirtualCamera)
-        cropped_virtual.camera = cropped_camera
-        cropped_virtual.width = cropped_width
-        cropped_virtual.height = cropped_height
-        cropped_virtual.fx = self.raw_virtual_camera.fx
-        cropped_virtual.fy = self.raw_virtual_camera.fy
-        cropped_virtual.cx = self.raw_virtual_camera.cx - margins["left"]
-        cropped_virtual.cy = self.raw_virtual_camera.cy - margins["top"]
-        cropped_virtual.roll = self.raw_virtual_camera.roll
-        cropped_virtual.pitch = self.raw_virtual_camera.pitch
-        cropped_virtual.yaw = self.raw_virtual_camera.yaw
-
-        return cropped_virtual
 
     def _split_mask(self) -> Tuple[np.ndarray, np.ndarray]:
         """Split the transition mask into left and right masks.

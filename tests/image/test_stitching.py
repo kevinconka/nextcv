@@ -14,6 +14,8 @@ class TestLRStitcher:
         """Create a stitcher instance for testing."""
         # Use hardcoded camera values instead of fixture
         t1 = cvx.sensors.Camera(
+            width=640,
+            height=512,
             fx=1487.0897209580626,
             fy=1486.893999534694,
             cx=319.5,
@@ -23,6 +25,8 @@ class TestLRStitcher:
             yaw=10.942382806743069,
         )
         t2 = cvx.sensors.Camera(
+            width=640,
+            height=512,
             fx=1492.120223972608,
             fy=1492.126838008826,
             cx=319.5,
@@ -55,7 +59,7 @@ class TestLRStitcher:
         stitched = stitcher(left_img, right_img)
 
         # Verify output properties
-        assert stitched.shape[0] == 472  # Height is cropped to overlapping region
+        assert stitched.shape[0] == 474  # Height is cropped to overlapping region
         assert stitched.shape[1] > 640  # Width should be larger (stitched)
         assert stitched.dtype == np.uint16
         assert np.sum(stitched == 0) == 0  # No black pixels
