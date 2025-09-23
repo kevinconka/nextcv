@@ -140,7 +140,9 @@ class LRStitcher(BaseStitcher):
         )
 
         # Compute intersection polygon for proper blending
-        self.intersection_polygon = self._compute_intersection_polygon()
+        self.intersection_polygon = self.compute_intersection_polygon(
+            left_corners, right_corners, margins
+        )
 
         # Compute transition mask
         self.transition_mask = self._compute_transition_mask()
@@ -186,26 +188,17 @@ class LRStitcher(BaseStitcher):
 
         return stitched
 
-    def _compute_intersection_polygon(self) -> Dict[str, np.ndarray]:
+    @staticmethod
+    def compute_intersection_polygon(
+        left_corners: np.ndarray,
+        right_corners: np.ndarray,
+        margins: Dict[str, float],
+    ) -> Dict[str, np.ndarray]:
         """Compute intersection polygon for blending regions using corner projection.
 
         Returns:
             Dictionary with intersection polygon corners
         """
-        # Project corners of both cameras to raw virtual camera space
-        left_corners = self.project_camera_corners(
-            self.left_camera, self.raw_virtual_camera
-        )
-        right_corners = self.project_camera_corners(
-            self.right_camera, self.raw_virtual_camera
-        )
-
-        # Calculate margins based on projected corners
-        corners = np.concatenate([left_corners, right_corners], axis=1)
-        margins = self.compute_margins(
-            corners, self.raw_virtual_camera.width, self.raw_virtual_camera.height
-        )
-
         # Create intersection polygon using projected corners and margins
         intersection_polygon = {
             "top_left": right_corners[:, 0]
@@ -270,28 +263,6 @@ class LRStitcher(BaseStitcher):
             from_camera.width,
             from_camera.height,
         )
-
-    def _apply_homography(
-        self, point: List[float], homography: np.ndarray
-    ) -> np.ndarray:
-        """Apply homography transformation to a point.
-
-        Args:
-            point: [x, y] coordinates
-            homography: 3x3 homography matrix
-
-        Returns:
-            Transformed point [x, y]
-        """
-        pt = (
-            np.array([point[0], point[1], 1])
-            if len(point) == POINT_2D_LENGTH
-            else np.array(point)
-        )
-
-        pt_trans = homography @ pt
-        pt_trans = pt_trans / pt_trans[2]  # normalize
-        return pt_trans[:2]
 
     @staticmethod
     def compute_margins(
