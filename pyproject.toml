@@ -120,6 +120,7 @@ good-names-rgxs = [
   "^R.*$", # Rotation matrix prefix
   "^H.*$", # Homography matrix prefix
   "^T.*$", # Transformation matrix prefix
+  "^P.*$", # Homogeneous point prefix
   "^B.*$", # Batch size prefix
   "^C.*$", # Channel size prefix
   "^H.*$", # Height prefix

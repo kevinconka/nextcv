@@ -114,8 +114,18 @@ class LRStitcher(BaseStitcher):
         )
 
         # Project corners and compute margins for cropping
-        projected_corners = self._project_camera_corners()
-        margins = self._compute_margins(projected_corners)
+        left_corners = self.project_camera_corners(
+            self.left_camera, self.raw_virtual_camera
+        )
+        right_corners = self.project_camera_corners(
+            self.right_camera, self.raw_virtual_camera
+        )
+
+        corners = np.concatenate([left_corners, right_corners], axis=1)
+        margins = self.compute_margins(
+            corners, self.raw_virtual_camera.width, self.raw_virtual_camera.height
+        )
+
         top, bottom, left, right = margins.values()
 
         # Create cropped virtual camera (only overlapping region)
@@ -183,82 +193,83 @@ class LRStitcher(BaseStitcher):
             Dictionary with intersection polygon corners
         """
         # Project corners of both cameras to raw virtual camera space
-        projected_corners = self._project_camera_corners()
+        left_corners = self.project_camera_corners(
+            self.left_camera, self.raw_virtual_camera
+        )
+        right_corners = self.project_camera_corners(
+            self.right_camera, self.raw_virtual_camera
+        )
 
         # Calculate margins based on projected corners
-        margins = self._compute_margins(projected_corners)
+        corners = np.concatenate([left_corners, right_corners], axis=1)
+        margins = self.compute_margins(
+            corners, self.raw_virtual_camera.width, self.raw_virtual_camera.height
+        )
 
         # Create intersection polygon using projected corners and margins
         intersection_polygon = {
-            "top_left": np.array(projected_corners["corner_r_top_left"])
+            "top_left": right_corners[:, 0]
             - np.array([margins["left"], margins["top"]]),
-            "top_right": np.array(projected_corners["corner_l_top_right"])
+            "top_right": left_corners[:, 1]
             - np.array([margins["left"], margins["top"]]),
-            "bottom_left": np.array(projected_corners["corner_r_bottom_left"])
+            "bottom_left": right_corners[:, 2]
             - np.array([margins["left"], margins["top"]]),
-            "bottom_right": np.array(projected_corners["corner_l_bottom_right"])
+            "bottom_right": left_corners[:, 3]
             - np.array([margins["left"], margins["top"]]),
         }
 
         return intersection_polygon
 
-    def _project_camera_corners(self) -> Dict[str, np.ndarray]:
-        """Project corners of both input cameras to raw virtual camera space.
+    @staticmethod
+    def project_rect_corners(H: np.ndarray, width: int, height: int) -> np.ndarray:
+        """Project the four corners of a width×height image by homography H.
+
+        Args:
+            H: A 3x3 ndarray homography matrix mapping source pixel coordinates to
+                destination coordinates.
+            width: Integer width of source image.
+            height: Integer height of source image.
 
         Returns:
-            Dictionary with projected corner coordinates
+            A 2x4 ndarray where columns are ordered as [TL, TR, BL, BR], with each
+            column containing [x, y]^T coordinates in the destination frame.
         """
-        # Get homographies from raw virtual camera to input cameras
-        hom_raw_to_left = self.raw_virtual_camera.compute_homography_to(
-            self.left_camera
-        )
-        hom_raw_to_right = self.raw_virtual_camera.compute_homography_to(
-            self.right_camera
-        )
+        if H.shape != (3, 3):
+            raise ValueError(f"H must be 3x3, got {H.shape}")
 
-        # Invert to get homographies from input cameras to raw virtual camera
-        hom_left_to_raw = np.linalg.inv(hom_raw_to_left)
-        hom_right_to_raw = np.linalg.inv(hom_raw_to_right)
+        # homogeneous corners: TL(0,0), TR(W,0), BL(0,H), BR(W,H)
+        C = np.array(
+            [
+                [0.0, width, 0.0, width],
+                [0.0, 0.0, height, height],
+                [1.0, 1.0, 1.0, 1.0],
+            ],
+            dtype=np.float64,
+        )  # (3,4)
 
-        # Define corner coordinates of input images (assuming 640x512)
-        input_width = int(2 * self.left_camera.cx)  # Should be ~640
-        input_height = int(2 * self.left_camera.cy)  # Should be ~512
+        Pc = H @ C  # (3,4)
+        Pc /= Pc[2:3, :]  # normalize
+        return Pc[:2, :]  # (2,4)
 
-        corner_top_left = [0, 0]
-        corner_top_right = [input_width, 0]
-        corner_bottom_left = [0, input_height]
-        corner_bottom_right = [input_width, input_height]
+    def project_camera_corners(
+        self, from_camera: Camera, to_camera: Camera
+    ) -> np.ndarray:
+        """Project corners of a camera to another camera.
 
-        # Project corners of left camera to raw virtual camera
-        corner_l_top_left = self._apply_homography(corner_top_left, hom_left_to_raw)
-        corner_l_top_right = self._apply_homography(corner_top_right, hom_left_to_raw)
-        corner_l_bottom_left = self._apply_homography(
-            corner_bottom_left, hom_left_to_raw
+        Args:
+            from_camera: Camera to project from
+            to_camera: Camera to project to
+
+        Returns:
+            Projected corners
+            A 2x4 ndarray where columns are ordered as [TL, TR, BL, BR], with each
+            column containing [x, y]^T coordinates in the destination frame.
+        """
+        return self.project_rect_corners(
+            from_camera.compute_homography_to(to_camera),
+            from_camera.width,
+            from_camera.height,
         )
-        corner_l_bottom_right = self._apply_homography(
-            corner_bottom_right, hom_left_to_raw
-        )
-
-        # Project corners of right camera to raw virtual camera
-        corner_r_top_left = self._apply_homography(corner_top_left, hom_right_to_raw)
-        corner_r_top_right = self._apply_homography(corner_top_right, hom_right_to_raw)
-        corner_r_bottom_left = self._apply_homography(
-            corner_bottom_left, hom_right_to_raw
-        )
-        corner_r_bottom_right = self._apply_homography(
-            corner_bottom_right, hom_right_to_raw
-        )
-
-        return {
-            "corner_l_top_left": corner_l_top_left,
-            "corner_l_top_right": corner_l_top_right,
-            "corner_l_bottom_left": corner_l_bottom_left,
-            "corner_l_bottom_right": corner_l_bottom_right,
-            "corner_r_top_left": corner_r_top_left,
-            "corner_r_top_right": corner_r_top_right,
-            "corner_r_bottom_left": corner_r_bottom_left,
-            "corner_r_bottom_right": corner_r_bottom_right,
-        }
 
     def _apply_homography(
         self, point: List[float], homography: np.ndarray
@@ -282,54 +293,38 @@ class LRStitcher(BaseStitcher):
         pt_trans = pt_trans / pt_trans[2]  # normalize
         return pt_trans[:2]
 
-    def _compute_margins(
-        self, projected_corners: Dict[str, np.ndarray]
+    @staticmethod
+    def compute_margins(
+        corners: np.ndarray, width: float, height: float
     ) -> Dict[str, float]:
-        """Compute margins for cropping the virtual camera based on projected corners.
+        """Compute crop margins so projected corners fit within a canvas.
 
         Args:
-            projected_corners: Dictionary with projected corner coordinates
+            corners: A (2, N) array containing projected [x, y] points in the canvas
+                frame.
+            width: Canvas width dimension.
+            height: Canvas height dimension.
 
         Returns:
-            Dictionary with margin values
+            A dict containing margin values with keys "top", "bottom", "left", "right".
         """
-        # Get all projected corners
-        all_corners = [
-            projected_corners["corner_l_top_left"],
-            projected_corners["corner_l_top_right"],
-            projected_corners["corner_l_bottom_left"],
-            projected_corners["corner_l_bottom_right"],
-            projected_corners["corner_r_top_left"],
-            projected_corners["corner_r_top_right"],
-            projected_corners["corner_r_bottom_left"],
-            projected_corners["corner_r_bottom_right"],
-        ]
+        assert corners.shape[0] == POINT_2D_LENGTH, "Corners must be a (2, N) array."
+        xs, ys = corners[0, :], corners[1, :]
 
-        # Calculate bounds
-        x_coords = [corner[0] for corner in all_corners]
-        y_coords = [corner[1] for corner in all_corners]
+        # how far the points extend beyond each side
+        left_overflow = -xs.min()
+        right_overflow = xs.max() - width
+        top_overflow = -ys.min()
+        bottom_overflow = ys.max() - height
 
-        # Find the bounding box of all projected corners
-        min_x = min(x_coords)
-        max_x = max(x_coords)
-        min_y = min(y_coords)
-        max_y = max(y_coords)
+        # clamp to >= 0
+        left, right = np.clip([left_overflow, right_overflow], 0, None)
+        top, bottom = np.clip([top_overflow, bottom_overflow], 0, None)
 
-        # Calculate margins to crop to the overlapping region
-        left_margin = max(0, -min_x)
-        right_margin = max(0, max_x - self.raw_virtual_camera.width)
-        top_margin = max(0, -min_y)
-        bottom_margin = max(0, max_y - self.raw_virtual_camera.height)
+        # enforce symmetric horizontal margins
+        symmetric = max(left, right)
 
-        # Make margins symmetric for left-right
-        symmetric_margin = max(left_margin, right_margin)
-
-        return {
-            "top": top_margin,
-            "bottom": bottom_margin,
-            "left": symmetric_margin,
-            "right": symmetric_margin,
-        }
+        return {"top": top, "bottom": bottom, "left": symmetric, "right": symmetric}
 
     def _split_mask(self) -> Tuple[np.ndarray, np.ndarray]:
         """Split the transition mask into left and right masks.

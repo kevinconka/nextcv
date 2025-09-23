@@ -59,7 +59,7 @@ class TestLRStitcher:
         stitched = stitcher(left_img, right_img)
 
         # Verify output properties
-        assert stitched.shape[0] == 474  # Height is cropped to overlapping region
+        assert stitched.shape[0] == 473  # Height is cropped to overlapping region
         assert stitched.shape[1] > 640  # Width should be larger (stitched)
         assert stitched.dtype == np.uint16
         assert np.sum(stitched == 0) == 0  # No black pixels
