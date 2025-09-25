@@ -3,17 +3,18 @@
 import numpy as np
 import pytest
 
-import nextcv as cvx
+from nextcv.image.stitching_faster import LeftRightStitcher
+from nextcv.sensors import PinholeCamera
 
 
-class TestLRStitcher:
+class TestLeftRightStitcher:
     """Test cases for LRStitcher class."""
 
     @pytest.fixture
     def stitcher(self):
         """Create a stitcher instance for testing."""
         # Use hardcoded camera values instead of fixture
-        t1 = cvx.sensors.Camera(
+        t1 = PinholeCamera(
             width=640,
             height=512,
             fx=1487.0897209580626,
@@ -24,7 +25,7 @@ class TestLRStitcher:
             pitch=0.3175409097871985,
             yaw=10.942382806743069,
         )
-        t2 = cvx.sensors.Camera(
+        t2 = PinholeCamera(
             width=640,
             height=512,
             fx=1492.120223972608,
@@ -35,20 +36,16 @@ class TestLRStitcher:
             pitch=0.7082357267631507,
             yaw=-11.468243408503717,
         )
+        return LeftRightStitcher(left_camera=t1, right_camera=t2)
 
-        config = cvx.image.StitchingConfig(
-            lower_threshold=15000, upper_threshold=28000, transition_mode="cosine"
-        )
-        return cvx.image.LRStitcher(left_camera=t1, right_camera=t2, config=config)
-
-    def test_stitcher_initialization(self, stitcher: cvx.image.LRStitcher):
+    def test_stitcher_initialization(self, stitcher: LeftRightStitcher):
         """Test that stitcher initializes correctly."""
         assert stitcher is not None
         assert stitcher.virtual_camera is not None
         assert stitcher.virtual_camera.width > 0
         assert stitcher.virtual_camera.height > 0
 
-    def test_stitching_blending_behavior(self, stitcher: cvx.image.LRStitcher):
+    def test_stitching_blending_behavior(self, stitcher: LeftRightStitcher):
         """Test that stitched values lie between input values (as requested by user)."""
         # Create left image with constant intensity
         left_img = np.full((512, 640), 16000, dtype=np.uint16)
@@ -56,10 +53,10 @@ class TestLRStitcher:
         right_img = np.full((512, 640), 24000, dtype=np.uint16)
 
         # Stitch the images
-        stitched = stitcher(left_img, right_img)
+        stitched = stitcher([left_img, right_img])
 
         # Verify output properties
-        assert stitched.shape[0] == 473  # Height is cropped to overlapping region
+        assert stitched.shape[0] == 472  # Height is cropped to overlapping region
         assert stitched.shape[1] > 640  # Width should be larger (stitched)
         assert stitched.dtype == np.uint16
         assert np.sum(stitched == 0) == 0  # No black pixels

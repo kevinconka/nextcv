@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-import nextcv as cvx
+from nextcv.sensors import Camera, PinholeCamera
 
 
 class TestCamera:
@@ -11,7 +11,7 @@ class TestCamera:
 
     def test_camera_creation(self):
         """Test basic camera creation."""
-        camera = cvx.sensors.Camera(
+        camera = Camera(
             width=640,
             height=512,
             fx=1000.0,
@@ -44,7 +44,7 @@ class TestCamera:
             "yaw": 10.0,
         }
 
-        camera = cvx.sensors.Camera.from_dict(data)
+        camera = Camera.from_dict(data)
 
         assert camera.width == 1280
         assert camera.height == 720
@@ -53,21 +53,25 @@ class TestCamera:
         assert camera.pitch == -2.0
         assert camera.yaw == 10.0
 
+
+class TestPinholeCamera:
+    """Test cases for PinholeCamera class."""
+
+    camera = PinholeCamera(
+        width=640,
+        height=512,
+        fx=1000.0,
+        fy=1000.0,
+        cx=320.0,
+        cy=256.0,
+        roll=0.0,
+        pitch=0.0,
+        yaw=0.0,
+    )
+
     def test_intrinsics_matrix(self):
         """Test camera intrinsics matrix K."""
-        camera = cvx.sensors.Camera(
-            width=640,
-            height=512,
-            fx=1000.0,
-            fy=1000.0,
-            cx=320.0,
-            cy=256.0,
-            roll=0.0,
-            pitch=0.0,
-            yaw=0.0,
-        )
-
-        K = camera.K
+        K = self.camera.K
         expected_K = np.array(
             [
                 [1000.0, 0.0, 320.0],
@@ -80,39 +84,15 @@ class TestCamera:
 
     def test_rotation_matrix(self):
         """Test camera rotation matrix R."""
-        camera = cvx.sensors.Camera(
-            width=640,
-            height=512,
-            fx=1000.0,
-            fy=1000.0,
-            cx=320.0,
-            cy=256.0,
-            roll=0.0,
-            pitch=0.0,
-            yaw=0.0,
-        )
-
-        R = camera.R
+        R = self.camera.R
         expected_R = np.eye(3)  # Identity matrix for zero rotation
 
         np.testing.assert_array_almost_equal(R, expected_R, decimal=10)
 
     def test_crop_method(self):
         """Test camera cropping functionality."""
-        camera = cvx.sensors.Camera(
-            width=640,
-            height=512,
-            fx=1000.0,
-            fy=1000.0,
-            cx=320.0,
-            cy=256.0,
-            roll=0.0,
-            pitch=0.0,
-            yaw=0.0,
-        )
-
         # Crop by 10 pixels on each side
-        cropped = camera.crop(left=10, top=10, right=10, bottom=10)
+        cropped = self.camera.crop(left=10, top=10, right=10, bottom=10)
 
         assert cropped.width == 620  # 640 - 10 - 10
         assert cropped.height == 492  # 512 - 10 - 10
@@ -123,22 +103,10 @@ class TestCamera:
 
     def test_crop_validation(self):
         """Test crop method validation."""
-        camera = cvx.sensors.Camera(
-            width=640,
-            height=512,
-            fx=1000.0,
-            fy=1000.0,
-            cx=320.0,
-            cy=256.0,
-            roll=0.0,
-            pitch=0.0,
-            yaw=0.0,
-        )
-
         # Test negative margins
         with pytest.raises(ValueError, match="Margins must be >= 0"):
-            camera.crop(left=-1, top=0, right=0, bottom=0)
+            self.camera.crop(left=-1, top=0, right=0, bottom=0)
 
         # Test excessive cropping
         with pytest.raises(ValueError, match="Crop exceeds image bounds"):
-            camera.crop(left=0, top=0, right=640, bottom=0)
+            self.camera.crop(left=0, top=0, right=640, bottom=0)
