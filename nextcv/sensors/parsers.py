@@ -6,13 +6,13 @@ from typing import Dict, Union
 
 from pydantic import BaseModel, Field
 
-from .camera import Camera
+from .camera import PinholeCamera
 
 
 class CalibrationData(BaseModel):
     """Simple calibration data parser without heavy dependencies."""
 
-    cameras: Dict[str, Camera] = Field(
+    cameras: Dict[str, PinholeCamera] = Field(
         description="Dictionary of cameras with their calibration data"
     )
 
@@ -31,7 +31,7 @@ class CalibrationData(BaseModel):
 
         return cls(
             cameras={
-                camera_id: Camera.from_dict(
+                camera_id: PinholeCamera.from_dict(
                     {
                         "width": camera_data["resolution"]["value"][0],
                         "height": camera_data["resolution"]["value"][1],
