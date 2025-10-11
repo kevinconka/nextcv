@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from nextcv.image.stitching_faster import LeftRightStitcher
+from nextcv.image.stitching_rt import LeftRightStitcher
 from nextcv.sensors import PinholeCamera
 
 

@@ -4,6 +4,7 @@ Simple, extensible architecture for stitching images from multiple cameras.
 """
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import List, Tuple
 
 import cv2
@@ -11,55 +12,99 @@ import numpy as np
 
 from nextcv.sensors.camera import PinholeCamera as Camera
 
-_3C = 3
+_NDIM_3C = 3
+_DEFAULT_BLENDER = cv2.detail.FeatherBlender(sharpness=0.02)
+
+
+@dataclass
+class Rect:
+    """Image region defined by top-left corner and dimensions."""
+
+    x: int
+    y: int
+    w: int
+    h: int
+
+    @property
+    def corner(self) -> Tuple[int, int]:
+        """Return (x, y)."""
+        return self.x, self.y
+
+    @property
+    def size(self) -> Tuple[int, int]:
+        """Return (w, h)."""
+        return self.w, self.h
+
+    def numpy_slices(self) -> Tuple[slice, slice]:
+        """Return (y_slice, x_slice) for numpy indexing."""
+        return (slice(self.y, self.y + self.h), slice(self.x, self.x + self.w))
 
 
 class ImageStitcher(ABC):
     """Abstract base class for image stitchers."""
 
-    def __init__(self, cameras: List[Camera]) -> None:
+    def __init__(
+        self,
+        cameras: List[Camera],
+        blender: cv2.detail.FeatherBlender = _DEFAULT_BLENDER,
+    ) -> None:
         """Create a base stitcher.
 
         Args:
             cameras: List of cameras to stitch
+            blender: Blender to use for blending images
         """
         self.cameras = cameras
+        self.blender = blender
         self.virtual_cam = self._create_virtual_cam()
+
+        # initial homographies and masks
         self.homographies = [
             cam.compute_homography_to(self.virtual_cam) for cam in self.cameras
         ]
-        self.maps = self.make_maps(self.homographies, self.virtual_cam.size)
         self.masks = self.make_masks(
             self.cameras, self.homographies, self.virtual_cam.size
         )
-        self.weights = self.make_feather_weights(self.masks)
+
+        # define rects for optimized processing
+        self.rects = self._compute_rects(self.masks)
+        self._translate_homographies()
+        self._crop_masks()
+
+    @staticmethod
+    def _compute_rects(masks: List[np.ndarray]) -> List[Rect]:
+        """Compute bounding boxes for each mask region."""
+        rects = []
+        for mask in masks:
+            points = (
+                (0, 0, 0, 0)
+                if cv2.findNonZero(mask) is None
+                else cv2.boundingRect(cv2.findNonZero(mask))
+            )
+            rects.append(Rect(*points))
+        return rects
+
+    def _crop_masks(self) -> None:
+        """Crop masks based on rect positions."""
+        for i, rect in enumerate(self.rects):
+            if rect.w == 0 or rect.h == 0:  # Skip empty regions
+                continue
+            self.masks[i] = self.masks[i][rect.numpy_slices()]
+
+    def _translate_homographies(self) -> None:
+        """Adjust homographies with translation based on rect positions."""
+        # Find the minimum offset to translate all rects to start from (0,0)
+        for i, rect in enumerate(self.rects):
+            if rect.w == 0 or rect.h == 0:  # Skip empty regions
+                continue
+            T = np.array(
+                [[1, 0, -rect.x], [0, 1, -rect.y], [0, 0, 1]], dtype=np.float32
+            )
+            self.homographies[i] = T @ self.homographies[i]
 
     @abstractmethod
     def _create_virtual_cam(self) -> Camera:
         """Create virtual camera that encompasses all input cameras."""
-
-    @staticmethod
-    def make_maps(
-        homographies: List[np.ndarray], dsize: tuple[int, int]
-    ) -> List[Tuple[np.ndarray, np.ndarray]]:
-        """Create maps for cv2.remap."""
-        # inverse map: for each (x_d, y_d) in destination, find source (x_s, y_s)
-        maps = []
-        for H in homographies:
-            xs, ys = np.meshgrid(
-                np.arange(dsize[0], dtype=np.float32),
-                np.arange(dsize[1], dtype=np.float32),
-            )
-            ones = np.ones_like(xs)
-            dst_pts = np.stack([xs, ys, ones], axis=-1)  # (H, W, 3)
-            src_pts = dst_pts @ np.linalg.inv(H).T  # homogeneous
-            src_pts = src_pts[..., :2] / src_pts[..., 2:3]
-            mapx, mapy = (
-                src_pts[..., 0].astype(np.float32),
-                src_pts[..., 1].astype(np.float32),
-            )
-            maps.append((mapx, mapy))
-        return maps
 
     @staticmethod
     def make_masks(
@@ -74,72 +119,103 @@ class ImageStitcher(ABC):
         ]
 
     @staticmethod
-    def make_feather_weights(masks: List[np.ndarray]) -> List[np.ndarray]:
-        """Create masks for images."""
-        weights = [
-            cv2.distanceTransform(mask, cv2.DIST_L2, 3).astype(np.float32)
-            for mask in masks
-        ]
-        W = np.stack(weights, axis=0)
-        W = W / np.clip(np.sum(W, axis=0), 1e-6, None)
-        return list(W)
-
-    @staticmethod
     def warp_images(
         images: List[np.ndarray],
         homographies: List[np.ndarray],
-        dsize: tuple[int, int],
+        rects: List[Rect],
     ) -> List[np.ndarray]:
         """Warp images and create masks."""
         return [
-            cv2.warpPerspective(img, H, dsize) for img, H in zip(images, homographies)
-        ]
-
-    @staticmethod
-    def warp_images_remap(
-        images: List[np.ndarray],
-        maps: List[Tuple[np.ndarray, np.ndarray]],
-    ) -> List[np.ndarray]:
-        """Warp images using cv2.remap."""
-        return [
-            cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
-            for img, (mapx, mapy) in zip(images, maps)
+            cv2.warpPerspective(img, H, rect.size, borderMode=cv2.BORDER_REPLICATE)
+            for img, H, rect in zip(images, homographies, rects)
         ]
 
     @staticmethod
     def compensate_exposure(
-        images: List[np.ndarray], masks: List[np.ndarray]
+        images: List[np.ndarray],
+        masks: List[np.ndarray],
+        rects: List[Rect],
     ) -> List[np.ndarray]:
         """Apply exposure compensation."""
         comp = cv2.detail.ExposureCompensator.createDefault(
             cv2.detail.ExposureCompensator_GAIN
         )
-        corners = [(0, 0)] * len(images)
-        comp.feed(corners, images, masks)  # type: ignore
+        comp.feed([rect.corner for rect in rects], images, masks)  # type: ignore
 
         compensated = []
-        for i, (img, mask) in enumerate(zip(images, masks)):
+        for i, (img, mask, rect) in enumerate(zip(images, masks, rects)):
             compensated_img = img.copy()
-            comp.apply(i, (0, 0), compensated_img, mask)
+            comp.apply(i, rect.corner, compensated_img, mask)
             compensated.append(compensated_img)
         return compensated
 
     @staticmethod
-    def blend_images(images: List[np.ndarray], weights: List[np.ndarray]) -> np.ndarray:
-        """Blend images together."""
-        imgs = np.stack(images, axis=0).astype(np.float32)  # [N,H,W,(C)]
-        wgts = np.stack(weights, axis=0)
-        if imgs.ndim == _3C + 1:  # color
-            out = np.einsum("nhwc,nhwc->hwc", imgs, wgts[..., None])
-        else:  # grayscale
-            out = np.einsum("nhw,nhw->hw", imgs, wgts)
-        return out.astype(images[0].dtype)
+    def blend_images(
+        blender: cv2.detail.FeatherBlender,
+        images: List[np.ndarray],
+        masks: List[np.ndarray],
+        rects: List[Rect],
+        dsize: tuple[int, int],
+    ) -> np.ndarray:
+        """Blend images using OpenCV's FeatherBlender."""
+
+        def _convert_to_3ch(img: np.ndarray) -> np.ndarray:
+            if img.ndim < _NDIM_3C:
+                return np.repeat(img[..., None], _NDIM_3C, axis=-1)
+            return img
+
+        def _safe_convert_to_int16(img: np.ndarray) -> np.ndarray:
+            """Safely convert image to int16 format for FeatherBlender."""
+            if img.dtype == np.uint16:
+                # Scale uint16 (0-65535) to int16 range (-32768 to 32767)
+                # Use range 0-32767 to avoid negative values
+                img_scaled = (img / 2).astype(np.int16)
+            else:
+                # For other types, convert directly
+                img_scaled = img.astype(np.int16)
+            return img_scaled
+
+        def _convert_from_int16(
+            result: np.ndarray, original_dtype: np.dtype
+        ) -> np.ndarray:
+            """Convert result back from int16 to original dtype."""
+            if original_dtype == np.uint16:
+                # Scale back from int16 range to uint16
+                result = (result * 2).astype(np.uint16)
+            else:
+                result = result.astype(original_dtype)
+            return result
+
+        # Prepare the blender with destination region
+        dst_roi = (0, 0, dsize[0], dsize[1])  # (x, y, w, h) - OpenCV convention
+        blender.prepare(dst_roi)
+
+        # Feed all images and masks using pre-computed regions
+        for img, mask, rect in zip(images, masks, rects):
+            if rect.w == 0 or rect.h == 0:  # Skip empty regions
+                continue
+
+            # Convert to required format and feed
+            img_3ch = _convert_to_3ch(img)
+            img_16s = _safe_convert_to_int16(img_3ch)
+            blender.feed(img_16s, mask, rect.corner)
+
+        # Blend and return result
+        result, _ = blender.blend(None, None)  # type: ignore
+        result = result[..., 0] if images[0].ndim < _NDIM_3C else result
+
+        # Convert back to original dtype
+        original_dtype = images[0].dtype
+        result = _convert_from_int16(result, original_dtype)
+        return result
 
     def stitch(self, images: List[np.ndarray]) -> np.ndarray:
         """Stitch images together."""
-        warped_images = self.warp_images_remap(images, self.maps)
-        warped_images = self.compensate_exposure(warped_images, self.masks)
-        return self.blend_images(warped_images, self.weights)
+        warped_images = self.warp_images(images, self.homographies, self.rects)
+        warped_images = self.compensate_exposure(warped_images, self.masks, self.rects)
+        return self.blend_images(
+            self.blender, warped_images, self.masks, self.rects, self.virtual_cam.size
+        )
 
     def __call__(self, images: List[np.ndarray]) -> np.ndarray:
         """Stitch images together."""
