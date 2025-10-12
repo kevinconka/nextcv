@@ -109,11 +109,19 @@ jobs:
           echo "Installing with uv for modern Python ${{ matrix.python-version }}..."
           uv sync
 
-      - name: ✨ Lint & Format Check
+      - name: 📝 Format with Ruff (only changed files)
         if: matrix.legacy != true
-        run: |
-          uv run ruff check ${{ needs.changed-files.outputs.python }}
-          uv run ruff format --check ${{ needs.changed-files.outputs.python }}
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: ${{ needs.changed-files.outputs.python }}
+          args: format --check
+
+      - name: 📝 Lint with Ruff (only changed files)
+        if: matrix.legacy != true
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: ${{ needs.changed-files.outputs.python }}
+          args: check --output-format=github
 
       - name: 📝 Generate and Check Python Stubs (Ubuntu only)
         if: matrix.legacy != true && startsWith(matrix.os, 'ubuntu')
