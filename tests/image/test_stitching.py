@@ -3,7 +3,11 @@
 import numpy as np
 import pytest
 
-from nextcv.image.stitching_rt import LeftRightStitcher
+from nextcv.image.stitching import (
+    AdditiveCompensator,
+    LeftRightStitcher,
+    NoOpCompensator,
+)
 from nextcv.sensors import PinholeCamera
 
 
@@ -45,7 +49,7 @@ class TestLeftRightStitcher:
         assert stitcher.virtual_camera.width > 0
         assert stitcher.virtual_camera.height > 0
 
-    def test_stitching_blending_behavior(self, stitcher: LeftRightStitcher):
+    def test_stitching_no_op_comepnsator(self, stitcher: LeftRightStitcher):
         """Test that stitched values lie between input values (as requested by user)."""
         # Create left image with constant intensity
         left_img = np.full((512, 640), 16000, dtype=np.uint16)
@@ -65,6 +69,24 @@ class TestLeftRightStitcher:
         assert stitched.min() >= 16000  # Should not go below left image value
         assert stitched.max() <= 24000  # Should not go above right image value
 
-        # Print the actual range for verification (like the user's example)
-        print(f"Stitched image range: {stitched.min()} to {stitched.max()}")
-        print("Expected range: 16000 to 24000")
+    def test_stitching_additive_compensator(self, stitcher: LeftRightStitcher):
+        """Test that stitched values match the left (ref) image values."""
+        # Create left image with constant intensity
+        left_img = np.full((512, 640), 16000, dtype=np.uint16)
+        # Create right image with different constant intensity
+        right_img = np.full((512, 640), 24000, dtype=np.uint16)
+
+        # Stitch the images
+        stitcher.compensator = AdditiveCompensator()
+        stitched = stitcher([left_img, right_img])
+        stitcher.compensator = NoOpCompensator()  # reset
+
+        # Verify output properties
+        assert stitched.shape[0] == 472  # Height is cropped to overlapping region
+        assert stitched.shape[1] > 640  # Width should be larger (stitched)
+        assert stitched.dtype == np.uint16
+        assert np.sum(stitched == 0) == 0  # No black pixels
+
+        # The key test: stitched values should lie between the input values
+        assert abs(float(stitched.min()) - 16000) <= 1  # allow rounding errors
+        assert abs(float(stitched.max()) - 16000) <= 1

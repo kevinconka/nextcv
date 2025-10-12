@@ -59,11 +59,16 @@ ignore = [
   "D105",    # undocumented magic method
   "PLC0415", # import at top of file
 ]
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+preview = true
 
 [lint.per-file-ignores]
 "test_*.py" = [
   "ANN201",  # Ignore annotation requirements in tests
   "PLR2004", # Ignore magic numbers in tests
+  "PLR6301", # Method could be a function, class method, or static method
 ]
 "*.ipynb" = [
   "I",       # Ignore import-related errors in notebooks

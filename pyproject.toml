@@ -32,7 +32,6 @@ dev = [
   "pybind11>=2.10",
   "pytest>=7",
   "pytest-cov>=4.0",
-  "ruff>=0.5",
   "ipykernel",
   "pybind11-stubgen",
   "rich",
