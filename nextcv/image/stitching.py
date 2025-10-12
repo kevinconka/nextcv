@@ -3,8 +3,6 @@
 Simple, extensible architecture for stitching images from multiple cameras.
 """
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, List, Optional, Tuple, TypeVar
@@ -47,7 +45,7 @@ class Rect:
         """
         return self.numpy_slices()
 
-    def clamp_to(self, max_w: int, max_h: int) -> Optional[Rect]:
+    def clamp_to(self, max_w: int, max_h: int) -> Optional["Rect"]:
         """Clamp region to bounds, return None if no overlap."""
         x = max(0, self.x)
         y = max(0, self.y)
@@ -55,7 +53,7 @@ class Rect:
         h = min(self.h, max_h - y)
         return Rect(x, y, w, h) if w > 0 and h > 0 else None
 
-    def intersect(self, other: Rect) -> Optional[Rect]:
+    def intersect(self, other: "Rect") -> Optional["Rect"]:
         """Compute intersection with another rectangle."""
         x = max(self.x, other.x)
         y = max(self.y, other.y)
@@ -75,7 +73,7 @@ class Tile:
     mask: np.ndarray  # (h,w) binary mask
     weights: np.ndarray  # (h,w) normalized blending weights
 
-    def update_weights(self, weights: np.ndarray) -> Tile:
+    def update_weights(self, weights: np.ndarray) -> "Tile":
         """Update the weights."""
         self.weights = weights
         return self
@@ -91,7 +89,9 @@ class Tile:
         )
 
     @classmethod
-    def from_camera_pair(cls, camera: CameraType, canvas: CameraType) -> Optional[Tile]:
+    def from_camera_pair(
+        cls, camera: CameraType, canvas: CameraType
+    ) -> Optional["Tile"]:
         """Create a warp tile from a camera."""
         # Get remapping maps from camera to target
         mapx, mapy = canvas.maps_from(camera)
