@@ -136,6 +136,7 @@ jobs:
       - name: 🧪 Run Tests (Legacy)
         if: matrix.legacy == true
         run: |
+          set -o pipefail
           echo "Running tests with pytest for legacy Python ${{ matrix.python-version }}..."
           pytest \
             --cov-report=term-missing:skip-covered \
@@ -145,6 +146,7 @@ jobs:
       - name: 🧪 Run Tests (Modern)
         if: matrix.legacy != true
         run: |
+          set -o pipefail
           echo "Running tests with uv for modern Python ${{ matrix.python-version }}..."
           uv run pytest \
             --cov-report=term-missing:skip-covered \

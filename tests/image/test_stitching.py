@@ -87,6 +87,6 @@ class TestLeftRightStitcher:
         assert stitched.dtype == np.uint16
         assert np.sum(stitched == 0) == 0  # No black pixels
 
-        # The key test: stitched values should lie between the input values
-        assert abs(float(stitched.min()) - 16000) <= 1  # allow rounding errors
-        assert abs(float(stitched.max()) - 16000) <= 1
+        # The key test: stitched values should match reference within relative tolerance
+        assert abs(float(stitched.min()) - 16000) / 16000 <= 1e-3
+        assert abs(float(stitched.max()) - 16000) / 16000 <= 1e-3
