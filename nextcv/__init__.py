@@ -21,12 +21,12 @@ except ImportError:
     from importlib_metadata import PackageNotFoundError, version  # python 3.6 and 3.7
 
 # Import modules
-from . import core, image, linalg, postprocessing
+from . import core, image, linalg, postprocessing, sensors
 
 try:
     __version__ = version("nextcv")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
-__all__ = ["core", "image", "postprocessing", "linalg"]
+__all__ = ["core", "image", "postprocessing", "linalg", "sensors"]
 __all__ += core.__all__

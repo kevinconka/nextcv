@@ -1,0 +1,268 @@
+{
+  "imu": {
+    "new_IMU": ""
+  },
+  "cameras": {
+    "t1": {
+      "camera_type": "FLIR BOSON 640",
+      "position": {
+        "value": [
+          45.406,
+          195.1,
+          120.929
+        ],
+        "unit": "mm"
+      },
+      "focal_length": {
+        "value": 18.0,
+        "unit": "mm"
+      },
+      "barrel_distortion": {
+        "value": null,
+        "unit": "1"
+      },
+      "distortion_model": "pinhole",
+      "roll": {
+        "value": -0.6953680852913573,
+        "unit": "deg"
+      },
+      "pitch": {
+        "value": 0.3175409097871985,
+        "unit": "deg"
+      },
+      "yaw": {
+        "value": 10.942382806743069,
+        "unit": "deg"
+      },
+      "pixel_size": {
+        "value": 0.012,
+        "unit": "mm"
+      },
+      "camera_orientation": {
+        "value": 0.0,
+        "unit": "deg"
+      },
+      "resolution": {
+        "value": [
+          640,
+          512
+        ],
+        "unit": "1"
+      },
+      "camera_serial_number": "FLIR_Boson_387573",
+      "border_cut": {
+        "value": [
+          0,
+          0
+        ],
+        "unit": "px"
+      },
+      "border_shift": {
+        "value": [
+          0,
+          0
+        ],
+        "unit": "px"
+      },
+      "center_x": {
+        "value": 319.5,
+        "unit": "1"
+      },
+      "center_y": {
+        "value": 255.5,
+        "unit": "1"
+      },
+      "focal_length_x": {
+        "value": 1487.0897209580626,
+        "unit": "1"
+      },
+      "focal_length_y": {
+        "value": 1486.893999534694,
+        "unit": "1"
+      },
+      "fisheye_distortion": {
+        "value": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unit": "1"
+      }
+    },
+    "t2": {
+      "camera_type": "FLIR BOSON 640",
+      "position": {
+        "value": [
+          -45.406,
+          195.1,
+          120.929
+        ],
+        "unit": "mm"
+      },
+      "focal_length": {
+        "value": 18.0,
+        "unit": "mm"
+      },
+      "barrel_distortion": {
+        "value": null,
+        "unit": "1"
+      },
+      "distortion_model": "pinhole",
+      "roll": {
+        "value": -0.25389265482939055,
+        "unit": "deg"
+      },
+      "pitch": {
+        "value": 0.7082357267631507,
+        "unit": "deg"
+      },
+      "yaw": {
+        "value": -11.468243408503717,
+        "unit": "deg"
+      },
+      "pixel_size": {
+        "value": 0.012,
+        "unit": "mm"
+      },
+      "camera_orientation": {
+        "value": 0.0,
+        "unit": "deg"
+      },
+      "resolution": {
+        "value": [
+          640,
+          512
+        ],
+        "unit": "1"
+      },
+      "camera_serial_number": "FLIR_Boson_387487",
+      "border_cut": {
+        "value": [
+          0,
+          0
+        ],
+        "unit": "px"
+      },
+      "border_shift": {
+        "value": [
+          0,
+          0
+        ],
+        "unit": "px"
+      },
+      "center_x": {
+        "value": 319.5,
+        "unit": "1"
+      },
+      "center_y": {
+        "value": 255.5,
+        "unit": "1"
+      },
+      "focal_length_x": {
+        "value": 1492.120223972608,
+        "unit": "1"
+      },
+      "focal_length_y": {
+        "value": 1492.126838008826,
+        "unit": "1"
+      },
+      "fisheye_distortion": {
+        "value": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unit": "1"
+      }
+    },
+    "rgb1": {
+      "camera_type": "Basler da3840-mciDTT",
+      "position": {
+        "value": [
+          0.0,
+          193.1,
+          131.748
+        ],
+        "unit": "mm"
+      },
+      "focal_length": {
+        "value": 4.0,
+        "unit": "mm"
+      },
+      "barrel_distortion": {
+        "value": null,
+        "unit": "1"
+      },
+      "distortion_model": "fisheye",
+      "roll": {
+        "value": 0.09547900173698055,
+        "unit": "deg"
+      },
+      "pitch": {
+        "value": 0.46624772612841825,
+        "unit": "deg"
+      },
+      "yaw": {
+        "value": 0.20576737752054855,
+        "unit": "deg"
+      },
+      "pixel_size": {
+        "value": 0.0021,
+        "unit": "mm"
+      },
+      "camera_orientation": {
+        "value": 0.0,
+        "unit": "deg"
+      },
+      "resolution": {
+        "value": [
+          3840,
+          2160
+        ],
+        "unit": "1"
+      },
+      "camera_serial_number": "Basler da3840-mciDTT",
+      "border_cut": {
+        "value": [
+          0,
+          0
+        ],
+        "unit": "px"
+      },
+      "border_shift": {
+        "value": [
+          0,
+          0
+        ],
+        "unit": "px"
+      },
+      "center_x": {
+        "value": 1901.3528233526258,
+        "unit": "1"
+      },
+      "center_y": {
+        "value": 1040.7275724079807,
+        "unit": "1"
+      },
+      "focal_length_x": {
+        "value": 1905.0119244972575,
+        "unit": "1"
+      },
+      "focal_length_y": {
+        "value": 1904.5973562835545,
+        "unit": "1"
+      },
+      "fisheye_distortion": {
+        "value": [
+          -0.05721257770462311,
+          -0.16324531983248583,
+          0.27645325166633034,
+          -0.17097756210265508
+        ],
+        "unit": "1"
+      }
+    }
+  }
+}

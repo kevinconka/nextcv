@@ -19,7 +19,12 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-dependencies = ["numpy>=1.19.0", "opencv-python>=4.4.0"]
+dependencies = [
+  "numpy>=1.19.0",
+  "opencv-python>=4.4.0",
+  "scipy>=1.7.0",
+  "pydantic<2.0.0",
+]
 
 [dependency-groups]
 dev = [
@@ -27,9 +32,13 @@ dev = [
   "pybind11>=2.10",
   "pytest>=7",
   "pytest-cov>=4.0",
-  "ruff>=0.5",
   "ipykernel",
   "pybind11-stubgen",
+  "rich",
+  "pillow",
+  "plotly",
+  "pandas",
+  "nbformat",
 ]
 
 [project.optional-dependencies]
@@ -106,11 +115,15 @@ disable = [
   "logging-fstring-interpolation",
   "too-few-public-methods",
   "broad-exception-caught",
+  "no-name-in-module",
+  "no-member",
 ]
 good-names-rgxs = [
   "^K.*$", # Camera intrinsics matrix prefix
   "^R.*$", # Rotation matrix prefix
   "^H.*$", # Homography matrix prefix
+  "^T.*$", # Transformation matrix prefix
+  "^P.*$", # Homogeneous point prefix
   "^B.*$", # Batch size prefix
   "^C.*$", # Channel size prefix
   "^H.*$", # Height prefix
