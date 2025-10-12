@@ -69,7 +69,7 @@ class Tile:
     """A tile within a canvas for image stitching."""
 
     rect: Rect
-    maps: tuple[np.ndarray, np.ndarray]  # source -> tile transform
+    maps: Tuple[np.ndarray, np.ndarray]  # source -> tile transform
     mask: np.ndarray  # (h,w) binary mask
     weights: np.ndarray  # (h,w) normalized blending weights
 

@@ -1,6 +1,6 @@
 """Sensor representation and manipulation utilities."""
 
-from typing import Any, Dict, TypeVar
+from typing import Any, Dict, Tuple, Type, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, Field, validator
@@ -29,7 +29,7 @@ class Camera(BaseModel):
     )
 
     # run after init/validation
-    @validator("width", "height")
+    @validator("width", "height", allow_reuse=True)
     def must_be_even(cls, v: int) -> int:  # pylint: disable=no-self-argument
         """Ensure width and height are positive integers."""
         if v % 2 != 0:
@@ -38,7 +38,7 @@ class Camera(BaseModel):
 
     @classmethod
     def from_dict(
-        cls: type[T],
+        cls: Type[T],
         data: Dict[str, Any],
     ) -> T:
         """Create a Camera instance from intrinsics and pose dictionaries.
@@ -63,7 +63,7 @@ class Camera(BaseModel):
         )
 
     @property
-    def size(self) -> tuple[int, int]:
+    def size(self) -> Tuple[int, int]:
         """Get the camera size as an opencv-compatible tuple of width and height."""
         return self.width, self.height
 
@@ -77,7 +77,7 @@ class Camera(BaseModel):
 
     def maps_from(
         self, src: "Camera", neg_focal_length: bool = True
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Create remapping maps from source camera to this camera."""
         raise NotImplementedError("Subclasses must implement maps_from")
 
@@ -211,7 +211,7 @@ class PinholeCamera(Camera):
 
     def maps_from(
         self, src: "PinholeCamera", neg_focal_length: bool = True
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Create remapping maps from source camera to this camera."""
         # src -> self homography (3x3)
         H = src.compute_homography_to(self, neg_focal_length).astype(np.float32)
