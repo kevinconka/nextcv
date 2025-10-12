@@ -118,11 +118,13 @@ class PinholeCamera(Camera):
         force_even: bool = True,
     ) -> "PinholeCamera":
         """Return a new PinholeCamera cropped by margins (left, top, right, bottom)."""
-        if any(v < 0 for v in (left, top)):
+        if any(v < 0 for v in (left, top, right, bottom)):
             raise ValueError("Margins must be >= 0.")
 
         new_w = int(self.width - left - right)
         new_h = int(self.height - top - bottom)
+        if any(v <= 0 for v in (new_w, new_h)):
+            raise ValueError("Crop exceeds image bounds.")
 
         # force even width and height
         if force_even:
