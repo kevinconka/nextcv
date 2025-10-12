@@ -30,6 +30,8 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "dataclasses; python_version < '3.7'",
+        "pydantic<2.0.0; python_version < '3.8'",
+        "pydantic>=2.0.0; python_version >= '3.8'",
         "numpy<1.19.5; python_version == '3.6'",
         "numpy>=1.19.0; python_version > '3.6'",
         "opencv-python-headless<4.7; python_version < '3.8'",
