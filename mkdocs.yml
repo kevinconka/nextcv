@@ -124,6 +124,7 @@ plugins:
             - https://docs.python.org/3/objects.inv
             - https://numpy.org/doc/stable/objects.inv
             - https://opencv-python.readthedocs.io/en/latest/objects.inv
+            - https://docs.pydantic.dev/latest/objects.inv
           options:
             docstring_style: "google"
             docstring_options:
@@ -144,4 +145,4 @@ plugins:
             summary: true
             extensions:
               - griffe_fieldz: { include_inherited: true }
-              - griffe_pydantic
+              # - griffe_pydantic
