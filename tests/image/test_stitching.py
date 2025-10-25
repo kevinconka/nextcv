@@ -88,5 +88,5 @@ class TestLeftRightStitcher:
         assert np.sum(stitched == 0) == 0  # No black pixels
 
         # The key test: stitched values should match reference within relative tolerance
-        assert abs(float(stitched.min()) - 16000) / 16000 <= 1e-3
-        assert abs(float(stitched.max()) - 16000) / 16000 <= 1e-3
+        assert float(stitched.min()) == pytest.approx(16000.0, rel=1e-3)
+        assert float(stitched.max()) == pytest.approx(16000.0, rel=1e-3)

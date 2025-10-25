@@ -10,7 +10,7 @@ from typing import Generic, List, Optional, Tuple, TypeVar
 import cv2
 import numpy as np
 
-from nextcv.sensors.camera import Camera, PinholeCamera
+from nextcv.sensors.camera import Camera, EquirectangularCamera, PinholeCamera
 
 CameraType = TypeVar("CameraType", bound=Camera)
 
@@ -119,8 +119,22 @@ class Tile:
         # Create mask for valid pixels in this region
         mask = valid_mask[y_slice, x_slice].astype(np.uint8)
 
-        # Generate raw weights using distance transform
-        weights = cv2.distanceTransform(mask, cv2.DIST_L2, 3).astype(np.float32)
+        # SOURCE-SPACE WEIGHTING: Compute weights in source camera space, then warp
+        # 1. Create rectangular mask in source (natural camera geometry)
+        source_mask = np.ones((camera.height, camera.width), dtype=np.uint8)
+
+        # 2. Distance transform in source space (smooth falloff from edges)
+        source_weights = cv2.distanceTransform(source_mask, cv2.DIST_L2, 3).astype(
+            np.float32
+        )
+
+        # 3. Warp source weights to canvas using the same maps as the image
+        weights = cv2.remap(
+            source_weights,
+            roi_mapx,
+            roi_mapy,
+            cv2.INTER_LINEAR,
+        )
 
         return Tile(rect=roi, maps=(roi_mapx, roi_mapy), mask=mask, weights=weights)
 
@@ -391,3 +405,89 @@ class LeftRightStitcher(HorizontalStitcher):
         super().__init__([left_camera, right_camera])
         self.left_camera = left_camera
         self.right_camera = right_camera
+
+
+class PanoramaStitcher(ImageStitcher[PinholeCamera]):
+    """Stitch pinhole cameras into 360° equirectangular panorama.
+
+    Cameras should have pan (yaw) and tilt (pitch) configured via their pose.
+    Output resolution is auto-computed from input camera angular resolution.
+    """
+
+    def __init__(
+        self,
+        cameras: List[PinholeCamera],
+        compensator: Optional[ExposureCompensator] = None,
+    ) -> None:
+        """Create a panorama stitcher.
+
+        Args:
+            cameras: List of pinhole cameras with configured pan/tilt
+            compensator: Exposure compensator (default: NoOpCompensator)
+        """
+        if not cameras:
+            raise ValueError("At least one camera required")
+
+        super().__init__(cameras, compensator)
+
+    def _create_virtual_cam(self) -> Camera:
+        """Create equirectangular camera with auto-computed resolution and FOV.
+
+        Computes output resolution and FOV based on the camera arrangement.
+        The FOV is determined by the range of yaw/pitch angles covered by
+        all cameras plus their individual FOV, accounting for overlap.
+
+        Returns:
+            EquirectangularCamera with computed FOV and resolution
+        """
+        # Compute horizontal FOV coverage
+        # For each camera, compute the angular range it covers
+        yaw_min = float("inf")
+        yaw_max = float("-inf")
+        for cam in self.cameras:
+            # Camera's angular extent in horizontal direction
+            yaw_min = min(yaw_min, cam.yaw - cam.hfov / 2)
+            yaw_max = max(yaw_max, cam.yaw + cam.hfov / 2)
+
+        # Total horizontal FOV
+        total_hfov = yaw_max - yaw_min
+
+        # If computed span >= 360°, cameras wrap around the circle
+        if total_hfov >= 360.0:  # noqa: PLR2004
+            total_hfov = 360.0
+            center_yaw = 0.0
+        else:
+            center_yaw = (yaw_min + yaw_max) / 2
+
+        # Compute vertical FOV coverage
+        pitch_min = float("inf")
+        pitch_max = float("-inf")
+        for cam in self.cameras:
+            # Camera's angular extent in vertical direction
+            pitch_min = min(pitch_min, cam.pitch - cam.vfov / 2)
+            pitch_max = max(pitch_max, cam.pitch + cam.vfov / 2)
+
+        # Total vertical FOV
+        total_vfov = pitch_max - pitch_min
+
+        # Cap at 180° (can't exceed hemisphere in vertical)
+        total_vfov = min(total_vfov, 180.0)
+        center_pitch = (pitch_min + pitch_max) / 2
+
+        # Compute output size based on FOV and angular resolution
+        avg_hfov_res = np.mean([cam.width / cam.hfov for cam in self.cameras])
+        avg_vfov_res = np.mean([cam.height / cam.vfov for cam in self.cameras])
+
+        # compute even width and height and force even
+        width = int(total_hfov * avg_hfov_res) // 2 * 2
+        height = int(total_vfov * avg_vfov_res) // 2 * 2
+
+        return EquirectangularCamera(
+            width=width,
+            height=height,
+            hfov=total_hfov,
+            vfov=total_vfov,
+            pitch=center_pitch,
+            yaw=center_yaw,
+            roll=0.0,
+        )

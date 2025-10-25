@@ -30,7 +30,7 @@ class Camera(BaseModel):
 
     # run after init/validation
     @validator("width", "height", allow_reuse=True)
-    def must_be_even(cls, v: int) -> int:  # pylint: disable=no-self-argument
+    def must_be_even(cls, v: int) -> int:  # noqa: N805 # pylint: disable=no-self-argument
         """Ensure width and height are positive integers."""
         if v % 2 != 0:
             raise ValueError("must be even")
@@ -67,23 +67,29 @@ class Camera(BaseModel):
         """Get the camera size as an opencv-compatible tuple of width and height."""
         return self.width, self.height
 
-    def compute_homography_to(
-        self,
-        target: "Camera",
-        neg_focal_length: bool = True,
-    ) -> np.ndarray:
-        """Compute homography matrix that maps points from this cam to target cam."""
-        raise NotImplementedError("Subclasses must implement compute_homography_to")
-
     def maps_from(
         self, src: "Camera", neg_focal_length: bool = True
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Create remapping maps from source camera to this camera."""
-        raise NotImplementedError("Subclasses must implement maps_from")
+        """Create pixel maps to warp images from source camera to this camera.
+
+        Returns:
+            Tuple of (mapx, mapy) arrays for use with cv2.remap()
+        """
+        raise NotImplementedError("Subclasses must implement get_warping_maps")
 
 
 class PinholeCamera(Camera):
     """Represents a pinhole camera with its intrinsics and pose."""
+
+    @property
+    def hfov(self) -> float:
+        """Get the horizontal field of view in degrees."""
+        return np.rad2deg(2 * np.arctan(self.width / (2 * self.fx)))
+
+    @property
+    def vfov(self) -> float:
+        """Get the vertical field of view in degrees."""
+        return np.rad2deg(2 * np.arctan(self.height / (2 * self.fy)))
 
     @property
     def K(self) -> np.ndarray:
@@ -234,3 +240,73 @@ class PinholeCamera(Camera):
         mapx = np.ascontiguousarray(uv[..., 0], dtype=np.float32)
         mapy = np.ascontiguousarray(uv[..., 1], dtype=np.float32)
         return mapx, mapy
+
+
+class EquirectangularCamera(Camera):
+    """Equirectangular projection camera for 360° panoramas."""
+
+    hfov: float = Field(description="Horizontal field of view in degrees")
+    vfov: float = Field(description="Vertical field of view in degrees")
+    fx: float = Field(default=np.nan, exclude=True)
+    fy: float = Field(default=np.nan, exclude=True)
+    cx: float = Field(default=np.nan, exclude=True)
+    cy: float = Field(default=np.nan, exclude=True)
+
+    @property
+    def R(self) -> np.ndarray:
+        """Get the camera rotation matrix from Euler angles.
+
+        Uses same convention as PinholeCamera:
+        - x is right
+        - y is down
+        - z is forward
+        """
+        return R.from_euler(
+            "zxy", [self.roll, self.pitch, self.yaw], degrees=True
+        ).as_matrix()
+
+    def maps_from(
+        self, src: "PinholeCamera", neg_focal_length: bool = True
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Create remapping matching the simple angular implementation.
+
+        WARNING: This ignores proper camera geometry (R, K matrices).
+        Only uses direct angular offset mapping.
+        """
+        # Create pixel grid for equirectangular image
+        xs, ys = np.meshgrid(
+            np.arange(self.width, dtype=np.float32),
+            np.arange(self.height, dtype=np.float32),
+            indexing="xy",
+        )
+
+        # Pure angular mapping: panorama pixel → world angles
+        pixel_angle_h = self.hfov / self.width  # degrees per pixel
+        pixel_angle_v = self.vfov / self.height
+
+        # ===== SIMPLE CENTER-TO-CENTER MAPPING =====
+
+        # HORIZONTAL: Panorama angle → offset from source center → source pixel
+        # 1. Panorama pixel → world angle (0° at center)
+        pan = (xs - self.width * 0.5) * pixel_angle_h + self.yaw
+        pan = np.mod(pan, 360.0)  # Normalize to [0, 360) using modulo
+
+        # 2. Angular offset from source center (shortest angular distance)
+        pan_offset = np.mod(pan - src.yaw + 180.0, 360.0) - 180.0
+
+        # 3. Convert to source pixel (center + offset)
+        src_pixel_angle_h = src.hfov / src.width
+        mapx = (src.width * 0.5 + pan_offset / src_pixel_angle_h).astype(np.float32)
+
+        # VERTICAL: Panorama angle → offset from source center → source pixel
+        # 1. Panorama pixel → world angle (0 at top, increases downward)
+        tilt = self.pitch + self.vfov / 2 - ys * pixel_angle_v
+
+        # 2. Angular offset from source center
+        tilt_offset = tilt - src.pitch
+
+        # 3. Convert to source pixel (center - offset, because y points down)
+        src_pixel_angle_v = src.vfov / src.height
+        mapy = (src.height / 2 - tilt_offset / src_pixel_angle_v).astype(np.float32)
+
+        return np.ascontiguousarray(mapx), np.ascontiguousarray(mapy)
