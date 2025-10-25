@@ -2,110 +2,110 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://kevinconka.github.io/nextcv/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/contributing/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/getting-started/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/examples/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/includes/abbreviations/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/best-practices/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/pybind11-basics/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/resources/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/simple-tutorial/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/testing/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/pybind11/when-to-use-cpp/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/SUMMARY/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/core/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/image/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/image/color/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/image/compose/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/image/geometry/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/image/ops/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/image/stitching/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/linalg/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/postprocessing/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/postprocessing/boxes/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/sensors/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/sensors/camera/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
     <url>
          <loc>https://kevinconka.github.io/nextcv/reference/sensors/parsers/</loc>
-         <lastmod>2025-10-12</lastmod>
+         <lastmod>2025-10-25</lastmod>
     </url>
 </urlset>
