@@ -47,7 +47,7 @@ jobs:
           pip3 wheel --no-deps -w dist .
 
       - name: Upload wheel artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: nextcv-wheel-python${{ matrix.python-version }}
           path: dist/*.whl

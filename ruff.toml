@@ -44,6 +44,7 @@ select = [ # https://docs.astral.sh/ruff/rules/
   "E",   # PyCodeStyle Errors
   "F",   # PyFlakes
   "W",   # PyCodeStyle Warnings
+  "N",   # PyCodeStyle Names
   "ANN", # flake8-annotations
   "B",   # flake8-bugbear
   "TC",  # flake8-type-checking
@@ -77,6 +78,17 @@ preview = true
 
 [lint.pydocstyle]
 convention = "google"
+
+[lint.pep8-naming]
+extend-ignore-names = [
+  "H*", # Homography matrix
+  "K*", # Camera intrinsics matrix
+  "R*", # Rotation matrix
+  "T*", # Transformation matrix
+  "P*", # Homogeneous point
+  "B*", # Batch size
+  "C*", # Channel size
+]
 
 [format]
 quote-style = "double"
