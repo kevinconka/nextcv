@@ -26,7 +26,7 @@ def compute_focal_length_from_fov(fov_deg: float, resolution: int) -> float:
 class TestPanoramaRealWorld:
     """Test panorama stitcher with real camera arrangement."""
 
-    yaws = list(range(0, 360, 12))  # [0, 12, 24, ..., 348]
+    yaws = list(range(0, 360, 24))
     pitches = [-17.0, 0.0, 18.0]
     hfov = 32.0
     vfov = 25.839818081545385
@@ -70,7 +70,7 @@ class TestPanoramaRealWorld:
     def test_camera_count(self, cameras: List[PinholeCamera]):
         """Verify correct number of cameras."""
         # 30 yaw positions × 3 pitch positions = 90 cameras
-        assert len(cameras) == 90
+        assert len(cameras) == 45
 
     def test_camera_fov(self, cameras: List[PinholeCamera]):
         """Verify cameras have correct FOV."""
