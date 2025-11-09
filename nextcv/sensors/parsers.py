@@ -17,11 +17,14 @@ class CalibrationData(BaseModel):
     )
 
     @classmethod
-    def from_json(cls, file_path: Union[str, Path]) -> "CalibrationData":
+    def from_json(
+        cls, file_path: Union[str, Path], flip_rpy: bool = True
+    ) -> "CalibrationData":
         """Parse calibration data from JSON file.
 
         Args:
             file_path: Path to the JSON calibration file
+            flip_rpy: Whether to flip the camera rotation around the z-axis
 
         Returns:
             Parsed calibration data
@@ -29,21 +32,24 @@ class CalibrationData(BaseModel):
         with Path(file_path).open("r", encoding="utf-8") as f:
             data = json.load(f)
 
-        return cls(
-            cameras={
-                camera_id: PinholeCamera.from_dict(
-                    {
-                        "width": camera_data["resolution"]["value"][0],
-                        "height": camera_data["resolution"]["value"][1],
-                        "fx": camera_data["focal_length_x"]["value"],
-                        "fy": camera_data["focal_length_y"]["value"],
-                        "cx": camera_data["center_x"]["value"],
-                        "cy": camera_data["center_y"]["value"],
-                        "roll": camera_data["roll"]["value"],
-                        "pitch": camera_data["pitch"]["value"],
-                        "yaw": camera_data["yaw"]["value"],
-                    }
-                )
-                for camera_id, camera_data in data.get("cameras", {}).items()
-            },
-        )
+        cameras = {
+            camera_id: PinholeCamera.from_dict(
+                {
+                    "width": camera_data["resolution"]["value"][0],
+                    "height": camera_data["resolution"]["value"][1],
+                    "fx": camera_data["focal_length_x"]["value"],
+                    "fy": camera_data["focal_length_y"]["value"],
+                    "cx": camera_data["center_x"]["value"],
+                    "cy": camera_data["center_y"]["value"],
+                    "roll": camera_data["roll"]["value"],
+                    "pitch": camera_data["pitch"]["value"],
+                    "yaw": camera_data["yaw"]["value"],
+                }
+            )
+            for camera_id, camera_data in data.get("cameras", {}).items()
+        }
+
+        if flip_rpy:
+            _ = [cam.flip_rpy() for _, cam in cameras.items()]
+
+        return cls(cameras=cameras)

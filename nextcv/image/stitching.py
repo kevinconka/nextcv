@@ -5,15 +5,15 @@ Simple, extensible architecture for stitching images from multiple cameras.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, List, Optional, Tuple, TypeVar
+from typing import Generic, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
 
-from nextcv.sensors.camera import Camera, EquirectangularCamera, PinholeCamera
+from nextcv.sensors.camera import EquirectangularCamera, PinholeCamera
+from nextcv.sensors.camera import T as CameraType
 
-CameraType = TypeVar("CameraType", bound=Camera)
-
+GRAY_DIMS = 2
 
 # ============================================================================
 # Rect and Tile Classes
@@ -24,16 +24,17 @@ CameraType = TypeVar("CameraType", bound=Camera)
 class Rect:
     """Image region defined by top-left corner and dimensions."""
 
-    x: int
-    y: int
-    w: int
-    h: int
+    x: Union[int, float]
+    y: Union[int, float]
+    w: Union[int, float]
+    h: Union[int, float]
 
     def numpy_slices(self, offset_x: int = 0, offset_y: int = 0) -> Tuple[slice, slice]:
         """Return (y_slice, x_slice) for numpy indexing with optional offset."""
+        y, x, h, w = int(self.y), int(self.x), int(self.h), int(self.w)
         return (
-            slice(self.y - offset_y, self.y - offset_y + self.h),
-            slice(self.x - offset_x, self.x - offset_x + self.w),
+            slice(y - offset_y, y - offset_y + h),
+            slice(x - offset_x, x - offset_x + w),
         )
 
     @property
@@ -62,6 +63,14 @@ class Rect:
         w = x_max - x
         h = y_max - y
         return Rect(x, y, w, h) if w > 0 and h > 0 else None
+
+    def to_margins(self, width: int, height: int) -> Tuple[float, float, float, float]:
+        """Convert a rectangle to margins (top, bottom, left, right)."""
+        top = self.y
+        left = self.x
+        right = width - self.x - self.w
+        bottom = height - self.y - self.h
+        return top, bottom, left, right
 
 
 @dataclass
@@ -120,17 +129,12 @@ class Tile:
         mask = valid_mask[y_slice, x_slice].astype(np.uint8)
 
         # SOURCE-SPACE WEIGHTING: Compute weights in source camera space, then warp
-        # 1. Create rectangular mask in source (natural camera geometry)
+        # Create rectangular mask in source (natural camera geometry)
         source_mask = np.ones((camera.height, camera.width), dtype=np.uint8)
 
-        # 2. Distance transform in source space (smooth falloff from edges)
-        source_weights = cv2.distanceTransform(source_mask, cv2.DIST_L2, 3).astype(
-            np.float32
-        )
-
-        # 3. Warp source weights to canvas using the same maps as the image
+        # Warp source weights to canvas using the same maps as the image
         weights = cv2.remap(
-            source_weights,
+            cv2.distanceTransform(source_mask, cv2.DIST_L2, 3).astype(np.float32),
             roi_mapx,
             roi_mapy,
             cv2.INTER_LINEAR,
@@ -329,8 +333,10 @@ class ImageStitcher(ABC, Generic[CameraType]):
     def stitch(self, images: List[np.ndarray]) -> np.ndarray:
         """Stitch images into the virtual camera."""
         self._sanity_checks(images)
+        n_channels = 1 if images[0].ndim == GRAY_DIMS else images[0].shape[2]
 
-        stitched = np.zeros(self.virtual_camera.size[::-1], dtype=images[0].dtype)
+        stitched_size = self.virtual_camera.size[::-1] + (n_channels,)
+        stitched = np.zeros(stitched_size, dtype=images[0].dtype).squeeze()
         if not self.tiles:
             return stitched
 
@@ -345,12 +351,25 @@ class ImageStitcher(ABC, Generic[CameraType]):
 
         # 3. Blend corrected images into stitched result
         for corrected, tile in zip(corrected_images, self.tiles):
-            stitched[tile.rect.s] += (corrected * tile.weights).astype(stitched.dtype)
+            weights = tile.weights[..., None] if n_channels > 1 else tile.weights
+            stitched[tile.rect.s] += (corrected * weights).astype(stitched.dtype)
 
         return stitched
 
-    def __call__(self, images: List[np.ndarray]) -> np.ndarray:
-        """Stitch images into panorama."""
+    def __call__(
+        self, images: List[np.ndarray], gray_fastpath: bool = False
+    ) -> np.ndarray:
+        """Stitch images into panorama.
+
+        Args:
+            images: List of images to stitch
+            gray_fastpath: If True, skip redundant work if images are grayscale in
+                multi-channel format.
+        """
+        n_channels = 1 if images[0].ndim == GRAY_DIMS else images[0].shape[2]
+        if gray_fastpath and n_channels > 1:
+            images = [img[..., 0] for img in images]
+            return cv2.merge([self.stitch(images)] * n_channels)
         return self.stitch(images)
 
 
@@ -363,37 +382,28 @@ class HorizontalStitcher(ImageStitcher[PinholeCamera]):
         for cam in self.cameras[1:]:
             virtual_cam = PinholeCamera.hconcat(virtual_cam, cam)
 
-        # Find bounding rectangle that contains all cameras
-        all_corners = [
-            cv2.perspectiveTransform(
-                np.array(
-                    [
-                        [
-                            [0, 0],
-                            [cam.width, 0],
-                            [cam.width, cam.height],
-                            [0, cam.height],
-                        ]
-                    ],
-                    dtype=np.float32,
-                ),
+        rect = self.compute_margins(self.cameras, virtual_cam)
+        top, bottom, left, right = rect.to_margins(*virtual_cam.size)
+        return virtual_cam.crop(top, bottom, left, right)
+
+    @staticmethod
+    def compute_margins(
+        cameras: List[PinholeCamera], virtual_cam: PinholeCamera
+    ) -> Rect:
+        """Compute margins needed to fit all corners (top, left, height, width)."""
+        from .utils import largest_inscribed_rect
+
+        warped_masks = [
+            cv2.warpPerspective(
+                np.ones((cam.height, cam.width), dtype=np.uint8),
                 cam.compute_homography_to(virtual_cam),
-            )[0]  # Remove batch dimension for each camera
-            for cam in self.cameras
+                (virtual_cam.width, virtual_cam.height),
+            )
+            for cam in cameras
         ]
-        all_corners = np.vstack(all_corners)
-        x_min, y_min = all_corners.min(axis=0)
-        x_max, y_max = all_corners.max(axis=0)
-
-        # Compute margins needed to fit all corners
-        left = max(0, -x_min)
-        right = max(0, x_max - virtual_cam.width)
-        top = max(0, -y_min)
-        bottom = max(0, y_max - virtual_cam.height)
-
-        # Symmetric horizontal margins for centering
-        symmetric = max(left, right)
-        return virtual_cam.crop(symmetric, top, symmetric, bottom)
+        mask = np.bitwise_or.reduce(warped_masks)
+        top, left, height, width = largest_inscribed_rect(mask)
+        return Rect(left, top, width, height)
 
 
 # Convenience aliases
@@ -405,6 +415,46 @@ class LeftRightStitcher(HorizontalStitcher):
         super().__init__([left_camera, right_camera])
         self.left_camera = left_camera
         self.right_camera = right_camera
+
+    @staticmethod
+    def compute_margins(
+        cameras: List[PinholeCamera], virtual_cam: PinholeCamera
+    ) -> Rect:
+        """Compute margins assuming left and right cameras are adjacent."""
+        from .utils import bounds_from_lr_corners
+
+        warper = cv2.PyRotationWarper(
+            "plane", np.mean([cam.scale for cam in cameras]).item()
+        )
+        corners = [
+            np.array(
+                [
+                    warper.warpPoint(pt, cam.K, np.linalg.inv(virtual_cam.R) @ cam.R)
+                    for pt in cam.corners
+                ]
+            )
+            + np.array([virtual_cam.cx, virtual_cam.cy])
+            for cam in cameras
+        ]
+        top, bottom, left, right = bounds_from_lr_corners(*corners)
+        print(top, bottom, left, right)
+        print(virtual_cam.width, virtual_cam.height)
+        margin_width = max(left, virtual_cam.width - right)
+        print(margin_width)
+        print(
+            Rect(
+                left,
+                top,
+                virtual_cam.width - 2 * margin_width,
+                bottom - top,
+            )
+        )
+        return Rect(
+            left,
+            top,
+            virtual_cam.width - 2 * margin_width,
+            bottom - top,
+        )
 
 
 class PanoramaStitcher(ImageStitcher[PinholeCamera]):
@@ -430,7 +480,7 @@ class PanoramaStitcher(ImageStitcher[PinholeCamera]):
 
         super().__init__(cameras, compensator)
 
-    def _create_virtual_cam(self) -> Camera:
+    def _create_virtual_cam(self) -> EquirectangularCamera:
         """Create equirectangular camera with auto-computed resolution and FOV.
 
         Computes output resolution and FOV based on the camera arrangement.

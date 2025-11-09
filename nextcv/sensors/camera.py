@@ -1,10 +1,11 @@
 """Sensor representation and manipulation utilities."""
 
-from typing import Any, Dict, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Tuple, Type, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, Field, validator
 from scipy.spatial.transform import Rotation as R
+from typing_extensions import Literal
 
 T = TypeVar("T", bound="Camera")
 
@@ -67,9 +68,35 @@ class Camera(BaseModel):
         """Get the camera size as an opencv-compatible tuple of width and height."""
         return self.width, self.height
 
-    def maps_from(
-        self, src: "Camera", neg_focal_length: bool = True
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    @property
+    def corners(self) -> List[Tuple[int, int]]:
+        """Get the tl, tr, br, bl corners as (x, y) tuples."""
+        return [
+            (0, 0),
+            (self.width, 0),
+            (self.width, self.height),
+            (0, self.height),
+        ]
+
+    def flip_rpy(self, axis: Literal["x", "y", "z"] = "z") -> None:
+        """Flip the camera rotation around the z-axis."""
+        rotation_matrix = R.from_euler(
+            "zxy", [self.roll, self.pitch, self.yaw], degrees=True
+        ).as_matrix()
+        flip = R.from_euler(axis, 180, degrees=True).as_matrix()
+        R_prime = flip @ rotation_matrix @ flip
+
+        # convert back to euler angles
+        self.roll, self.pitch, self.yaw = (
+            R.from_matrix(R_prime).as_euler("zxy", degrees=True).tolist()
+        )
+
+    def flip_focal_lengths(self) -> None:
+        """Flip the camera focal lengths."""
+        self.fx = -self.fx
+        self.fy = -self.fy
+
+    def maps_from(self, src: "Camera") -> Tuple[np.ndarray, np.ndarray]:
         """Create pixel maps to warp images from source camera to this camera.
 
         Returns:
@@ -100,7 +127,7 @@ class PinholeCamera(Camera):
                 [0, self.fy, self.cy],
                 [0, 0, 1],
             ]
-        )
+        ).astype(np.float32)
 
     @property
     def R(self) -> np.ndarray:
@@ -111,16 +138,23 @@ class PinholeCamera(Camera):
         - y is down
         - z is forward
         """
-        return R.from_euler(
-            "zxy", [self.roll, self.pitch, self.yaw], degrees=True
-        ).as_matrix()
+        return (
+            R.from_euler("zxy", [self.roll, self.pitch, self.yaw], degrees=True)
+            .as_matrix()
+            .astype(np.float32)
+        )
+
+    @property
+    def scale(self) -> float:
+        """Get the camera scale factor."""
+        return (self.fx + self.fy) / 2
 
     def crop(
         self,
-        left: float,
         top: float,
-        right: float,
         bottom: float,
+        left: float,
+        right: float,
         force_even: bool = True,
     ) -> "PinholeCamera":
         """Return a new PinholeCamera cropped by margins (left, top, right, bottom)."""
@@ -162,7 +196,7 @@ class PinholeCamera(Camera):
             fx=(left.fx + right.fx) / 2,
             fy=(left.fy + right.fy) / 2,
             cx=left.width + (right.cx - left.cx) / 2,  # Shift principal point
-            cy=(left.height - 1) / 2,
+            cy=(left.cy + right.cy) / 2,
             roll=0.0,
             pitch=(left.pitch + right.pitch) / 2,
             yaw=0.0,
@@ -190,38 +224,22 @@ class PinholeCamera(Camera):
     def compute_homography_to(
         self,
         target: "PinholeCamera",
-        neg_focal_length: bool = True,
     ) -> np.ndarray:
         """Compute homography matrix that maps points from this camera to target camera.
 
         Args:
             target: Target camera to compute homography to
-            neg_focal_length: Whether to negate the focal length
 
         Returns:
             Homography matrix that transforms points from this camera to target camera
         """
-        # Get camera matrices
-        R_source = self.R
-        R_target = target.R
-        K_source = self.K
-        K_target = target.K
-
-        if neg_focal_length:
-            K_source = self.K @ np.diag([-1.0, -1.0, 1.0])
-            K_target = target.K @ np.diag([-1.0, -1.0, 1.0])
-
-        # Compute the homography matrix
-        H = K_target @ np.linalg.inv(R_target) @ R_source @ np.linalg.inv(K_source)
+        H = target.K @ np.linalg.inv(target.R) @ self.R @ np.linalg.inv(self.K)
         return H
 
-    def maps_from(
-        self, src: "PinholeCamera", neg_focal_length: bool = True
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def maps_from(self, src: "PinholeCamera") -> Tuple[np.ndarray, np.ndarray]:
         """Create remapping maps from source camera to this camera."""
-        # src -> self homography (3x3)
-        H = src.compute_homography_to(self, neg_focal_length).astype(np.float32)
-        Hinv = np.linalg.inv(H).astype(np.float32)  # we need dst(self)->src map
+        # self -> src homography (3x3)
+        H = self.compute_homography_to(src).astype(np.float32)
 
         # Meshgrid of target pixel centers (x right, y down)
         xs, ys = np.meshgrid(
@@ -233,7 +251,7 @@ class PinholeCamera(Camera):
         # Homogeneous coords in target → map back into source
         ones = np.ones_like(xs, dtype=np.float32)
         dst_h = np.stack((xs, ys, ones), axis=-1)  # (H,W,3)
-        src_h = dst_h @ Hinv.T  # (H,W,3)
+        src_h = dst_h @ H.T  # (H,W,3)
         src_h[..., 2] = np.clip(src_h[..., 2], 1e-8, None)
 
         uv = src_h[..., :2] / src_h[..., 2:3]  # (H,W,2)
@@ -261,13 +279,13 @@ class EquirectangularCamera(Camera):
         - y is down
         - z is forward
         """
-        return R.from_euler(
-            "zxy", [self.roll, self.pitch, self.yaw], degrees=True
-        ).as_matrix()
+        return (
+            R.from_euler("zxy", [self.roll, self.pitch, self.yaw], degrees=True)
+            .as_matrix()
+            .astype(np.float32)
+        )
 
-    def maps_from(
-        self, src: "PinholeCamera", neg_focal_length: bool = True
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def maps_from(self, src: "PinholeCamera") -> Tuple[np.ndarray, np.ndarray]:
         """Create remapping matching the simple angular implementation.
 
         WARNING: This ignores proper camera geometry (R, K matrices).
