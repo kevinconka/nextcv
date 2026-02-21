@@ -6,7 +6,7 @@
     "anysphere.cursorpyright",
     "llvm-vs-code-extensions.vscode-clangd",
     "xaver.clang-format",
-    "ms-vscode.cmake-tools"
+    "mesonbuild.mesonbuild"
   ],
   "unwantedRecommendations": []
 }

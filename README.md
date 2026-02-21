@@ -9,7 +9,7 @@
 <div align="center">
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![C++17](https://img.shields.io/badge/C++-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![Build Status](https://github.com/kevinconka/nextcv/workflows/CI/badge.svg)](https://github.com/kevinconka/nextcv/actions)
 
@@ -76,11 +76,13 @@ Fingers' crossed, the C++ version is significantly faster. 🎯
 
 ```bash
 # Ubuntu/Debian
-sudo apt-get install libeigen3-dev cmake
+sudo apt-get install libeigen3-dev
 
 # MacOS
-brew install eigen cmake
+brew install eigen
 ```
+
+Meson and Ninja are installed automatically by `uv`/`pip` through build dependencies.
 
 ### Installation 📦
 
@@ -100,29 +102,17 @@ uv run python -c "import nextcv; print(nextcv.__version__)"
 
 ### Building from source 🔨
 
-This project uses a dual-configuration approach to support both modern development and legacy compatibility:
-
-- **Modern builds** (Python 3.9+): Uses `scikit-build-core` with `pyproject.toml`
-- **Legacy builds** (Python 3.6...3.8): Uses `scikit-build` with `pyproject.legacy.toml` + `setup.py`
+This project uses `meson-python` with Meson for building C++ bindings.
 
 **For development:**
 
 ```bash
-# create a virtual environment
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-
-# or let uv handle it for you
+# install dependencies + editable package
 uv sync
-```
 
-**For legacy builds (Python 3.6...3.8):**
-
-```bash
-# Copy legacy config and build
-cp pyproject.legacy.toml pyproject.toml
-pip install -e .
+# configure and compile C++ extension manually (optional)
+uv run meson setup build
+uv run meson compile -C build
 ```
 
 ### Contributing 🤝

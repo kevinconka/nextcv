@@ -4,5 +4,5 @@
 *[GPU]: Graphics Processing Unit
 *[NMS]: Non-Maximum Suppression
 *[pybind11]: Python C++ binding library
-*[scikit-build-core]: Modern Python build backend
+*[meson-python]: Python build backend based on Meson
 *[uv]: Fast Python package manager

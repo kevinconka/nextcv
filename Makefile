@@ -1,7 +1,6 @@
 # Makefile for NextCV, intended for C++ related development
 
 .DEFAULT_GOAL := help
-PRESET := uv-env
 
 # Common paths and patterns
 SRC_DIR := nextcv/_cpp/src
@@ -35,9 +34,13 @@ deps-clang: ## Check for clang-tidy and clang-format
 # Build and clean
 .PHONY: build
 build: ## Configure and build the project
-	@command -v cmake >/dev/null || (echo "❌ cmake not found" && echo "   Install: macOS → brew install cmake | Linux → apt install cmake" && exit 1)
-	cmake --preset $(PRESET)
-	cmake --build --preset $(PRESET)
+	@command -v uv >/dev/null || (echo "❌ uv not found" && echo "   Install: https://docs.astral.sh/uv/getting-started/installation/" && exit 1)
+	@if [ -d "$(BUILD_DIR)" ]; then \
+		uv run meson setup $(BUILD_DIR) --reconfigure; \
+	else \
+		uv run meson setup $(BUILD_DIR); \
+	fi
+	uv run meson compile -C $(BUILD_DIR)
 
 .PHONY: clean
 clean: ## Remove build directory
@@ -87,6 +90,6 @@ stubs: clean ## Generate Python stubs for the C++ module
 	@echo "Syncing environment..."
 	@uv sync --reinstall
 	@echo "Generating stubs for C++ module..."
-	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
+	@uv run pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
 	@echo "Running ruff-fix-unsafe after stub generation..."
 	@$(MAKE) ruff-fix-unsafe # Call the ruff-fix-unsafe target

@@ -13,38 +13,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # - python-version: "3.6"
-          #   legacy: true
-          - python-version: "3.8"
-            legacy: true
-          - python-version: "3.10"
-            legacy: false
+        python-version: ["3.10", "3.12"]
 
     runs-on: ubuntu-24.04-arm
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+      - name: Set up uv + Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install system dependencies
         run: |
-          sudo apt-get install -y libeigen3-dev cmake
-
-      - name: Setup build configuration
-        if: matrix.legacy == true
-        run: |
-          echo "🐧 Setting up legacy build for Python ${{ matrix.python-version }} compatibility..."
-          cp pyproject.legacy.toml pyproject.toml
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
 
       - name: Build package
         run: |
-          echo "Building with pip wheel..."
-          pip3 wheel --no-deps -w dist .
+          echo "Building wheel with uv..."
+          uv build --wheel --out-dir dist
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v5

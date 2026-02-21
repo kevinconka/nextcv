@@ -7,14 +7,16 @@ This guide will walk you through installing NextCV and running your first perfor
 === "Linux"
 
     ```bash
-    sudo apt-get install libeigen3-dev cmake
+    sudo apt-get install libeigen3-dev
     ```
 
 === "macOS"
 
     ```bash
-    brew install eigen cmake
+    brew install eigen
     ```
+
+Meson and Ninja are installed automatically through Python build dependencies.
 
 ## 2. Installation
 

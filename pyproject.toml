@@ -1,16 +1,16 @@
 [build-system]
-requires = ["scikit-build-core>=0.10", "pybind11>=2.10", "setuptools-scm<=8"]
-build-backend = "scikit_build_core.build"
+requires = ["meson-python", "meson", "ninja", "pybind11>=2.10"]
+build-backend = "mesonpy"
 
 [project]
 name = "nextcv"
-dynamic = ["version"] # <-- let setuptools-scm derive version
+dynamic = ["version"] # provided by meson-python from meson.build
 description = "Python-first computer vision library with C++ bdingings for speed."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Kevin Serrano", email = "kserranov@gmail.com" }]
-keywords = ["computer-vision", "cpp", "pybind11", "scikit-build-core"]
+keywords = ["computer-vision", "cpp", "pybind11", "meson-python"]
 classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python",
@@ -30,6 +30,9 @@ dependencies = [
 dev = [
   "pre-commit",
   "pybind11>=2.10",
+  "meson",
+  "meson-python",
+  "ninja",
   "pytest>=7",
   "pytest-cov>=4.0",
   "ipykernel",
@@ -56,21 +59,6 @@ docs = [
 [project.urls]
 Repository = "https://github.com/kevinconka/nextcv.git"
 Issues = "https://github.com/kevinconka/nextcv/issues"
-
-# scikit-build-core configuration
-# Reference: https://scikit-build-core.readthedocs.io/en/latest/configuration/
-[tool.scikit-build]
-wheel.packages = ["nextcv"]
-cmake.version = ">=3.20"
-build-dir = "build"
-metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
-cmake.args = ["-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
-
-# setuptools_scm configuration
-# https://setuptools-scm.readthedocs.io/en/latest/config/
-[tool.setuptools_scm]
-version_scheme = "guess-next-dev"
-local_scheme = "no-local-version"
 
 # pytest configuration
 [tool.pytest.ini_options]

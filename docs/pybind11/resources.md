@@ -13,9 +13,9 @@ Essential resources for mastering Python-C++ bindings and computer vision develo
 - **[NumPy C API](https://numpy.org/doc/stable/reference/c-api/)** - NumPy array handling
 - **[NumPy Array Interface](https://numpy.org/doc/stable/reference/arrays.interface.html)** - Understanding NumPy arrays
 
-### CMake
-- **[CMake Documentation](https://cmake.org/documentation/)** - Build system reference
-- **[Modern CMake](https://cliutils.gitlab.io/modern-cmake/)** - Modern CMake techniques
+### Meson
+- **[Meson Documentation](https://mesonbuild.com/)** - Build system reference
+- **[meson-python Documentation](https://meson-python.readthedocs.io/)** - Python packaging backend for Meson
 
 ## Learning Resources
 
@@ -46,7 +46,7 @@ Essential resources for mastering Python-C++ bindings and computer vision develo
 ### Development Tools
 - **[Visual Studio Code](https://code.visualstudio.com/)** - Great Python/C++ IDE
 - **[CLion](https://www.jetbrains.com/clion/)** - Professional C++ IDE
-- **[CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)** - VS Code CMake extension
+- **[Meson Build](https://marketplace.visualstudio.com/items?itemName=mesonbuild.mesonbuild)** - VS Code Meson extension
 
 ### Testing & Debugging
 - **[pytest](https://docs.pytest.org/)** - Python testing framework
