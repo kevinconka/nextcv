@@ -54,8 +54,22 @@ if pybind11_include == ''
   error('Unable to resolve pybind11 include path from Python.')
 endif
 
+# Cache pybind11 headers in the Meson build directory so editable rebuilds
+# do not rely on temporary PEP 517 build environments.
+pybind11_header_cache = join_paths(meson.current_build_dir(), 'pybind11-include')
+run_command(
+  py,
+  [
+    '-c',
+    'import pathlib, shutil, sys; src = pathlib.Path(sys.argv[1]); dst = pathlib.Path(sys.argv[2]); shutil.rmtree(dst, ignore_errors=True); shutil.copytree(src, dst)',
+    pybind11_include,
+    pybind11_header_cache,
+  ],
+  check: true,
+)
+
 pybind11_dep = declare_dependency(
-  include_directories: include_directories(pybind11_include),
+  compile_args: ['-I' + pybind11_header_cache],
 )
 
 subdir('nextcv/_cpp/src')

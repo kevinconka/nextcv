@@ -61,11 +61,11 @@ jobs:
             python-version: "3.10"
             setup-deps: |
               sudo apt-get update
-              sudo apt-get install -y libeigen3-dev
+              sudo apt-get install -y libeigen3-dev ninja-build
           - os: macos-latest
             python-version: "3.10"
             setup-deps: |
-              brew install eigen
+              brew install eigen ninja
     runs-on: ${{ matrix.os }}
     if: ${{ needs.changed-files.outputs.python != '' || needs.changed-files.outputs.cpp != '' }}
     timeout-minutes: 15

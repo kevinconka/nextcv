@@ -76,13 +76,13 @@ Fingers' crossed, the C++ version is significantly faster. 🎯
 
 ```bash
 # Ubuntu/Debian
-sudo apt-get install libeigen3-dev
+sudo apt-get install libeigen3-dev ninja-build
 
 # MacOS
-brew install eigen
+brew install eigen ninja
 ```
 
-Meson and Ninja are installed automatically by `uv`/`pip` through build dependencies.
+`uv sync` installs Meson tooling in the project virtual environment.
 
 ### Installation 📦
 

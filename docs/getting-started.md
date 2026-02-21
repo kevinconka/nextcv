@@ -7,16 +7,16 @@ This guide will walk you through installing NextCV and running your first perfor
 === "Linux"
 
     ```bash
-    sudo apt-get install libeigen3-dev
+    sudo apt-get install libeigen3-dev ninja-build
     ```
 
 === "macOS"
 
     ```bash
-    brew install eigen
+    brew install eigen ninja
     ```
 
-Meson and Ninja are installed automatically through Python build dependencies.
+`uv sync` installs Meson tooling in the project virtual environment.
 
 ## 2. Installation
 
