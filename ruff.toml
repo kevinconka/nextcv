@@ -71,6 +71,12 @@ preview = true
   "PLR2004", # Ignore magic numbers in tests
   "PLR6301", # Method could be a function, class method, or static method
 ]
+"nextcv/_cpp/nextcv_py/*.pyi" = [
+  "D200", # Generated stubs use multi-line docstring layout
+  "D212", # Generated stubs put summary on second line
+  "D415", # Generated stubs omit terminal punctuation in summary
+  "I001", # Generated stubs may not follow isort grouping
+]
 "*.ipynb" = [
   "I",       # Ignore import-related errors in notebooks
   "PLR2004", # Ignore magic numbers in notebooks
