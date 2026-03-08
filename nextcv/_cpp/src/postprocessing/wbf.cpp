@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <numeric>
 #include <stdexcept>
 #include <string>
@@ -28,11 +29,11 @@ constexpr std::size_t default_overall_boxes_reserve = 128U;
 using BoxData =
     std::array<float, box_data_size>; // [label, score, weight, model_idx, x1, y1, x2, y2]
 
-enum class ConfidenceType {
-    avg,
-    max,
-    box_and_model_avg,
-    absent_model_aware_avg,
+enum class ConfidenceType : std::uint8_t {
+    AVG,
+    MAX,
+    BOX_AND_MODEL_AVG,
+    ABSENT_MODEL_AWARE_AVG,
 };
 
 auto clamp01(float value) -> float {
@@ -41,16 +42,16 @@ auto clamp01(float value) -> float {
 
 auto parseConfidenceType(const std::string& conf_type) -> ConfidenceType {
     if (conf_type == "avg") {
-        return ConfidenceType::avg;
+        return ConfidenceType::AVG;
     }
     if (conf_type == "max") {
-        return ConfidenceType::max;
+        return ConfidenceType::MAX;
     }
     if (conf_type == "box_and_model_avg") {
-        return ConfidenceType::box_and_model_avg;
+        return ConfidenceType::BOX_AND_MODEL_AVG;
     }
     if (conf_type == "absent_model_aware_avg") {
-        return ConfidenceType::absent_model_aware_avg;
+        return ConfidenceType::ABSENT_MODEL_AWARE_AVG;
     }
     throw std::invalid_argument(
         "conf_type must be one of: avg, max, box_and_model_avg, absent_model_aware_avg.");
@@ -178,12 +179,12 @@ auto getWeightedBox(const std::vector<BoxData>& boxes, ConfidenceType conf_type)
 
     weighted[label_index] = boxes.front()[label_index];
     switch (conf_type) {
-    case ConfidenceType::avg:
-    case ConfidenceType::box_and_model_avg:
-    case ConfidenceType::absent_model_aware_avg:
+    case ConfidenceType::AVG:
+    case ConfidenceType::BOX_AND_MODEL_AVG:
+    case ConfidenceType::ABSENT_MODEL_AWARE_AVG:
         weighted[score_index] = conf_sum / static_cast<float>(boxes.size());
         break;
-    case ConfidenceType::max:
+    case ConfidenceType::MAX:
         weighted[score_index] = max_conf;
         break;
     }
@@ -235,13 +236,13 @@ auto adjustClusterScore(BoxData& fused, const std::vector<BoxData>& cluster,
                         const std::vector<float>& effective_weights,
                         const WeightStats& weight_stats, ConfidenceType conf_type,
                         bool allows_overflow) -> void {
-    if (conf_type == ConfidenceType::box_and_model_avg) {
+    if (conf_type == ConfidenceType::BOX_AND_MODEL_AVG) {
         fused[score_index] =
             fused[score_index] * static_cast<float>(cluster.size()) / fused[weight_index];
         std::vector<bool> model_present(effective_weights.size(), false);
         float unique_weight_sum = 0.0F;
         for (const auto& item : cluster) {
-            const std::size_t model_idx = static_cast<std::size_t>(item[model_index]);
+            const auto model_idx = static_cast<std::size_t>(item[model_index]);
             if (!model_present[model_idx]) {
                 model_present[model_idx] = true;
                 unique_weight_sum += effective_weights[model_idx];
@@ -251,7 +252,7 @@ auto adjustClusterScore(BoxData& fused, const std::vector<BoxData>& cluster,
         return;
     }
 
-    if (conf_type == ConfidenceType::absent_model_aware_avg) {
+    if (conf_type == ConfidenceType::ABSENT_MODEL_AWARE_AVG) {
         std::vector<bool> model_present(effective_weights.size(), false);
         for (const auto& item : cluster) {
             model_present[static_cast<std::size_t>(item[model_index])] = true;
@@ -267,7 +268,7 @@ auto adjustClusterScore(BoxData& fused, const std::vector<BoxData>& cluster,
         return;
     }
 
-    if (conf_type == ConfidenceType::max) {
+    if (conf_type == ConfidenceType::MAX) {
         fused[score_index] /= weight_stats.max;
         return;
     }
