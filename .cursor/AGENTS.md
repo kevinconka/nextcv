@@ -25,6 +25,7 @@ The following must be installed before `uv sync` will succeed (already present i
 
 ### Gotchas
 
+- Pre-commit hooks must be installed after cloning: `git config --unset-all core.hooksPath` (if set), then `uvx pre-commit install`.
 - `ruff` is not a direct project dependency; use `uvx ruff` (not `uv run ruff`).
 - Pre-existing ruff naming warnings (N80x) are intentional — mathematical variable names (`A`, `K`, `R`) follow CV/linear algebra conventions.
 - The Makefile `build` target may fail to locate ninja from within the uv-managed venv. Work around by passing `-DCMAKE_MAKE_PROGRAM=$(which ninja)` explicitly to `cmake --preset uv-env`.
