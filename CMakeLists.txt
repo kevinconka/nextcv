@@ -18,8 +18,8 @@ project(NextCV
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
-# Set C++ standard globally (will be overridden by target_compile_features)
-set(CMAKE_CXX_STANDARD 17)
+# Set C++ standard globally (aligned with target_compile_features)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
