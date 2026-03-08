@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from ensemble_boxes import weighted_boxes_fusion as _weighted_boxes_fusion_np
+from ensemble_boxes import weighted_boxes_fusion
 
 from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
 from nextcv._cpp.nextcv_py.postprocessing import (
@@ -98,7 +98,7 @@ def wbf_np(
     skip_box_thr = float(kwargs.get("skip_box_thr", 0.0))
     conf_type = str(kwargs.get("conf_type", "avg"))
     allows_overflow = bool(kwargs.get("allows_overflow", False))
-    boxes, scores, labels = _weighted_boxes_fusion_np(
+    boxes, scores, labels = weighted_boxes_fusion(
         boxes_list,
         scores_list,
         labels_list,
@@ -109,10 +109,6 @@ def wbf_np(
         allows_overflow=allows_overflow,
     )
     return _normalize_wbf_outputs(boxes, scores, labels)
-
-
-# Backward-compatible alias.
-weighted_boxes_fusion_cpp = wbf_cpp
 
 
 def iou_np(

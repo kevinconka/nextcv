@@ -143,7 +143,7 @@ def test_nms_large_dataset(n_boxes: int, threshold: float):
     assert 0 < len(result_np) <= n_boxes, "Result count seems unreasonable"
 
 
-def test_weighted_boxes_fusion_cpp_basic_fusion():
+def test_wbf_cpp_basic_fusion():
     """Test deterministic WBF fusion result against expected values."""
     boxes_list = [
         np.array([[0.10, 0.10, 0.40, 0.40]], dtype=np.float32),
@@ -158,7 +158,7 @@ def test_weighted_boxes_fusion_cpp_basic_fusion():
         np.array([1], dtype=np.int32),
     ]
 
-    boxes, scores, labels = pp.weighted_boxes_fusion_cpp(
+    boxes, scores, labels = pp.wbf_cpp(
         boxes_list,
         scores_list,
         labels_list,
@@ -184,7 +184,7 @@ def test_weighted_boxes_fusion_cpp_basic_fusion():
     )
 
 
-def test_weighted_boxes_fusion_cpp_skip_threshold():
+def test_wbf_cpp_skip_threshold():
     """Test that skip_box_thr removes low-confidence boxes."""
     boxes_list = [
         np.array([[0.10, 0.10, 0.40, 0.40]], dtype=np.float32),
@@ -199,7 +199,7 @@ def test_weighted_boxes_fusion_cpp_skip_threshold():
         np.array([0], dtype=np.int32),
     ]
 
-    boxes, scores, labels = pp.weighted_boxes_fusion_cpp(
+    boxes, scores, labels = pp.wbf_cpp(
         boxes_list, scores_list, labels_list, skip_box_thr=0.3
     )
 
@@ -208,7 +208,7 @@ def test_weighted_boxes_fusion_cpp_skip_threshold():
     assert labels.shape == (0,)
 
 
-def test_weighted_boxes_fusion_cpp_conf_type_max():
+def test_wbf_cpp_conf_type_max():
     """Test `max` confidence mode matches reference confidence scaling."""
     boxes_list = [
         np.array([[0.20, 0.20, 0.50, 0.50]], dtype=np.float32),
@@ -223,7 +223,7 @@ def test_weighted_boxes_fusion_cpp_conf_type_max():
         np.array([2], dtype=np.int32),
     ]
 
-    _, scores, labels = pp.weighted_boxes_fusion_cpp(
+    _, scores, labels = pp.wbf_cpp(
         boxes_list,
         scores_list,
         labels_list,
@@ -237,29 +237,14 @@ def test_weighted_boxes_fusion_cpp_conf_type_max():
     )
 
 
-def test_weighted_boxes_fusion_cpp_invalid_conf_type():
+def test_wbf_cpp_invalid_conf_type():
     """Test invalid conf_type raises ValueError."""
     boxes_list = [np.array([[0.10, 0.10, 0.40, 0.40]], dtype=np.float32)]
     scores_list = [np.array([0.90], dtype=np.float32)]
     labels_list = [np.array([1], dtype=np.int32)]
 
     with pytest.raises(ValueError):
-        pp.weighted_boxes_fusion_cpp(
-            boxes_list, scores_list, labels_list, conf_type="unsupported"
-        )
-
-
-def test_wbf_cpp_alias_matches_weighted_boxes_fusion_cpp():
-    """Test short API alias `wbf_cpp` matches compatibility alias."""
-    boxes_list = [np.array([[0.10, 0.10, 0.40, 0.40]], dtype=np.float32)]
-    scores_list = [np.array([0.90], dtype=np.float32)]
-    labels_list = [np.array([1], dtype=np.int32)]
-
-    result_short = pp.wbf_cpp(boxes_list, scores_list, labels_list)
-    result_long = pp.weighted_boxes_fusion_cpp(boxes_list, scores_list, labels_list)
-
-    for out_short, out_long in zip(result_short, result_long, strict=True):
-        np.testing.assert_array_equal(out_short, out_long)
+        pp.wbf_cpp(boxes_list, scores_list, labels_list, conf_type="unsupported")
 
 
 def test_wbf_cpp_matches_wbf_np_reference_implementation():
