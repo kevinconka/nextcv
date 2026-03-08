@@ -303,12 +303,12 @@ auto sortByScoreDesc(const std::vector<BoxData>& boxes) -> std::vector<BoxData> 
 
 } // namespace
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto weightedBoxesFusion(const std::vector<ModelBoxes>& boxes_list,
                          const std::vector<ModelScores>& scores_list,
                          const std::vector<ModelLabels>& labels_list,
                          const std::vector<float>& weights, float iou_thr, float skip_box_thr,
-                         const std::string& conf_type, bool allows_overflow)
+                         const std::string& conf_type,
+                         bool allows_overflow) // NOLINT(bugprone-easily-swappable-parameters)
     -> std::tuple<ModelBoxes, ModelScores, ModelLabels> {
     if (boxes_list.size() != scores_list.size() || boxes_list.size() != labels_list.size()) {
         throw std::invalid_argument(
