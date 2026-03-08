@@ -67,8 +67,11 @@ def weighted_boxes_fusion_cpp(  # noqa: PLR0913, PLR0917
         conf_type,
         allows_overflow,
     )
+    boxes_arr = np.asarray(boxes, dtype=np.float32)
+    if boxes_arr.size == 0:
+        boxes_arr = boxes_arr.reshape(0, 4)
     return (
-        np.asarray(boxes, dtype=np.float32),
+        boxes_arr,
         np.asarray(scores, dtype=np.float32),
         np.asarray(labels, dtype=np.int32),
     )
