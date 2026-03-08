@@ -19,22 +19,23 @@ def nms(
 
 def weighted_boxes_fusion(
     boxes_list: collections.abc.Sequence[
-        typing.Annotated[numpy.typing.ArrayLike, numpy.float32, "[m, n]"]
+        collections.abc.Sequence[
+            typing.Annotated[
+                collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex],
+                "FixedSize(4)",
+            ]
+        ]
     ],
     scores_list: collections.abc.Sequence[
-        typing.Annotated[numpy.typing.ArrayLike, numpy.float32, "[m, 1]"]
+        collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]
     ],
     labels_list: collections.abc.Sequence[
-        typing.Annotated[numpy.typing.ArrayLike, numpy.int32, "[m, 1]"]
+        collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]
     ],
     weights: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex] = [],
     iou_thr: typing.SupportsFloat | typing.SupportsIndex = 0.550000011920929,
     skip_box_thr: typing.SupportsFloat | typing.SupportsIndex = 0.0,
     conf_type: str = "avg",
     allows_overflow: bool = False,
-) -> tuple[
-    typing.Annotated[numpy.typing.NDArray[numpy.float32], "[m, n]"],
-    typing.Annotated[numpy.typing.NDArray[numpy.float32], "[m, 1]"],
-    typing.Annotated[numpy.typing.NDArray[numpy.int32], "[m, 1]"],
-]:
+) -> tuple[list[typing.Annotated[list[float], "FixedSize(4)"]], list[float], list[int]]:
     """Apply Weighted Box Fusion to per-model detections."""

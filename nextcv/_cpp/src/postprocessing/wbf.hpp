@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Core>
+#include <array>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -10,6 +10,11 @@ namespace nextcv::postprocessing {
 constexpr float default_wbf_iou_threshold = 0.55F;
 constexpr float default_wbf_skip_box_threshold = 0.0F;
 constexpr const char* default_wbf_conf_type = "avg";
+
+using NormalizedBox = std::array<float, 4>;
+using ModelBoxes = std::vector<NormalizedBox>;
+using ModelScores = std::vector<float>;
+using ModelLabels = std::vector<int>;
 
 /**
  * @brief Apply Weighted Box Fusion (WBF) to model predictions.
@@ -30,11 +35,11 @@ constexpr const char* default_wbf_conf_type = "avg";
  * @return Tuple of (fused_boxes, fused_scores, fused_labels).
  */
 auto weightedBoxesFusion(
-    const std::vector<Eigen::MatrixXf>& boxes_list, const std::vector<Eigen::VectorXf>& scores_list,
-    const std::vector<Eigen::VectorXi>& labels_list, const std::vector<float>& weights = {},
+    const std::vector<ModelBoxes>& boxes_list, const std::vector<ModelScores>& scores_list,
+    const std::vector<ModelLabels>& labels_list, const std::vector<float>& weights = {},
     float iou_thr = default_wbf_iou_threshold, float skip_box_thr = default_wbf_skip_box_threshold,
     const std::string& conf_type = default_wbf_conf_type, bool allows_overflow = false)
-    -> std::tuple<Eigen::MatrixXf, Eigen::VectorXf,
-                  Eigen::VectorXi>; // NOLINT(bugprone-easily-swappable-parameters)
+    -> std::tuple<ModelBoxes, ModelScores,
+                  ModelLabels>; // NOLINT(bugprone-easily-swappable-parameters)
 
 } // namespace nextcv::postprocessing

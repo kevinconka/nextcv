@@ -52,11 +52,10 @@ auto iouXyxy(const BoxData& left, const BoxData& right) -> float {
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-auto prefilterBoxes(const std::vector<Eigen::MatrixXf>& boxes_list,
-                    const std::vector<Eigen::VectorXf>& scores_list,
-                    const std::vector<Eigen::VectorXi>& labels_list,
-                    const std::vector<float>& weights, float skip_box_thr)
-    -> std::unordered_map<int, std::vector<BoxData>> {
+auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
+                    const std::vector<ModelScores>& scores_list,
+                    const std::vector<ModelLabels>& labels_list, const std::vector<float>& weights,
+                    float skip_box_thr) -> std::unordered_map<int, std::vector<BoxData>> {
     std::unordered_map<int, std::vector<BoxData>> filtered;
 
     for (std::size_t model_idx = 0; model_idx < boxes_list.size(); ++model_idx) {
@@ -64,28 +63,26 @@ auto prefilterBoxes(const std::vector<Eigen::MatrixXf>& boxes_list,
         const auto& scores = scores_list[model_idx];
         const auto& labels = labels_list[model_idx];
 
-        if (boxes.cols() != 4) {
-            throw std::invalid_argument("Each boxes_list element must be shaped (N, 4).");
-        }
-        if (boxes.rows() != scores.size()) {
+        if (boxes.size() != scores.size()) {
             throw std::invalid_argument(
                 "Length mismatch: boxes and scores must have the same number of rows.");
         }
-        if (boxes.rows() != labels.size()) {
+        if (boxes.size() != labels.size()) {
             throw std::invalid_argument(
                 "Length mismatch: boxes and labels must have the same number of rows.");
         }
 
-        for (int row = 0; row < boxes.rows(); ++row) {
-            float score = scores(row);
+        for (std::size_t row = 0; row < boxes.size(); ++row) {
+            float score = scores[row];
             if (score < skip_box_thr) {
                 continue;
             }
 
-            float x1 = boxes(row, 0);
-            float y1 = boxes(row, 1);
-            float x2 = boxes(row, 2);
-            float y2 = boxes(row, 3);
+            const auto& box = boxes[row];
+            float x1 = box[0];
+            float y1 = box[1];
+            float x2 = box[2];
+            float y2 = box[3];
             if (x2 < x1) {
                 std::swap(x1, x2);
             }
@@ -102,7 +99,7 @@ auto prefilterBoxes(const std::vector<Eigen::MatrixXf>& boxes_list,
                 continue;
             }
 
-            int label = labels(row);
+            int label = labels[row];
             BoxData candidate = {static_cast<float>(label),
                                  score * weights[model_idx],
                                  weights[model_idx],
@@ -192,12 +189,12 @@ auto findMatchingBoxFast(const std::vector<BoxData>& weighted_boxes, const BoxDa
 } // namespace
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-auto weightedBoxesFusion(const std::vector<Eigen::MatrixXf>& boxes_list,
-                         const std::vector<Eigen::VectorXf>& scores_list,
-                         const std::vector<Eigen::VectorXi>& labels_list,
+auto weightedBoxesFusion(const std::vector<ModelBoxes>& boxes_list,
+                         const std::vector<ModelScores>& scores_list,
+                         const std::vector<ModelLabels>& labels_list,
                          const std::vector<float>& weights, float iou_thr, float skip_box_thr,
                          const std::string& conf_type, bool allows_overflow)
-    -> std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::VectorXi> {
+    -> std::tuple<ModelBoxes, ModelScores, ModelLabels> {
     if (boxes_list.size() != scores_list.size() || boxes_list.size() != labels_list.size()) {
         throw std::invalid_argument(
             "boxes_list, scores_list, and labels_list must have equal length.");
@@ -217,7 +214,7 @@ auto weightedBoxesFusion(const std::vector<Eigen::MatrixXf>& boxes_list,
     auto filtered =
         prefilterBoxes(boxes_list, scores_list, labels_list, effective_weights, skip_box_thr);
     if (filtered.empty()) {
-        return {Eigen::MatrixXf(0, 4), Eigen::VectorXf(0), Eigen::VectorXi(0)};
+        return {ModelBoxes{}, ModelScores{}, ModelLabels{}};
     }
 
     float weights_sum = 0.0F;
@@ -294,18 +291,18 @@ auto weightedBoxesFusion(const std::vector<Eigen::MatrixXf>& boxes_list,
                   return left[score_index] > right[score_index];
               });
 
-    Eigen::MatrixXf fused_boxes(static_cast<int>(overall_boxes.size()), 4);
-    Eigen::VectorXf fused_scores(static_cast<int>(overall_boxes.size()));
-    Eigen::VectorXi fused_labels(static_cast<int>(overall_boxes.size()));
+    ModelBoxes fused_boxes;
+    ModelScores fused_scores;
+    ModelLabels fused_labels;
+    fused_boxes.reserve(overall_boxes.size());
+    fused_scores.reserve(overall_boxes.size());
+    fused_labels.reserve(overall_boxes.size());
 
     for (std::size_t row = 0; row < overall_boxes.size(); ++row) {
         const auto& item = overall_boxes[row];
-        fused_scores(static_cast<int>(row)) = item[score_index];
-        fused_labels(static_cast<int>(row)) = static_cast<int>(item[label_index]);
-        fused_boxes(static_cast<int>(row), 0) = item[x1_index];
-        fused_boxes(static_cast<int>(row), 1) = item[y1_index];
-        fused_boxes(static_cast<int>(row), 2) = item[x2_index];
-        fused_boxes(static_cast<int>(row), 3) = item[y2_index];
+        fused_scores.push_back(item[score_index]);
+        fused_labels.push_back(static_cast<int>(item[label_index]));
+        fused_boxes.push_back({item[x1_index], item[y1_index], item[x2_index], item[y2_index]});
     }
 
     return {fused_boxes, fused_scores, fused_labels};

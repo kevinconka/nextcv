@@ -57,7 +57,7 @@ def weighted_boxes_fusion_cpp(  # noqa: PLR0913, PLR0917
     """
     if weights is None:
         weights = []
-    return _weighted_boxes_fusion(
+    boxes, scores, labels = _weighted_boxes_fusion(
         boxes_list,
         scores_list,
         labels_list,
@@ -66,6 +66,11 @@ def weighted_boxes_fusion_cpp(  # noqa: PLR0913, PLR0917
         skip_box_thr,
         conf_type,
         allows_overflow,
+    )
+    return (
+        np.asarray(boxes, dtype=np.float32),
+        np.asarray(scores, dtype=np.float32),
+        np.asarray(labels, dtype=np.int32),
     )
 
 
