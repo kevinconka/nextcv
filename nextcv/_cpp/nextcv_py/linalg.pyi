@@ -1,11 +1,11 @@
-"""Linear algebra utilities."""
+"""
+Linear algebra utilities
+"""
 
 from __future__ import annotations
-
-import typing
-
 import numpy
 import numpy.typing
+import typing
 
 __all__: list[str] = ["matvec"]
 
@@ -15,4 +15,6 @@ def matvec(
     ],
     vector: typing.Annotated[numpy.typing.NDArray[numpy.float32], "[m, 1]"],
 ) -> typing.Annotated[numpy.typing.NDArray[numpy.float32], "[m, 1]"]:
-    """Multiply matrix (MxN) by vector (N) → y (M). Uses Eigen."""
+    """
+    Multiply matrix (MxN) by vector (N) → y (M). Uses Eigen.
+    """
