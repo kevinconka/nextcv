@@ -34,11 +34,13 @@ using ModelLabels = std::vector<int>;
  *
  * @return Tuple of (fused_boxes, fused_scores, fused_labels).
  */
-auto weightedBoxesFusion(
-    const std::vector<ModelBoxes>& boxes_list, const std::vector<ModelScores>& scores_list,
-    const std::vector<ModelLabels>& labels_list, const std::vector<float>& weights = {},
-    float iou_thr = default_wbf_iou_threshold, float skip_box_thr = default_wbf_skip_box_threshold,
-    const std::string& conf_type = default_wbf_conf_type, bool allows_overflow = false)
+auto weightedBoxesFusion(const std::vector<ModelBoxes>& boxes_list,
+                         const std::vector<ModelScores>& scores_list,
+                         const std::vector<ModelLabels>& labels_list,
+                         const std::vector<float>& weights = {},
+                         float iou_thr = default_wbf_iou_threshold, bool allows_overflow = false,
+                         float skip_box_thr = default_wbf_skip_box_threshold,
+                         const std::string& conf_type = default_wbf_conf_type)
     -> std::tuple<ModelBoxes, ModelScores,
                   ModelLabels>; // NOLINT(bugprone-easily-swappable-parameters)
 
