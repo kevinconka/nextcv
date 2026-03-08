@@ -247,3 +247,73 @@ def test_weighted_boxes_fusion_cpp_invalid_conf_type():
         pp.weighted_boxes_fusion_cpp(
             boxes_list, scores_list, labels_list, conf_type="unsupported"
         )
+
+
+def test_wbf_cpp_alias_matches_weighted_boxes_fusion_cpp():
+    """Test short API alias `wbf_cpp` matches compatibility alias."""
+    boxes_list = [np.array([[0.10, 0.10, 0.40, 0.40]], dtype=np.float32)]
+    scores_list = [np.array([0.90], dtype=np.float32)]
+    labels_list = [np.array([1], dtype=np.int32)]
+
+    result_short = pp.wbf_cpp(boxes_list, scores_list, labels_list)
+    result_long = pp.weighted_boxes_fusion_cpp(boxes_list, scores_list, labels_list)
+
+    for out_short, out_long in zip(result_short, result_long, strict=True):
+        np.testing.assert_array_equal(out_short, out_long)
+
+
+def test_wbf_cpp_matches_wbf_np_reference_implementation():
+    """Test C++ WBF output against `ensemble_boxes` reference output."""
+    boxes_list = [
+        np.array(
+            [
+                [0.00, 0.51, 0.81, 0.91],
+                [0.10, 0.31, 0.71, 0.61],
+                [0.01, 0.32, 0.83, 0.93],
+                [0.02, 0.53, 0.11, 0.94],
+                [0.03, 0.24, 0.12, 0.35],
+            ],
+            dtype=np.float32,
+        ),
+        np.array(
+            [
+                [0.04, 0.56, 0.84, 0.92],
+                [0.12, 0.33, 0.72, 0.64],
+                [0.38, 0.66, 0.79, 0.95],
+                [0.08, 0.49, 0.21, 0.89],
+            ],
+            dtype=np.float32,
+        ),
+    ]
+    scores_list = [
+        np.array([0.9, 0.8, 0.2, 0.4, 0.7], dtype=np.float32),
+        np.array([0.5, 0.8, 0.7, 0.3], dtype=np.float32),
+    ]
+    labels_list = [
+        np.array([0, 1, 0, 1, 1], dtype=np.int32),
+        np.array([1, 1, 1, 0], dtype=np.int32),
+    ]
+
+    boxes_cpp, scores_cpp, labels_cpp = pp.wbf_cpp(
+        boxes_list,
+        scores_list,
+        labels_list,
+        weights=[2.0, 1.0],
+        iou_thr=0.5,
+        skip_box_thr=0.0001,
+    )
+    boxes_np, scores_np, labels_np = pp.wbf_np(
+        boxes_list,
+        scores_list,
+        labels_list,
+        weights=[2.0, 1.0],
+        iou_thr=0.5,
+        skip_box_thr=0.0001,
+    )
+
+    assert boxes_cpp.dtype == np.float32
+    assert scores_cpp.dtype == np.float32
+    assert labels_cpp.dtype == np.int32
+    np.testing.assert_allclose(boxes_cpp, boxes_np, rtol=1e-5, atol=1e-6)
+    np.testing.assert_allclose(scores_cpp, scores_np, rtol=1e-5, atol=1e-6)
+    np.testing.assert_array_equal(labels_cpp, labels_np)

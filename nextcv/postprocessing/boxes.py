@@ -3,6 +3,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from ensemble_boxes import weighted_boxes_fusion as _weighted_boxes_fusion_np
 
 from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
 from nextcv._cpp.nextcv_py.postprocessing import (
@@ -29,7 +30,22 @@ def nms_cpp(
     return _nms(bboxes, scores, iou_thresh)
 
 
-def weighted_boxes_fusion_cpp(  # noqa: PLR0913, PLR0917
+def _normalize_wbf_outputs(
+    boxes: "NDArray | list",
+    scores: "NDArray | list",
+    labels: "NDArray | list",
+) -> tuple["NDArray[np.float32]", "NDArray[np.float32]", "NDArray[np.int32]"]:
+    boxes_arr = np.asarray(boxes, dtype=np.float32)
+    if boxes_arr.size == 0:
+        boxes_arr = boxes_arr.reshape(0, 4)
+    return (
+        boxes_arr,
+        np.asarray(scores, dtype=np.float32),
+        np.asarray(labels, dtype=np.int32),
+    )
+
+
+def wbf_cpp(  # noqa: PLR0913, PLR0917
     boxes_list: list["NDArray"],
     scores_list: list["NDArray"],
     labels_list: list["NDArray"],
@@ -67,14 +83,36 @@ def weighted_boxes_fusion_cpp(  # noqa: PLR0913, PLR0917
         conf_type,
         allows_overflow,
     )
-    boxes_arr = np.asarray(boxes, dtype=np.float32)
-    if boxes_arr.size == 0:
-        boxes_arr = boxes_arr.reshape(0, 4)
-    return (
-        boxes_arr,
-        np.asarray(scores, dtype=np.float32),
-        np.asarray(labels, dtype=np.int32),
+    return _normalize_wbf_outputs(boxes, scores, labels)
+
+
+def wbf_np(
+    boxes_list: list["NDArray"],
+    scores_list: list["NDArray"],
+    labels_list: list["NDArray"],
+    **kwargs: object,
+) -> tuple["NDArray[np.float32]", "NDArray[np.float32]", "NDArray[np.int32]"]:
+    """Reference WBF implementation from `ensemble_boxes` package."""
+    weights = kwargs.get("weights")
+    iou_thr = float(kwargs.get("iou_thr", 0.55))
+    skip_box_thr = float(kwargs.get("skip_box_thr", 0.0))
+    conf_type = str(kwargs.get("conf_type", "avg"))
+    allows_overflow = bool(kwargs.get("allows_overflow", False))
+    boxes, scores, labels = _weighted_boxes_fusion_np(
+        boxes_list,
+        scores_list,
+        labels_list,
+        weights=weights,
+        iou_thr=iou_thr,
+        skip_box_thr=skip_box_thr,
+        conf_type=conf_type,
+        allows_overflow=allows_overflow,
     )
+    return _normalize_wbf_outputs(boxes, scores, labels)
+
+
+# Backward-compatible alias.
+weighted_boxes_fusion_cpp = wbf_cpp
 
 
 def iou_np(
