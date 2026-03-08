@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -47,7 +47,7 @@ jobs:
           pip3 wheel --no-deps -w dist .
 
       - name: Upload wheel artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: nextcv-wheel-python${{ matrix.python-version }}
           path: dist/*.whl
