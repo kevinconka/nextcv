@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -37,15 +36,16 @@ struct Box {
         };
     }
 
-    auto area() const -> float {
+    [[nodiscard]] auto area() const -> float {
         return (x2 - x1) * (y2 - y1);
     }
 
-    auto isValid() const -> bool {
+    [[nodiscard]] auto isValid() const -> bool {
         return area() > 0.0F;
     }
 
-    auto iouWith(const Box& other) const -> float { // NOLINT(bugprone-easily-swappable-parameters)
+    [[nodiscard]] auto iouWith(const Box& other) const
+        -> float { // NOLINT(bugprone-easily-swappable-parameters)
         float ix1 = std::max(x1, other.x1);
         float iy1 = std::max(y1, other.y1);
         float ix2 = std::min(x2, other.x2);
@@ -139,11 +139,10 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
                 "Length mismatch: boxes and labels must have the same number of rows.");
         }
 
-        for (std::size_t row :
-             std::views::iota(std::size_t{0}, boxes.size()) |
-                 std::views::filter([&scores, skip_box_thr](std::size_t current_row) {
-                     return scores[current_row] >= skip_box_thr;
-                 })) {
+        for (std::size_t row = 0; row < boxes.size(); ++row) {
+            if (scores[row] < skip_box_thr) {
+                continue;
+            }
             float score = scores[row];
 
             const auto& box = boxes[row];
@@ -165,9 +164,10 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
     }
 
     for (auto& [_, per_label_boxes] : boxes_by_label) {
-        std::ranges::sort(per_label_boxes, [](const CandidateBox& left, const CandidateBox& right) {
-            return left.score > right.score;
-        });
+        std::sort(per_label_boxes.begin(), per_label_boxes.end(),
+                  [](const CandidateBox& left, const CandidateBox& right) -> bool {
+                      return left.score > right.score;
+                  });
     }
 
     return boxes_by_label;
