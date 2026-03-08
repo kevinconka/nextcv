@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -47,17 +48,16 @@ auto clamp01(float value) -> float {
 }
 
 auto parseConfidenceType(std::string_view conf_type) -> ConfidenceType {
-    if (conf_type == "avg") {
-        return ConfidenceType::AVG;
-    }
-    if (conf_type == "max") {
-        return ConfidenceType::MAX;
-    }
-    if (conf_type == "box_and_model_avg") {
-        return ConfidenceType::BOX_AND_MODEL_AVG;
-    }
-    if (conf_type == "absent_model_aware_avg") {
-        return ConfidenceType::ABSENT_MODEL_AWARE_AVG;
+    static const std::unordered_map<std::string_view, ConfidenceType> conf_type_map = {
+        {"avg", ConfidenceType::AVG},
+        {"max", ConfidenceType::MAX},
+        {"box_and_model_avg", ConfidenceType::BOX_AND_MODEL_AVG},
+        {"absent_model_aware_avg", ConfidenceType::ABSENT_MODEL_AWARE_AVG},
+    };
+
+    const auto it = conf_type_map.find(conf_type);
+    if (it != conf_type_map.end()) {
+        return it->second;
     }
     throw std::invalid_argument(
         "conf_type must be one of: avg, max, box_and_model_avg, absent_model_aware_avg.");
@@ -135,11 +135,12 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
                 "Length mismatch: boxes and labels must have the same number of rows.");
         }
 
-        for (std::size_t row = 0; row < boxes.size(); ++row) {
+        auto row_indices = std::views::iota(std::size_t{0}, boxes.size()) |
+                           std::views::filter([&scores, skip_box_thr](std::size_t row) {
+                               return scores[row] >= skip_box_thr;
+                           });
+        for (std::size_t row : row_indices) {
             float score = scores[row];
-            if (score < skip_box_thr) {
-                continue;
-            }
 
             const auto& box = boxes[row];
             const Box normalized_box = normalizeBox(box[0], box[1], box[2], box[3]);
@@ -155,10 +156,9 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
     }
 
     for (auto& [_, per_label_boxes] : boxes_by_label) {
-        std::sort(per_label_boxes.begin(), per_label_boxes.end(),
-                  [](const CandidateBox& left, const CandidateBox& right) -> bool {
-                      return left.score > right.score;
-                  });
+        std::ranges::sort(per_label_boxes, [](const CandidateBox& left, const CandidateBox& right) {
+            return left.score > right.score;
+        });
     }
 
     return boxes_by_label;
@@ -245,7 +245,8 @@ auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cl
                         const WeightStats& weight_stats, ConfidenceType conf_type,
                         bool allows_overflow) // NOLINT(bugprone-easily-swappable-parameters)
     -> void {
-    if (conf_type == ConfidenceType::BOX_AND_MODEL_AVG) {
+    switch (conf_type) {
+    case ConfidenceType::BOX_AND_MODEL_AVG: {
         fused.score = fused.score * static_cast<float>(cluster.size()) / fused.weight;
         std::vector<bool> model_present(effective_weights.size(), false);
         float unique_weight_sum = 0.0F;
@@ -260,7 +261,7 @@ auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cl
         return;
     }
 
-    if (conf_type == ConfidenceType::ABSENT_MODEL_AWARE_AVG) {
+    case ConfidenceType::ABSENT_MODEL_AWARE_AVG: {
         std::vector<bool> model_present(effective_weights.size(), false);
         for (const auto& member : cluster) {
             model_present[static_cast<std::size_t>(member.model_idx)] = true;
@@ -276,16 +277,18 @@ auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cl
         return;
     }
 
-    if (conf_type == ConfidenceType::MAX) {
+    case ConfidenceType::MAX:
         fused.score /= weight_stats.max;
         return;
-    }
 
-    if (!allows_overflow) {
-        fused.score *= static_cast<float>(std::min(effective_weights.size(), cluster.size())) /
-                       weight_stats.sum;
-    } else {
-        fused.score *= static_cast<float>(cluster.size()) / weight_stats.sum;
+    case ConfidenceType::AVG:
+        if (!allows_overflow) {
+            fused.score *= static_cast<float>(std::min(effective_weights.size(), cluster.size())) /
+                           weight_stats.sum;
+        } else {
+            fused.score *= static_cast<float>(cluster.size()) / weight_stats.sum;
+        }
+        return;
     }
 }
 

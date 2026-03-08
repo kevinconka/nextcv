@@ -10,7 +10,7 @@ list(FILTER NEXTCV_SOURCES EXCLUDE REGEX "bindings/.*")
 add_library(nextcv ${NEXTCV_SOURCES})
 
 # Set modern C++ features and include directories
-target_compile_features(nextcv PUBLIC cxx_std_17)
+target_compile_features(nextcv PUBLIC cxx_std_20)
 target_include_directories(nextcv
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -45,7 +45,7 @@ if(NEXTCV_BUILD_PYTHON)
   )
 
   # Set Python module properties
-  target_compile_features(nextcv_py PRIVATE cxx_std_17)
+  target_compile_features(nextcv_py PRIVATE cxx_std_20)
   set_target_properties(nextcv_py PROPERTIES
     POSITION_INDEPENDENT_CODE ON
   )
