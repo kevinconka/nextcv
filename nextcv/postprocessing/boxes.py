@@ -82,7 +82,9 @@ def nms_np(
     x2, y2 = bboxes[..., 2], bboxes[..., 3]  # bottom right
 
     areas = (x2 - x1) * (y2 - y1)  # calculate area per bbox
-    order = np.argsort(scores)[::-1]  # sort by descending confidence
+    # Deterministic ordering: descending score, then ascending index on ties.
+    indices = np.arange(scores.size)
+    order = np.lexsort((indices, -scores))
 
     keep = np.zeros_like(scores, dtype=bool)  # which boxes (idx) to keep
 
@@ -105,4 +107,6 @@ def nms_np(
         order = order[idxs + 1]  # +1 because we removed the first element
 
     keep_indices = np.nonzero(keep)[0]
-    return keep_indices[np.argsort(scores[keep_indices])[::-1]]
+    # Match deterministic tie-breaking used for initial ordering.
+    keep_order = np.lexsort((keep_indices, -scores[keep_indices]))
+    return keep_indices[keep_order]

@@ -20,8 +20,12 @@ auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float thr
     // Sort by scores
     std::vector<int> indices(static_cast<std::size_t>(scores.size()));
     std::iota(indices.begin(), indices.end(), 0);
-    std::sort(indices.begin(), indices.end(),
-              [&](int i, int j) -> bool { return scores(i) > scores(j); });
+    std::sort(indices.begin(), indices.end(), [&](int i, int j) -> bool {
+        if (scores(i) == scores(j)) {
+            return i < j;
+        }
+        return scores(i) > scores(j);
+    });
 
     std::vector<int> keep;
     std::vector<bool> is_suppressed(static_cast<std::size_t>(scores.size()), false);

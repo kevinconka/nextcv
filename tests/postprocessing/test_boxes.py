@@ -141,3 +141,19 @@ def test_nms_large_dataset(n_boxes: int, threshold: float):
     # Results should be reasonable (at least one box, not more than total)
     assert 0 < len(result_cpp) <= n_boxes, "Result count seems unreasonable"
     assert 0 < len(result_np) <= n_boxes, "Result count seems unreasonable"
+
+
+def test_nms_identical_scores_deterministic_order():
+    """Test deterministic tie-breaking for identical confidence scores."""
+    bboxes = np.array(
+        [[10, 10, 20, 20], [30, 30, 40, 40], [50, 50, 60, 60]],
+        dtype=np.float32,
+    )
+    scores = np.array([0.9, 0.9, 0.9], dtype=np.float32)
+    expected = np.array([0, 1, 2], dtype=np.int32)
+
+    result_cpp = pp.nms_cpp(bboxes, scores, 0.5)
+    result_np = pp.nms_np(bboxes, scores, 0.5)
+
+    np.testing.assert_array_equal(result_cpp, expected)
+    np.testing.assert_array_equal(result_np, expected)
