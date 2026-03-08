@@ -88,3 +88,5 @@ stubs: clean ## Generate Python stubs for the C++ module
 	@uv sync --reinstall
 	@echo "Generating stubs for C++ module..."
 	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
+	@echo "Formatting generated stubs..."
+	@uvx ruff format nextcv/_cpp
