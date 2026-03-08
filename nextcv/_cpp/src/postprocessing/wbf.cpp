@@ -191,13 +191,13 @@ auto findMatchingBoxFast(const std::vector<BoxData>& weighted_boxes, const BoxDa
 
 } // namespace
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto weightedBoxesFusion(const std::vector<Eigen::MatrixXf>& boxes_list,
                          const std::vector<Eigen::VectorXf>& scores_list,
                          const std::vector<Eigen::VectorXi>& labels_list,
                          const std::vector<float>& weights, float iou_thr, float skip_box_thr,
                          const std::string& conf_type, bool allows_overflow)
-    -> std::tuple<Eigen::MatrixXf, Eigen::VectorXf,
-                  Eigen::VectorXi> { // NOLINT(bugprone-easily-swappable-parameters)
+    -> std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::VectorXi> {
     if (boxes_list.size() != scores_list.size() || boxes_list.size() != labels_list.size()) {
         throw std::invalid_argument(
             "boxes_list, scores_list, and labels_list must have equal length.");

@@ -88,5 +88,7 @@ stubs: clean ## Generate Python stubs for the C++ module
 	@uv sync --reinstall
 	@echo "Generating stubs for C++ module..."
 	@pybind11-stubgen nextcv._cpp.nextcv_py --output-dir .
-	@echo "Running ruff-fix-unsafe after stub generation..."
-	@$(MAKE) ruff-fix-unsafe # Call the ruff-fix-unsafe target
+	@echo "Applying lint fixes to generated stubs..."
+	@uvx ruff check nextcv/_cpp/nextcv_py --fix --unsafe-fixes --ignore E501 --exit-zero
+	@echo "Formatting generated stubs..."
+	@uvx ruff format nextcv/_cpp/nextcv_py.pyi nextcv/_cpp/nextcv_py

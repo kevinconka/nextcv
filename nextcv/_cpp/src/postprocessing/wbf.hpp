@@ -1,7 +1,6 @@
 #pragma once
 
-// Use an explicit include path that works without extra -I flags in lint contexts.
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #include <string>
 #include <tuple>
 #include <vector>

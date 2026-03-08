@@ -1,7 +1,7 @@
 # Modern CMake with automatic source discovery
 
 # Eigen (header-only)
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 REQUIRED NO_MODULE)
 
 # Create NextCV core library
 file(GLOB_RECURSE NEXTCV_SOURCES "*.cpp")
