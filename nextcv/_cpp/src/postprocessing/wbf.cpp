@@ -90,20 +90,9 @@ struct Cluster {
     std::vector<CandidateBox> members;
     CandidateBox fused;
 
-    static auto fromCandidate(const CandidateBox& candidate) -> Cluster {
-        return Cluster{
-            .members = {candidate},
-            .fused = candidate,
-        };
-    }
-
     auto add(const CandidateBox& candidate, ConfidenceType conf_type) -> void {
         members.push_back(candidate);
         fused = computeWeightedBox(members, conf_type);
-    }
-
-    auto overlapWith(const CandidateBox& candidate) const -> float {
-        return fused.box.iouWith(candidate.box);
     }
 
     auto adjustFusedScore(const std::vector<float>& effective_weights,
@@ -128,17 +117,6 @@ auto parseConfidenceType(std::string_view conf_type) -> ConfidenceType {
         "conf_type must be one of: avg, max, box_and_model_avg, absent_model_aware_avg.");
 }
 
-auto makeCandidateBox(int label, float score, float model_weight, int model_idx, const Box& box)
-    -> CandidateBox {
-    return CandidateBox{
-        .label = label,
-        .score = score * model_weight,
-        .weight = model_weight,
-        .model_idx = model_idx,
-        .box = box,
-    };
-}
-
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
                     const std::vector<ModelScores>& scores_list,
@@ -161,27 +139,28 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
                 "Length mismatch: boxes and labels must have the same number of rows.");
         }
 
-        const auto process_row = [&](std::size_t row) -> void {
+        for (std::size_t row :
+             std::views::iota(std::size_t{0}, boxes.size()) |
+                 std::views::filter([&scores, skip_box_thr](std::size_t current_row) {
+                     return scores[current_row] >= skip_box_thr;
+                 })) {
             float score = scores[row];
 
             const auto& box = boxes[row];
             const Box normalized_box = Box::fromCorners(box[0], box[1], box[2], box[3]);
             if (!normalized_box.isValid()) {
-                return;
+                continue;
             }
 
             int label = labels[row];
-            const CandidateBox candidate = makeCandidateBox(
-                label, score, weights[model_idx], static_cast<int>(model_idx), normalized_box);
+            const CandidateBox candidate = {
+                .label = label,
+                .score = score * weights[model_idx],
+                .weight = weights[model_idx],
+                .model_idx = static_cast<int>(model_idx),
+                .box = normalized_box,
+            };
             boxes_by_label[label].push_back(candidate);
-        };
-
-        auto row_indices = std::views::iota(std::size_t{0}, boxes.size()) |
-                           std::views::filter([&scores, skip_box_thr](std::size_t row) {
-                               return scores[row] >= skip_box_thr;
-                           });
-        for (std::size_t row : row_indices) {
-            process_row(row);
         }
     }
 
@@ -246,7 +225,7 @@ auto findBestMatchingCluster(const std::vector<Cluster>& clusters, const Candida
     float best_iou = iou_thr;
 
     for (std::size_t idx = 0; idx < clusters.size(); ++idx) {
-        float overlap = clusters[idx].overlapWith(candidate);
+        float overlap = clusters[idx].fused.box.iouWith(candidate.box);
         if (overlap > best_iou) {
             best_iou = overlap;
             best_idx = static_cast<int>(idx);
@@ -330,7 +309,10 @@ auto fuseLabelBoxes(const std::vector<CandidateBox>& boxes, float iou_thr,
             clusters[static_cast<std::size_t>(match_idx)].add(candidate, conf_type);
             continue;
         }
-        clusters.push_back(Cluster::fromCandidate(candidate));
+        clusters.push_back(Cluster{
+            .members = {candidate},
+            .fused = candidate,
+        });
     }
 
     for (auto& cluster : clusters) {
@@ -343,13 +325,6 @@ auto fuseLabelBoxes(const std::vector<CandidateBox>& boxes, float iou_thr,
         fused_boxes.push_back(cluster.fused);
     }
     return fused_boxes;
-}
-
-auto sortByScoreDesc(std::vector<CandidateBox>& boxes) -> void {
-    std::sort(boxes.begin(), boxes.end(),
-              [](const CandidateBox& left, const CandidateBox& right) -> bool {
-                  return left.score > right.score;
-              });
 }
 
 } // namespace
@@ -389,7 +364,10 @@ auto weightedBoxesFusion(
         fused_boxes.insert(fused_boxes.end(), fused_label_boxes.begin(), fused_label_boxes.end());
     }
 
-    sortByScoreDesc(fused_boxes);
+    std::sort(fused_boxes.begin(), fused_boxes.end(),
+              [](const CandidateBox& left, const CandidateBox& right) -> bool {
+                  return left.score > right.score;
+              });
 
     ModelBoxes output_boxes;
     ModelScores fused_scores;
