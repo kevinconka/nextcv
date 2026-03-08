@@ -17,8 +17,8 @@
 - **Run tests:** `uv run pytest`
 - **Lint (Python):** `uvx ruff check .` / `uvx ruff format --check .`
 - **Lint (C++):** `make format` / `make tidy` (requires `make build` first)
-- **Pre-commit (all hooks):** `uvx pre-commit run --all-files`
 - **Standalone CMake build:** `make build`
+- **Pre-commit** hooks run automatically on `git commit` (formatting, trailing whitespace, secrets detection, etc.). Installed via the update script.
 
 ### Gotchas
 
