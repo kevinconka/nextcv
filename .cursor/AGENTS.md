@@ -2,31 +2,29 @@
 
 ## Cursor Cloud specific instructions
 
-**NextCV** is a Python-first computer vision library with C++ extensions (pybind11 + CMake + Eigen). It is a single installable package, not a monorepo; there are no services, databases, or APIs.
+**NextCV** is a Python-first computer vision library with C++ extensions (pybind11 + CMake + Eigen). Single installable package — no services, databases, or APIs.
 
-### System dependencies
+### System dependencies (pre-installed in VM snapshot)
 
-The following must be installed before `uv sync` will succeed (already present in the VM snapshot):
-
-- `libeigen3-dev` — C++ linear algebra library required at compile time
-- `python3-dev` — Python development headers required by CMake's `FindPython3`
-- `cmake` — build system for C++ extensions (pre-installed on most systems)
-- `clang-format`, `clang-tidy` — C++ linting/formatting (used by Makefile and pre-commit)
-- `ninja-build` — required for standalone CMake builds via `make build`
+- `libeigen3-dev` — Eigen3, required at compile time
+- `python3-dev` — Python headers required by CMake's `FindPython3`
+- `cmake`, `ninja-build` — C++ build system
+- `clang-format`, `clang-tidy` — C++ linting/formatting
 
 ### Development workflow
 
 - **Install deps + build C++ extensions:** `uv sync`
-- **Run tests:** `uv run pytest` (32 tests, ~1s)
+- **Run tests:** `uv run pytest`
 - **Lint (Python):** `uvx ruff check .` / `uvx ruff format --check .`
-- **Lint (C++):** `make format` (clang-format) / `make tidy` (clang-tidy, requires `make build` first)
-- **Pre-commit:** `uvx pre-commit run --all-files`
-- **Standalone CMake build:** `make build` (uses `cmake --preset uv-env`; if ninja is not found, run `cmake --preset uv-env -DCMAKE_MAKE_PROGRAM=$(which ninja)` then `cmake --build --preset uv-env`)
+- **Lint (C++):** `make format` / `make tidy` (requires `make build` first)
+- **Pre-commit (all hooks):** `uvx pre-commit run --all-files`
+- **Standalone CMake build:** `make build`
 
 ### Gotchas
 
-- Pre-commit hooks must be installed after cloning: `git config --unset-all core.hooksPath` (if set), then `uvx pre-commit install`.
-- `ruff` is not a direct project dependency; use `uvx ruff` (not `uv run ruff`).
-- Pre-existing ruff naming warnings (N80x) are intentional — mathematical variable names (`A`, `K`, `R`) follow CV/linear algebra conventions.
-- The Makefile `build` target may fail to locate ninja from within the uv-managed venv. Work around by passing `-DCMAKE_MAKE_PROGRAM=$(which ninja)` explicitly to `cmake --preset uv-env`.
-- `uv sync` performs an editable install including C++ compilation via scikit-build-core. If C++ sources change, re-run `uv sync --reinstall` to rebuild.
+- **Pre-commit install:** run `git config --unset-all core.hooksPath` (if set), then `uvx pre-commit install`.
+- **`pre-commit-update` hook** auto-bumps hook versions on every commit. Use `SKIP=pre-commit-update git commit ...` to avoid mixing version bumps into unrelated commits.
+- **ruff** is not a direct project dependency — invoke via `uvx ruff`, not `uv run ruff`.
+- **Naming warnings (N80x)** from ruff are intentional; mathematical variable names (`A`, `K`, `R`) follow CV/linear algebra conventions. Ignore patterns are configured in `ruff.toml` under `[lint.pep8-naming]`.
+- **Ninja not found:** `make build` may fail to locate ninja inside the uv-managed venv. Fix: `cmake --preset uv-env -DCMAKE_MAKE_PROGRAM=$(which ninja)` then `cmake --build --preset uv-env`.
+- **C++ source changes** require `uv sync --reinstall` to rebuild the extensions.
