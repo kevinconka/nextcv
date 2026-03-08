@@ -9,12 +9,14 @@
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "../core/hello.hpp"
 #include "../image/invert.hpp"
 #include "../linalg/matvec.hpp"
 #include "../postprocessing/nms.hpp"
+#include "../postprocessing/wbf.hpp"
 
 namespace py = pybind11;
 
@@ -62,6 +64,24 @@ PYBIND11_MODULE(nextcv_py, module) {
     postprocessing.def("nms", &nextcv::postprocessing::nms, py::arg("bboxes"), py::arg("scores"),
                        py::arg("threshold") = nextcv::postprocessing::default_nms_threshold,
                        "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
+    const auto wbfBinding = [](const std::vector<nextcv::postprocessing::ModelBoxes>& boxes_list,
+                               const std::vector<nextcv::postprocessing::ModelScores>& scores_list,
+                               const std::vector<nextcv::postprocessing::ModelLabels>& labels_list,
+                               const std::vector<float>& weights, float iou_thr, float skip_box_thr,
+                               const std::string& conf_type, bool allows_overflow)
+        -> std::tuple<nextcv::postprocessing::ModelBoxes, nextcv::postprocessing::ModelScores,
+                      nextcv::postprocessing::ModelLabels> {
+        return nextcv::postprocessing::weightedBoxesFusion(boxes_list, scores_list, labels_list,
+                                                           weights, iou_thr, allows_overflow,
+                                                           skip_box_thr, conf_type);
+    };
+    postprocessing.def(
+        "wbf", wbfBinding, py::arg("boxes_list"), py::arg("scores_list"), py::arg("labels_list"),
+        py::arg("weights") = std::vector<float>{},
+        py::arg("iou_thr") = nextcv::postprocessing::default_wbf_iou_threshold,
+        py::arg("skip_box_thr") = nextcv::postprocessing::default_wbf_skip_box_threshold,
+        py::arg("conf_type") = std::string(nextcv::postprocessing::default_wbf_conf_type),
+        py::arg("allows_overflow") = false, "Apply Weighted Box Fusion to per-model detections");
 
     // Linear algebra submodule
     auto linalg = module.def_submodule("linalg", "Linear algebra utilities");

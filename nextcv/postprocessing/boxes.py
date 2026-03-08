@@ -3,8 +3,10 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from ensemble_boxes import weighted_boxes_fusion
 
 from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
+from nextcv._cpp.nextcv_py.postprocessing import wbf as _wbf
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -24,6 +26,87 @@ def nms_cpp(
         iou_thresh: The threshold for intersection over union.
     """
     return _nms(bboxes, scores, iou_thresh)
+
+
+def _normalize_wbf_outputs(
+    boxes: "NDArray | list",
+    scores: "NDArray | list",
+    labels: "NDArray | list",
+) -> tuple["NDArray[np.float32]", "NDArray[np.float32]", "NDArray[np.int32]"]:
+    boxes_arr = np.asarray(boxes, dtype=np.float32)
+    if boxes_arr.size == 0:
+        boxes_arr = boxes_arr.reshape(0, 4)
+    return (
+        boxes_arr,
+        np.asarray(scores, dtype=np.float32),
+        np.asarray(labels, dtype=np.int32),
+    )
+
+
+def wbf_cpp(  # noqa: PLR0913, PLR0917
+    boxes_list: list["NDArray"],
+    scores_list: list["NDArray"],
+    labels_list: list["NDArray"],
+    weights: "list[float] | None" = None,
+    iou_thr: float = 0.55,
+    skip_box_thr: float = 0.0,
+    conf_type: str = "avg",
+    allows_overflow: bool = False,
+) -> tuple["NDArray[np.float32]", "NDArray[np.float32]", "NDArray[np.int32]"]:
+    """Fuse detections from multiple models using Weighted Box Fusion (WBF).
+
+    Args:
+        boxes_list: Per-model boxes with shape (N_i, 4) in normalized xyxy format.
+        scores_list: Per-model confidence scores with shape (N_i,).
+        labels_list: Per-model integer labels with shape (N_i,).
+        weights: Optional per-model weights. Defaults to equal weights.
+        iou_thr: IoU threshold for clustering boxes into the same fused box.
+        skip_box_thr: Drop boxes with score lower than this threshold.
+        conf_type: Confidence mode. One of:
+            "avg", "max", "box_and_model_avg", "absent_model_aware_avg".
+        allows_overflow: If True, confidence can exceed 1.0 for avg mode.
+
+    Returns:
+        Tuple of (fused_boxes, fused_scores, fused_labels).
+    """
+    if weights is None:
+        weights = []
+    boxes, scores, labels = _wbf(
+        boxes_list,
+        scores_list,
+        labels_list,
+        weights,
+        iou_thr,
+        skip_box_thr,
+        conf_type,
+        allows_overflow,
+    )
+    return _normalize_wbf_outputs(boxes, scores, labels)
+
+
+def wbf_np(
+    boxes_list: list["NDArray"],
+    scores_list: list["NDArray"],
+    labels_list: list["NDArray"],
+    **kwargs: object,
+) -> tuple["NDArray[np.float32]", "NDArray[np.float32]", "NDArray[np.int32]"]:
+    """Reference WBF implementation from `ensemble_boxes` package."""
+    weights = kwargs.get("weights")
+    iou_thr = float(kwargs.get("iou_thr", 0.55))
+    skip_box_thr = float(kwargs.get("skip_box_thr", 0.0))
+    conf_type = str(kwargs.get("conf_type", "avg"))
+    allows_overflow = bool(kwargs.get("allows_overflow", False))
+    boxes, scores, labels = weighted_boxes_fusion(
+        boxes_list,
+        scores_list,
+        labels_list,
+        weights=weights,
+        iou_thr=iou_thr,
+        skip_box_thr=skip_box_thr,
+        conf_type=conf_type,
+        allows_overflow=allows_overflow,
+    )
+    return _normalize_wbf_outputs(boxes, scores, labels)
 
 
 def iou_np(
