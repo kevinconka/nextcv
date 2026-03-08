@@ -3,10 +3,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <numeric>
-#include <vector>
+#include <vector> // NOLINT(misc-include-cleaner)
 
 namespace nextcv::postprocessing {
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto nms(const Eigen::MatrixXf& bboxes, const Eigen::VectorXf& scores, float threshold)
     -> Eigen::VectorXi {
     if (bboxes.rows() == 0) {
