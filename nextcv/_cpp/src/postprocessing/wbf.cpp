@@ -3,27 +3,13 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
-
-#if defined(__cplusplus) && (__cplusplus >= 202002L)
-#if defined(__has_include)
-#if __has_include(<ranges>)
-#include <ranges>
-#define NEXTCV_HAS_RANGES 1
-#else
-#define NEXTCV_HAS_RANGES 0
-#endif
-#else
-#define NEXTCV_HAS_RANGES 0
-#endif
-#else
-#define NEXTCV_HAS_RANGES 0
-#endif
 
 namespace nextcv::postprocessing {
 namespace {
@@ -164,7 +150,6 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
             boxes_by_label[label].push_back(candidate);
         };
 
-#if NEXTCV_HAS_RANGES
         auto row_indices = std::views::iota(std::size_t{0}, boxes.size()) |
                            std::views::filter([&scores, skip_box_thr](std::size_t row) {
                                return scores[row] >= skip_box_thr;
@@ -172,27 +157,12 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
         for (std::size_t row : row_indices) {
             process_row(row);
         }
-#else
-        for (std::size_t row = 0; row < boxes.size(); ++row) {
-            if (scores[row] < skip_box_thr) {
-                continue;
-            }
-            process_row(row);
-        }
-#endif
     }
 
     for (auto& [_, per_label_boxes] : boxes_by_label) {
-#if NEXTCV_HAS_RANGES
         std::ranges::sort(per_label_boxes, [](const CandidateBox& left, const CandidateBox& right) {
             return left.score > right.score;
         });
-#else
-        std::sort(per_label_boxes.begin(), per_label_boxes.end(),
-                  [](const CandidateBox& left, const CandidateBox& right) -> bool {
-                      return left.score > right.score;
-                  });
-#endif
     }
 
     return boxes_by_label;
