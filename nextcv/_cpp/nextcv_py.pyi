@@ -62,20 +62,6 @@ class postprocessing:
         """Apply Weighted Box Fusion to per-model detections."""
         ...
 
-    @staticmethod
-    def weighted_boxes_fusion(
-        boxes_list: list[NDArray[np.float32]],
-        scores_list: list[NDArray[np.float32]],
-        labels_list: list[NDArray[np.int32]],
-        weights: list[float] = ...,
-        iou_thr: float = 0.55,
-        skip_box_thr: float = 0.0,
-        conf_type: str = "avg",
-        allows_overflow: bool = False,
-    ) -> tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.int32]]:
-        """Apply Weighted Box Fusion to per-model detections."""
-        ...
-
 # Linear algebra submodule
 class linalg:
     """Linear algebra utilities."""

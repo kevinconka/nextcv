@@ -76,13 +76,6 @@ PYBIND11_MODULE(nextcv_py, module) {
                                                            skip_box_thr, conf_type);
     };
     postprocessing.def(
-        "weighted_boxes_fusion", wbfBinding, py::arg("boxes_list"), py::arg("scores_list"),
-        py::arg("labels_list"), py::arg("weights") = std::vector<float>{},
-        py::arg("iou_thr") = nextcv::postprocessing::default_wbf_iou_threshold,
-        py::arg("skip_box_thr") = nextcv::postprocessing::default_wbf_skip_box_threshold,
-        py::arg("conf_type") = std::string(nextcv::postprocessing::default_wbf_conf_type),
-        py::arg("allows_overflow") = false, "Apply Weighted Box Fusion to per-model detections");
-    postprocessing.def(
         "wbf", wbfBinding, py::arg("boxes_list"), py::arg("scores_list"), py::arg("labels_list"),
         py::arg("weights") = std::vector<float>{},
         py::arg("iou_thr") = nextcv::postprocessing::default_wbf_iou_threshold,
