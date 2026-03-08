@@ -65,7 +65,7 @@ PYBIND11_MODULE(nextcv_py, module) {
                        py::arg("threshold") = nextcv::postprocessing::default_nms_threshold,
                        "Apply Non-Maximum Suppression to bounding boxes (numpy arrays)");
     postprocessing.def(
-        "weighted_boxes_fusion", &nextcv::postprocessing::weighted_boxes_fusion,
+        "weighted_boxes_fusion", &nextcv::postprocessing::weightedBoxesFusion,
         py::arg("boxes_list"), py::arg("scores_list"), py::arg("labels_list"),
         py::arg("weights") = std::vector<float>{},
         py::arg("iou_thr") = nextcv::postprocessing::default_wbf_iou_threshold,

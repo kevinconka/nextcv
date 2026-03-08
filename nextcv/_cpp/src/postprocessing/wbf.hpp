@@ -1,6 +1,12 @@
 #pragma once
 
+#if __has_include(<Eigen/Core>)
 #include <Eigen/Core>
+#elif __has_include(<eigen3/Eigen/Core>)
+#include <eigen3/Eigen/Core>
+#else
+#error "Eigen/Core header not found"
+#endif
 #include <string>
 #include <tuple>
 #include <vector>
@@ -29,7 +35,8 @@ constexpr const char* default_wbf_conf_type = "avg";
  *
  * @return Tuple of (fused_boxes, fused_scores, fused_labels).
  */
-auto weighted_boxes_fusion(
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+auto weightedBoxesFusion(
     const std::vector<Eigen::MatrixXf>& boxes_list, const std::vector<Eigen::VectorXf>& scores_list,
     const std::vector<Eigen::VectorXi>& labels_list, const std::vector<float>& weights = {},
     float iou_thr = default_wbf_iou_threshold, float skip_box_thr = default_wbf_skip_box_threshold,
