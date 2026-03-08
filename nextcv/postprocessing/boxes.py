@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
+from nextcv._cpp.nextcv_py.postprocessing import (
+    weighted_boxes_fusion as _weighted_boxes_fusion,
+)
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -24,6 +27,46 @@ def nms_cpp(
         iou_thresh: The threshold for intersection over union.
     """
     return _nms(bboxes, scores, iou_thresh)
+
+
+def weighted_boxes_fusion_cpp(  # noqa: PLR0913, PLR0917
+    boxes_list: list["NDArray"],
+    scores_list: list["NDArray"],
+    labels_list: list["NDArray"],
+    weights: "list[float] | None" = None,
+    iou_thr: float = 0.55,
+    skip_box_thr: float = 0.0,
+    conf_type: str = "avg",
+    allows_overflow: bool = False,
+) -> tuple["NDArray[np.float32]", "NDArray[np.float32]", "NDArray[np.int32]"]:
+    """Fuse detections from multiple models using Weighted Box Fusion (WBF).
+
+    Args:
+        boxes_list: Per-model boxes with shape (N_i, 4) in normalized xyxy format.
+        scores_list: Per-model confidence scores with shape (N_i,).
+        labels_list: Per-model integer labels with shape (N_i,).
+        weights: Optional per-model weights. Defaults to equal weights.
+        iou_thr: IoU threshold for clustering boxes into the same fused box.
+        skip_box_thr: Drop boxes with score lower than this threshold.
+        conf_type: Confidence mode. One of:
+            "avg", "max", "box_and_model_avg", "absent_model_aware_avg".
+        allows_overflow: If True, confidence can exceed 1.0 for avg mode.
+
+    Returns:
+        Tuple of (fused_boxes, fused_scores, fused_labels).
+    """
+    if weights is None:
+        weights = []
+    return _weighted_boxes_fusion(
+        boxes_list,
+        scores_list,
+        labels_list,
+        weights,
+        iou_thr,
+        skip_box_thr,
+        conf_type,
+        allows_overflow,
+    )
 
 
 def iou_np(
