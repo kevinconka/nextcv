@@ -22,9 +22,7 @@
 
 ### Gotchas
 
-- **Pre-commit install:** run `git config --unset-all core.hooksPath` (if set), then `uvx pre-commit install`.
-- **`pre-commit-update` hook** auto-bumps hook versions on every commit. Use `SKIP=pre-commit-update git commit ...` to avoid mixing version bumps into unrelated commits.
 - **ruff** is not a direct project dependency — invoke via `uvx ruff`, not `uv run ruff`.
-- **Naming warnings (N80x)** from ruff are intentional; mathematical variable names (`A`, `K`, `R`) follow CV/linear algebra conventions. Ignore patterns are configured in `ruff.toml` under `[lint.pep8-naming]`.
+- **Naming warnings (N80x)** from ruff are intentional; mathematical variable names (`A`, `K`, `R`) follow CV/linear algebra conventions. See `ruff.toml` `[lint.pep8-naming]`.
 - **Ninja not found:** `make build` may fail to locate ninja inside the uv-managed venv. Fix: `cmake --preset uv-env -DCMAKE_MAKE_PROGRAM=$(which ninja)` then `cmake --build --preset uv-env`.
 - **C++ source changes** require `uv sync --reinstall` to rebuild the extensions.
