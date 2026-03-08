@@ -21,6 +21,53 @@ struct Box {
     float y1 = 0.0F;
     float x2 = 0.0F;
     float y2 = 0.0F;
+
+    static auto fromCorners(float left, float top, float right, float bottom) -> Box {
+        if (right < left) {
+            std::swap(left, right);
+        }
+        if (bottom < top) {
+            std::swap(top, bottom);
+        }
+        return Box{
+            .x1 = std::clamp(left, 0.0F, 1.0F),
+            .y1 = std::clamp(top, 0.0F, 1.0F),
+            .x2 = std::clamp(right, 0.0F, 1.0F),
+            .y2 = std::clamp(bottom, 0.0F, 1.0F),
+        };
+    }
+
+    auto area() const -> float {
+        return (x2 - x1) * (y2 - y1);
+    }
+
+    auto isValid() const -> bool {
+        return area() > 0.0F;
+    }
+
+    auto iouWith(const Box& other) const -> float { // NOLINT(bugprone-easily-swappable-parameters)
+        float ix1 = std::max(x1, other.x1);
+        float iy1 = std::max(y1, other.y1);
+        float ix2 = std::min(x2, other.x2);
+        float iy2 = std::min(y2, other.y2);
+
+        float inter_w = std::max(0.0F, ix2 - ix1);
+        float inter_h = std::max(0.0F, iy2 - iy1);
+        float inter = inter_w * inter_h;
+
+        float denom = area() + other.area() - inter;
+        if (denom <= 0.0F) {
+            return 0.0F;
+        }
+        return inter / denom;
+    }
+};
+
+enum class ConfidenceType : std::uint8_t {
+    AVG,
+    MAX,
+    BOX_AND_MODEL_AVG,
+    ABSENT_MODEL_AWARE_AVG,
 };
 
 struct CandidateBox {
@@ -31,21 +78,39 @@ struct CandidateBox {
     Box box{};
 };
 
+struct WeightStats {
+    float sum = 0.0F;
+    float max = 0.0F;
+};
+
+auto computeWeightedBox(const std::vector<CandidateBox>& boxes, ConfidenceType conf_type)
+    -> CandidateBox;
+
 struct Cluster {
     std::vector<CandidateBox> members;
     CandidateBox fused;
-};
 
-enum class ConfidenceType : std::uint8_t {
-    AVG,
-    MAX,
-    BOX_AND_MODEL_AVG,
-    ABSENT_MODEL_AWARE_AVG,
-};
+    static auto fromCandidate(const CandidateBox& candidate) -> Cluster {
+        return Cluster{
+            .members = {candidate},
+            .fused = candidate,
+        };
+    }
 
-auto clamp01(float value) -> float {
-    return std::clamp(value, 0.0F, 1.0F);
-}
+    auto add(const CandidateBox& candidate, ConfidenceType conf_type) -> void {
+        members.push_back(candidate);
+        fused = computeWeightedBox(members, conf_type);
+    }
+
+    auto overlapWith(const CandidateBox& candidate) const -> float {
+        return fused.box.iouWith(candidate.box);
+    }
+
+    auto adjustFusedScore(const std::vector<float>& effective_weights,
+                          const WeightStats& weight_stats, ConfidenceType conf_type,
+                          bool allows_overflow) // NOLINT(bugprone-easily-swappable-parameters)
+        -> void;
+};
 
 auto parseConfidenceType(std::string_view conf_type) -> ConfidenceType {
     static const std::unordered_map<std::string_view, ConfidenceType> conf_type_map = {
@@ -63,25 +128,6 @@ auto parseConfidenceType(std::string_view conf_type) -> ConfidenceType {
         "conf_type must be one of: avg, max, box_and_model_avg, absent_model_aware_avg.");
 }
 
-auto normalizeBox(float x1, float y1, float x2, float y2) -> Box {
-    if (x2 < x1) {
-        std::swap(x1, x2);
-    }
-    if (y2 < y1) {
-        std::swap(y1, y2);
-    }
-    return Box{
-        .x1 = clamp01(x1),
-        .y1 = clamp01(y1),
-        .x2 = clamp01(x2),
-        .y2 = clamp01(y2),
-    };
-}
-
-auto isValidBox(const Box& box) -> bool {
-    return (box.x2 - box.x1) * (box.y2 - box.y1) > 0.0F;
-}
-
 auto makeCandidateBox(int label, float score, float model_weight, int model_idx, const Box& box)
     -> CandidateBox {
     return CandidateBox{
@@ -91,26 +137,6 @@ auto makeCandidateBox(int label, float score, float model_weight, int model_idx,
         .model_idx = model_idx,
         .box = box,
     };
-}
-
-auto iouXyxy(const Box& left, const Box& right)
-    -> float { // NOLINT(bugprone-easily-swappable-parameters)
-    float ix1 = std::max(left.x1, right.x1);
-    float iy1 = std::max(left.y1, right.y1);
-    float ix2 = std::min(left.x2, right.x2);
-    float iy2 = std::min(left.y2, right.y2);
-
-    float inter_w = std::max(0.0F, ix2 - ix1);
-    float inter_h = std::max(0.0F, iy2 - iy1);
-    float inter = inter_w * inter_h;
-
-    float area_left = (left.x2 - left.x1) * (left.y2 - left.y1);
-    float area_right = (right.x2 - right.x1) * (right.y2 - right.y1);
-    float denom = area_left + area_right - inter;
-    if (denom <= 0.0F) {
-        return 0.0F;
-    }
-    return inter / denom;
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -139,8 +165,8 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
             float score = scores[row];
 
             const auto& box = boxes[row];
-            const Box normalized_box = normalizeBox(box[0], box[1], box[2], box[3]);
-            if (!isValidBox(normalized_box)) {
+            const Box normalized_box = Box::fromCorners(box[0], box[1], box[2], box[3]);
+            if (!normalized_box.isValid()) {
                 return;
             }
 
@@ -220,7 +246,7 @@ auto findBestMatchingCluster(const std::vector<Cluster>& clusters, const Candida
     float best_iou = iou_thr;
 
     for (std::size_t idx = 0; idx < clusters.size(); ++idx) {
-        float overlap = iouXyxy(clusters[idx].fused.box, candidate.box);
+        float overlap = clusters[idx].overlapWith(candidate);
         if (overlap > best_iou) {
             best_iou = overlap;
             best_idx = static_cast<int>(idx);
@@ -229,11 +255,6 @@ auto findBestMatchingCluster(const std::vector<Cluster>& clusters, const Candida
 
     return best_idx;
 }
-
-struct WeightStats {
-    float sum = 0.0F;
-    float max = 0.0F;
-};
 
 auto computeWeightStats(const std::vector<float>& effective_weights) -> WeightStats {
     WeightStats stats;
@@ -244,17 +265,16 @@ auto computeWeightStats(const std::vector<float>& effective_weights) -> WeightSt
     return stats;
 }
 
-auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cluster,
-                        const std::vector<float>& effective_weights,
-                        const WeightStats& weight_stats, ConfidenceType conf_type,
-                        bool allows_overflow) // NOLINT(bugprone-easily-swappable-parameters)
+auto Cluster::adjustFusedScore(const std::vector<float>& effective_weights,
+                               const WeightStats& weight_stats, ConfidenceType conf_type,
+                               bool allows_overflow) // NOLINT(bugprone-easily-swappable-parameters)
     -> void {
     switch (conf_type) {
     case ConfidenceType::BOX_AND_MODEL_AVG: {
-        fused.score = fused.score * static_cast<float>(cluster.size()) / fused.weight;
+        fused.score = fused.score * static_cast<float>(members.size()) / fused.weight;
         std::vector<bool> model_present(effective_weights.size(), false);
         float unique_weight_sum = 0.0F;
-        for (const auto& member : cluster) {
+        for (const auto& member : members) {
             const auto model_idx = static_cast<std::size_t>(member.model_idx);
             if (!model_present[model_idx]) {
                 model_present[model_idx] = true;
@@ -267,7 +287,7 @@ auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cl
 
     case ConfidenceType::ABSENT_MODEL_AWARE_AVG: {
         std::vector<bool> model_present(effective_weights.size(), false);
-        for (const auto& member : cluster) {
+        for (const auto& member : members) {
             model_present[static_cast<std::size_t>(member.model_idx)] = true;
         }
         float absent_weight_sum = 0.0F;
@@ -277,7 +297,7 @@ auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cl
             }
         }
         fused.score =
-            fused.score * static_cast<float>(cluster.size()) / (fused.weight + absent_weight_sum);
+            fused.score * static_cast<float>(members.size()) / (fused.weight + absent_weight_sum);
         return;
     }
 
@@ -287,10 +307,10 @@ auto adjustClusterScore(CandidateBox& fused, const std::vector<CandidateBox>& cl
 
     case ConfidenceType::AVG:
         if (!allows_overflow) {
-            fused.score *= static_cast<float>(std::min(effective_weights.size(), cluster.size())) /
+            fused.score *= static_cast<float>(std::min(effective_weights.size(), members.size())) /
                            weight_stats.sum;
         } else {
-            fused.score *= static_cast<float>(cluster.size()) / weight_stats.sum;
+            fused.score *= static_cast<float>(members.size()) / weight_stats.sum;
         }
         return;
     }
@@ -307,20 +327,14 @@ auto fuseLabelBoxes(const std::vector<CandidateBox>& boxes, float iou_thr,
     for (const auto& candidate : boxes) {
         int match_idx = findBestMatchingCluster(clusters, candidate, iou_thr);
         if (match_idx != -1) {
-            auto& cluster = clusters[static_cast<std::size_t>(match_idx)];
-            cluster.members.push_back(candidate);
-            cluster.fused = computeWeightedBox(cluster.members, conf_type);
+            clusters[static_cast<std::size_t>(match_idx)].add(candidate, conf_type);
             continue;
         }
-        clusters.push_back(Cluster{
-            .members = {candidate},
-            .fused = candidate,
-        });
+        clusters.push_back(Cluster::fromCandidate(candidate));
     }
 
     for (auto& cluster : clusters) {
-        adjustClusterScore(cluster.fused, cluster.members, effective_weights, weight_stats,
-                           conf_type, allows_overflow);
+        cluster.adjustFusedScore(effective_weights, weight_stats, conf_type, allows_overflow);
     }
 
     std::vector<CandidateBox> fused_boxes;
