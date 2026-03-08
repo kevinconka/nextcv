@@ -4,7 +4,6 @@
 #include <array>
 #include <cstddef>
 #include <numeric>
-#include <set>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -29,8 +28,32 @@ constexpr std::size_t default_overall_boxes_reserve = 128U;
 using BoxData =
     std::array<float, box_data_size>; // [label, score, weight, model_idx, x1, y1, x2, y2]
 
+enum class ConfidenceType {
+    avg,
+    max,
+    box_and_model_avg,
+    absent_model_aware_avg,
+};
+
 auto clamp01(float value) -> float {
     return std::clamp(value, 0.0F, 1.0F);
+}
+
+auto parseConfidenceType(const std::string& conf_type) -> ConfidenceType {
+    if (conf_type == "avg") {
+        return ConfidenceType::avg;
+    }
+    if (conf_type == "max") {
+        return ConfidenceType::max;
+    }
+    if (conf_type == "box_and_model_avg") {
+        return ConfidenceType::box_and_model_avg;
+    }
+    if (conf_type == "absent_model_aware_avg") {
+        return ConfidenceType::absent_model_aware_avg;
+    }
+    throw std::invalid_argument(
+        "conf_type must be one of: avg, max, box_and_model_avg, absent_model_aware_avg.");
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -133,8 +156,7 @@ auto prefilterBoxes(const std::vector<ModelBoxes>& boxes_list,
     return filtered;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-auto getWeightedBox(const std::vector<BoxData>& boxes, const std::string& conf_type) -> BoxData {
+auto getWeightedBox(const std::vector<BoxData>& boxes, ConfidenceType conf_type) -> BoxData {
     if (boxes.empty()) {
         return BoxData{};
     }
@@ -155,13 +177,15 @@ auto getWeightedBox(const std::vector<BoxData>& boxes, const std::string& conf_t
     }
 
     weighted[label_index] = boxes.front()[label_index];
-    if (conf_type == "avg" || conf_type == "box_and_model_avg" ||
-        conf_type == "absent_model_aware_avg") {
+    switch (conf_type) {
+    case ConfidenceType::avg:
+    case ConfidenceType::box_and_model_avg:
+    case ConfidenceType::absent_model_aware_avg:
         weighted[score_index] = conf_sum / static_cast<float>(boxes.size());
-    } else if (conf_type == "max") {
+        break;
+    case ConfidenceType::max:
         weighted[score_index] = max_conf;
-    } else {
-        throw std::invalid_argument("Unknown conf_type.");
+        break;
     }
 
     weighted[weight_index] = weight_sum;
@@ -177,16 +201,12 @@ auto getWeightedBox(const std::vector<BoxData>& boxes, const std::string& conf_t
     return weighted;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto findMatchingBoxFast(const std::vector<BoxData>& weighted_boxes, const BoxData& candidate,
-                         float iou_thr) -> std::pair<int, float> {
+                         float iou_thr) -> int {
     int best_idx = -1;
     float best_iou = iou_thr;
 
     for (std::size_t idx = 0; idx < weighted_boxes.size(); ++idx) {
-        if (weighted_boxes[idx][label_index] != candidate[label_index]) {
-            continue;
-        }
         float overlap = iouXyxy(weighted_boxes[idx], candidate);
         if (overlap > best_iou) {
             best_iou = overlap;
@@ -194,7 +214,7 @@ auto findMatchingBoxFast(const std::vector<BoxData>& weighted_boxes, const BoxDa
         }
     }
 
-    return {best_idx, best_iou};
+    return best_idx;
 }
 
 struct WeightStats {
@@ -213,31 +233,32 @@ auto computeWeightStats(const std::vector<float>& effective_weights) -> WeightSt
 
 auto adjustClusterScore(BoxData& fused, const std::vector<BoxData>& cluster,
                         const std::vector<float>& effective_weights,
-                        const WeightStats& weight_stats, const std::string& conf_type,
+                        const WeightStats& weight_stats, ConfidenceType conf_type,
                         bool allows_overflow) -> void {
-    if (conf_type == "box_and_model_avg") {
+    if (conf_type == ConfidenceType::box_and_model_avg) {
         fused[score_index] =
             fused[score_index] * static_cast<float>(cluster.size()) / fused[weight_index];
-        std::set<int> unique_models;
+        std::vector<bool> model_present(effective_weights.size(), false);
         float unique_weight_sum = 0.0F;
         for (const auto& item : cluster) {
-            int model_idx = static_cast<int>(item[model_index]);
-            if (unique_models.insert(model_idx).second) {
-                unique_weight_sum += item[weight_index];
+            const std::size_t model_idx = static_cast<std::size_t>(item[model_index]);
+            if (!model_present[model_idx]) {
+                model_present[model_idx] = true;
+                unique_weight_sum += effective_weights[model_idx];
             }
         }
         fused[score_index] = fused[score_index] * unique_weight_sum / weight_stats.sum;
         return;
     }
 
-    if (conf_type == "absent_model_aware_avg") {
-        std::set<int> present_models;
+    if (conf_type == ConfidenceType::absent_model_aware_avg) {
+        std::vector<bool> model_present(effective_weights.size(), false);
         for (const auto& item : cluster) {
-            present_models.insert(static_cast<int>(item[model_index]));
+            model_present[static_cast<std::size_t>(item[model_index])] = true;
         }
         float absent_weight_sum = 0.0F;
         for (std::size_t model_idx = 0; model_idx < effective_weights.size(); ++model_idx) {
-            if (present_models.find(static_cast<int>(model_idx)) == present_models.end()) {
+            if (!model_present[model_idx]) {
                 absent_weight_sum += effective_weights[model_idx];
             }
         }
@@ -246,7 +267,7 @@ auto adjustClusterScore(BoxData& fused, const std::vector<BoxData>& cluster,
         return;
     }
 
-    if (conf_type == "max") {
+    if (conf_type == ConfidenceType::max) {
         fused[score_index] /= weight_stats.max;
         return;
     }
@@ -262,19 +283,22 @@ auto adjustClusterScore(BoxData& fused, const std::vector<BoxData>& cluster,
 
 auto fuseOneLabel(const std::vector<BoxData>& boxes, float iou_thr,
                   const std::vector<float>& effective_weights, const WeightStats& weight_stats,
-                  const std::string& conf_type, bool allows_overflow) -> std::vector<BoxData> {
+                  ConfidenceType conf_type, bool allows_overflow) -> std::vector<BoxData> {
     std::vector<std::vector<BoxData>> clustered_boxes;
     std::vector<BoxData> weighted_boxes;
+    clustered_boxes.reserve(boxes.size());
+    weighted_boxes.reserve(boxes.size());
 
     for (const auto& candidate : boxes) {
-        auto [match_idx, _best_iou] = findMatchingBoxFast(weighted_boxes, candidate, iou_thr);
+        int match_idx = findMatchingBoxFast(weighted_boxes, candidate, iou_thr);
         if (match_idx != -1) {
-            clustered_boxes[static_cast<std::size_t>(match_idx)].push_back(candidate);
+            auto& matched_cluster = clustered_boxes[static_cast<std::size_t>(match_idx)];
+            matched_cluster.push_back(candidate);
             weighted_boxes[static_cast<std::size_t>(match_idx)] =
-                getWeightedBox(clustered_boxes[static_cast<std::size_t>(match_idx)], conf_type);
+                getWeightedBox(matched_cluster, conf_type);
             continue;
         }
-        clustered_boxes.push_back({candidate});
+        clustered_boxes.emplace_back(1, candidate);
         weighted_boxes.push_back(candidate);
     }
 
@@ -319,11 +343,7 @@ auto weightedBoxesFusion(
         effective_weights.assign(boxes_list.size(), 1.0F);
     }
 
-    if (conf_type != "avg" && conf_type != "max" && conf_type != "box_and_model_avg" &&
-        conf_type != "absent_model_aware_avg") {
-        throw std::invalid_argument(
-            "conf_type must be one of: avg, max, box_and_model_avg, absent_model_aware_avg.");
-    }
+    const ConfidenceType confidence_type = parseConfidenceType(conf_type);
 
     auto filtered =
         prefilterBoxes(boxes_list, scores_list, labels_list, effective_weights, skip_box_thr);
@@ -338,7 +358,7 @@ auto weightedBoxesFusion(
 
     for (const auto& [_, boxes] : filtered) {
         auto fused_label_boxes = fuseOneLabel(boxes, iou_thr, effective_weights, weight_stats,
-                                              conf_type, allows_overflow);
+                                              confidence_type, allows_overflow);
         overall_boxes.insert(overall_boxes.end(), fused_label_boxes.begin(),
                              fused_label_boxes.end());
     }
