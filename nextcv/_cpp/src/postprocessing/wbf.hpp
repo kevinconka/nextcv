@@ -1,12 +1,7 @@
 #pragma once
 
-#if __has_include(<Eigen/Core>)
-#include <Eigen/Core>
-#elif __has_include(<eigen3/Eigen/Core>)
+// Use an explicit include path that works without extra -I flags in lint contexts.
 #include <eigen3/Eigen/Core>
-#else
-#error "Eigen/Core header not found"
-#endif
 #include <string>
 #include <tuple>
 #include <vector>
@@ -35,12 +30,12 @@ constexpr const char* default_wbf_conf_type = "avg";
  *
  * @return Tuple of (fused_boxes, fused_scores, fused_labels).
  */
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto weightedBoxesFusion(
     const std::vector<Eigen::MatrixXf>& boxes_list, const std::vector<Eigen::VectorXf>& scores_list,
     const std::vector<Eigen::VectorXi>& labels_list, const std::vector<float>& weights = {},
     float iou_thr = default_wbf_iou_threshold, float skip_box_thr = default_wbf_skip_box_threshold,
     const std::string& conf_type = default_wbf_conf_type, bool allows_overflow = false)
-    -> std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::VectorXi>;
+    -> std::tuple<Eigen::MatrixXf, Eigen::VectorXf,
+                  Eigen::VectorXi>; // NOLINT(bugprone-easily-swappable-parameters)
 
 } // namespace nextcv::postprocessing
