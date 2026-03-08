@@ -6,9 +6,7 @@ import numpy as np
 from ensemble_boxes import weighted_boxes_fusion
 
 from nextcv._cpp.nextcv_py.postprocessing import nms as _nms
-from nextcv._cpp.nextcv_py.postprocessing import (
-    weighted_boxes_fusion as _weighted_boxes_fusion,
-)
+from nextcv._cpp.nextcv_py.postprocessing import wbf as _wbf
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -73,7 +71,7 @@ def wbf_cpp(  # noqa: PLR0913, PLR0917
     """
     if weights is None:
         weights = []
-    boxes, scores, labels = _weighted_boxes_fusion(
+    boxes, scores, labels = _wbf(
         boxes_list,
         scores_list,
         labels_list,
