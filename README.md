@@ -85,11 +85,13 @@ brew install eigen cmake
 ### Installation 📦
 
 ```bash
-# traditional pip
+pip install nextcv
+
+# or from git
 pip install git+https://github.com/kevinconka/nextcv.git
 
-# uv if you know what's good for you
-uv add git+https://github.com/kevinconka/nextcv.git
+# uv
+uv add nextcv
 ```
 
 ### Check it's working ✅

@@ -17,12 +17,6 @@ project(NextCV
 # Enable compile commands for tooling
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# macOS: support older versions (set via CMAKE_OSX_DEPLOYMENT_TARGET if not set)
-if(APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
-endif()
-
-
 # Set C++ standard globally (aligned with target_compile_features)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -44,7 +38,7 @@ option(NEXTCV_BUILD_PYTHON "Build Python bindings" ON)
 
 # Find Python and pybind11 (compatible with scikit-build-core)
 if(NEXTCV_BUILD_PYTHON)
-  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
   # Try to find NumPy component, but don't fail if not found (for scikit-build-core)
   find_package(Python3 COMPONENTS NumPy QUIET)
 
