@@ -17,13 +17,13 @@ jobs:
             setup-deps: |
               sudo apt-get update
               sudo apt-get install -y libeigen3-dev
-          - os: macos-14
+          - os: macos-15
             setup-deps: brew install eigen
     runs-on: ${{ matrix.os }}
     env:
-      # macOS: lower deployment target for broader compatibility (avoids libc++ ABI issues)
-      CMAKE_OSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-14' && '11.0' || '' }}
-      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-14' && '11.0' || '' }}
+      # macOS: lower deployment target for broader compatibility
+      CMAKE_OSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-15' && '11.0' || '' }}
+      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-15' && '11.0' || '' }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
