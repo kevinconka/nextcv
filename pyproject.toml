@@ -76,7 +76,7 @@ local_scheme = "no-local-version"
 # cibuildwheel configuration
 # https://cibuildwheel.readthedocs.io/
 [tool.cibuildwheel]
-build-frontend = "build"
+build-frontend = "build[uv]"
 output-dir = "wheelhouse"
 
 # Linux: install Eigen (manylinux containers; EPEL needed on CentOS 7)
