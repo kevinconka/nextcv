@@ -85,20 +85,13 @@ brew install eigen cmake
 ### Installation 📦
 
 ```bash
-# From PyPI (recommended)
 pip install nextcv
 
-# Or from git
+# or from git
 pip install git+https://github.com/kevinconka/nextcv.git
 
-# uv if you know what's good for you
+# uv
 uv add nextcv
-```
-
-**macOS:** If you get `symbol not found in flat namespace '__ZNSt3__113__hash_memoryEPKvm'`, the pre-built wheel may be incompatible with your system. Build from source instead:
-
-```bash
-CC=/usr/bin/clang CXX=/usr/bin/clang++ pip install nextcv --no-binary nextcv
 ```
 
 ### Check it's working ✅

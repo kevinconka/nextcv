@@ -84,10 +84,8 @@ output-dir = "wheelhouse"
 before-all = "yum install -y epel-release 2>/dev/null; yum install -y eigen3-devel || dnf install -y eigen3-devel"
 
 # macOS: build on oldest runner for maximum compatibility
-# Oldest libc++ = works on that version and all newer (Apple backward compat)
 [tool.cibuildwheel.macos]
 before-all = "brew install eigen"
-environment = { MACOSX_DEPLOYMENT_TARGET = "11.0", CMAKE_OSX_DEPLOYMENT_TARGET = "11.0" }
 
 # pytest configuration
 [tool.pytest.ini_options]
