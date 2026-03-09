@@ -44,7 +44,7 @@ jobs:
       - name: 🔧 Repair Linux wheel (auditwheel)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          uv pip install auditwheel
+          uv pip install --system auditwheel
           auditwheel repair dist/*.whl -w dist/
           rm -f dist/*-linux_x86_64.whl
 
