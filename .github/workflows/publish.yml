@@ -48,8 +48,10 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
+      - uses: astral-sh/setup-uv@v7
+
       - name: Build sdist
-        run: pipx run build --sdist
+        run: uv build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
