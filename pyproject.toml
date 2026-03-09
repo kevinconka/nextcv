@@ -73,6 +73,22 @@ metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 version_scheme = "guess-next-dev"
 local_scheme = "no-local-version"
 
+# cibuildwheel configuration
+# https://cibuildwheel.readthedocs.io/
+[tool.cibuildwheel]
+build-frontend = "build"
+output-dir = "wheelhouse"
+
+# Linux: install Eigen (manylinux containers; EPEL needed on CentOS 7)
+[tool.cibuildwheel.linux]
+before-all = "yum install -y epel-release 2>/dev/null; yum install -y eigen3-devel || dnf install -y eigen3-devel"
+
+# macOS: build on oldest runner for maximum compatibility
+# Oldest libc++ = works on that version and all newer (Apple backward compat)
+[tool.cibuildwheel.macos]
+before-all = "brew install eigen"
+environment = { MACOSX_DEPLOYMENT_TARGET = "11.0", CMAKE_OSX_DEPLOYMENT_TARGET = "11.0" }
+
 # pytest configuration
 [tool.pytest.ini_options]
 testpaths = ["tests"]

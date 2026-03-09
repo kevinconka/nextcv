@@ -8,80 +8,73 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            setup-deps: |
-              sudo apt-get update
-              sudo apt-get install -y libeigen3-dev
-          - os: macos-15
-            setup-deps: brew install eigen
-    runs-on: ${{ matrix.os }}
-    env:
-      # macOS: lower deployment target for broader compatibility
-      CMAKE_OSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-15' && '11.0' || '' }}
-      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-15' && '11.0' || '' }}
+          # Linux: manylinux wheels via cibuildwheel (auditwheel handles libc++)
+          - os: linux
+            runs-on: ubuntu-latest
+          # macOS: build on OLDEST runner for maximum compatibility
+          # Binary linked to macos-13's libc++ works on 13, 14, 15+ (Apple backward compat)
+          - os: macos
+            runs-on: macos-13
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.tag_name }}
-          fetch-depth: 0 # Need full history for version (setuptools-scm)
+          fetch-depth: 0  # required for setuptools-scm version
 
-      - name: 🔧 Install build dependencies
-        run: ${{ matrix.setup-deps }}
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3
+        env:
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
 
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v6
+      - uses: actions/upload-artifact@v4
         with:
-          python-version: "3.11"
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
 
-      - name: 📦 Install uv
-        uses: astral-sh/setup-uv@v7
-
-      - name: 🏗️ Build Package
-        run: uv build
-
-      - name: 🔧 Repair Linux wheel (auditwheel)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          uv pip install --system auditwheel
-          auditwheel repair dist/*.whl -w dist/
-          rm -f dist/*-linux_x86_64.whl
-
-      - name: 📤 Upload dist
-        uses: actions/upload-artifact@v4
+  build_sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
         with:
-          name: dist-${{ matrix.os }}
-          path: dist/
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
 
   publish:
-    needs: build
+    needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write # Required for PyPI Trusted Publishing (OIDC)
+      id-token: write
     steps:
-      - name: 📥 Download all dist artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          pattern: dist-*
+          pattern: "*"
           path: artifacts
 
-      - name: 📦 Merge dist artifacts
-        run: |
+      - run: |
           mkdir -p dist
-          for dir in artifacts/dist-*; do
-            cp "$dir"/*.whl dist/ 2>/dev/null || true
-            cp "$dir"/*.tar.gz dist/ 2>/dev/null || true
-          done
+          find artifacts -name "*.whl" -exec cp {} dist/ \;
+          find artifacts -name "*.tar.gz" -exec cp {} dist/ \;
           ls -la dist/
 
-      - name: 📦 Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v7
 
-      - name: 📤 Publish to PyPI
+      - name: Publish to PyPI
         run: uv publish --trusted-publishing always
