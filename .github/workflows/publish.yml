@@ -1,12 +1,11 @@
-name: Release
+name: Publish
 
 on:
-  push:
-    tags:
-      - "v*" # Trigger on any tag starting with 'v'
+  release:
+    types: [published]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -19,6 +18,7 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0 # Need full history for version (setuptools-scm)
 
       - name: 🔧 Install Eigen3
@@ -47,17 +47,17 @@ jobs:
           name: dist-${{ matrix.os }}
           path: dist/
 
-  release:
+  publish:
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      contents: write  # For GitHub Release
-      id-token: write  # Required for PyPI Trusted Publishing (OIDC)
+      id-token: write # Required for PyPI Trusted Publishing (OIDC)
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
       - name: 📥 Download all dist artifacts
@@ -80,9 +80,3 @@ jobs:
 
       - name: 📤 Publish to PyPI
         run: uv publish --trusted-publishing always
-
-      - name: 🚀 Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
-          generate_release_notes: true
