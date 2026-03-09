@@ -41,6 +41,13 @@ jobs:
       - name: 🏗️ Build Package
         run: uv build
 
+      - name: 🔧 Repair Linux wheel (auditwheel)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          uv pip install auditwheel
+          auditwheel repair dist/*.whl -w dist/
+          rm -f dist/*-linux_x86_64.whl
+
       - name: 📤 Upload dist
         uses: actions/upload-artifact@v4
         with:
