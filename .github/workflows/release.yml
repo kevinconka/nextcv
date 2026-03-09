@@ -9,22 +9,26 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      contents: write  # For GitHub Release
-      id-token: write  # Required for PyPI Trusted Publishing (OIDC)
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Need full history for changelog generation
+          fetch-depth: 0 # Need full history for version (setuptools-scm)
 
       - name: 🔧 Install Eigen3
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            sudo apt-get update
+            sudo apt-get install -y libeigen3-dev
+          else
+            brew install eigen
+          fi
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v6
@@ -37,11 +41,42 @@ jobs:
       - name: 🏗️ Build Package
         run: uv build
 
-      # - name: 📝 Build Changelog
-      #   id: changelog
-      #   uses: mikepenz/release-changelog-builder-action@v5
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📤 Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write  # For GitHub Release
+      id-token: write  # Required for PyPI Trusted Publishing (OIDC)
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: 📥 Download all dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: artifacts
+
+      - name: 📦 Merge dist artifacts
+        run: |
+          mkdir -p dist
+          for dir in artifacts/dist-*; do
+            cp "$dir"/*.whl dist/ 2>/dev/null || true
+            cp "$dir"/*.tar.gz dist/ 2>/dev/null || true
+          done
+          ls -la dist/
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v7
 
       - name: 📤 Publish to PyPI
         run: uv publish --trusted-publishing always
@@ -49,6 +84,5 @@ jobs:
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # body: ${{ steps.changelog.outputs.changelog }}
           files: dist/*
-          generate_release_notes: true # Adds GitHub's auto-generated notes too!
+          generate_release_notes: true
