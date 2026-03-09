@@ -3,6 +3,14 @@ name: Publish
 on:
   pull_request:
     branches: [main]
+    paths:
+      - ".github/workflows/publish.yml"
+      - "pyproject.toml"
+      - "pyproject.legacy.toml"
+      - "CMakeLists.txt"
+      - "setup.py"
+      - "nextcv/**"
+      - "cmake/**"
   release:
     types: [published]
 
@@ -17,9 +25,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux: manylinux wheels via cibuildwheel (auditwheel handles libc++)
+          # Linux x86_64
           - os: linux
             runs-on: ubuntu-latest
+          # Linux arm64
+          - os: linux-arm
+            runs-on: ubuntu-24.04-arm
           - os: macos
             runs-on: macos-latest
     steps:
