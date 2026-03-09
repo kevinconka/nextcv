@@ -11,6 +11,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write  # For GitHub Release
+      id-token: write  # Required for PyPI Trusted Publishing (OIDC)
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
@@ -38,6 +42,9 @@ jobs:
       #   uses: mikepenz/release-changelog-builder-action@v5
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📤 Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2

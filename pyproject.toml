@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "nextcv"
 dynamic = ["version"] # <-- let setuptools-scm derive version
-description = "Python-first computer vision library with C++ bdingings for speed."
+description = "Python-first computer vision library with C++ bindings for speed."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
