@@ -17,6 +17,11 @@ project(NextCV
 # Enable compile commands for tooling
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# macOS: support older versions (set via CMAKE_OSX_DEPLOYMENT_TARGET if not set)
+if(APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
+endif()
+
 
 # Set C++ standard globally (aligned with target_compile_features)
 set(CMAKE_CXX_STANDARD 20)

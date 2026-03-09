@@ -9,7 +9,21 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            setup-deps: |
+              sudo apt-get update
+              sudo apt-get install -y libeigen3-dev
+          - os: macos-14
+            setup-deps: brew install eigen
+    runs-on: ${{ matrix.os }}
+    env:
+      # macOS: lower deployment target for broader compatibility (avoids libc++ ABI issues)
+      CMAKE_OSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-14' && '11.0' || '' }}
+      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-14' && '11.0' || '' }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
@@ -17,10 +31,8 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0 # Need full history for version (setuptools-scm)
 
-      - name: 🔧 Install Eigen3
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
+      - name: 🔧 Install build dependencies
+        run: ${{ matrix.setup-deps }}
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v6
@@ -30,13 +42,20 @@ jobs:
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: 🏗️ Build sdist
-        run: uv build --sdist
+      - name: 🏗️ Build Package
+        run: uv build
+
+      - name: 🔧 Repair Linux wheel (auditwheel)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          uv pip install --system auditwheel
+          auditwheel repair dist/*.whl -w dist/
+          rm -f dist/*-linux_x86_64.whl
 
       - name: 📤 Upload dist
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-${{ matrix.os }}
           path: dist/
 
   publish:
@@ -46,11 +65,20 @@ jobs:
     permissions:
       id-token: write # Required for PyPI Trusted Publishing (OIDC)
     steps:
-      - name: 📥 Download dist
+      - name: 📥 Download all dist artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist/
+          pattern: dist-*
+          path: artifacts
+
+      - name: 📦 Merge dist artifacts
+        run: |
+          mkdir -p dist
+          for dir in artifacts/dist-*; do
+            cp "$dir"/*.whl dist/ 2>/dev/null || true
+            cp "$dir"/*.tar.gz dist/ 2>/dev/null || true
+          done
+          ls -la dist/
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v7
