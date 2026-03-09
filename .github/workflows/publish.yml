@@ -18,10 +18,8 @@ jobs:
           # Linux: manylinux wheels via cibuildwheel (auditwheel handles libc++)
           - os: linux
             runs-on: ubuntu-latest
-          # macOS: build on OLDEST runner for maximum compatibility
-          # Binary linked to macos-13's libc++ works on 13, 14, 15+ (Apple backward compat)
           - os: macos
-            runs-on: macos-13
+            runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
         with:
@@ -31,7 +29,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
 
       - uses: actions/upload-artifact@v4
