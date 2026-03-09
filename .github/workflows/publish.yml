@@ -9,11 +9,7 @@ permissions:
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
@@ -23,12 +19,8 @@ jobs:
 
       - name: 🔧 Install Eigen3
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            sudo apt-get update
-            sudo apt-get install -y libeigen3-dev
-          else
-            brew install eigen
-          fi
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v6
@@ -38,20 +30,13 @@ jobs:
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: 🏗️ Build Package
-        run: uv build
-
-      - name: 🔧 Repair Linux wheel (auditwheel)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          uv pip install --system auditwheel
-          auditwheel repair dist/*.whl -w dist/
-          rm -f dist/*-linux_x86_64.whl
+      - name: 🏗️ Build sdist
+        run: uv build --sdist
 
       - name: 📤 Upload dist
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.os }}
+          name: dist
           path: dist/
 
   publish:
@@ -61,26 +46,11 @@ jobs:
     permissions:
       id-token: write # Required for PyPI Trusted Publishing (OIDC)
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.release.tag_name }}
-          fetch-depth: 0
-
-      - name: 📥 Download all dist artifacts
+      - name: 📥 Download dist
         uses: actions/download-artifact@v4
         with:
-          pattern: dist-*
-          path: artifacts
-
-      - name: 📦 Merge dist artifacts
-        run: |
-          mkdir -p dist
-          for dir in artifacts/dist-*; do
-            cp "$dir"/*.whl dist/ 2>/dev/null || true
-            cp "$dir"/*.tar.gz dist/ 2>/dev/null || true
-          done
-          ls -la dist/
+          name: dist
+          path: dist/
 
       - name: 📦 Install uv
         uses: astral-sh/setup-uv@v7
