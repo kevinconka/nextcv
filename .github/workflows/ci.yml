@@ -22,7 +22,7 @@ jobs:
       cpp: ${{ steps.changed-cpp-files.outputs.all_changed_files }}
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
@@ -71,7 +71,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🔧 Install System Dependencies
         run: ${{ matrix.setup-deps }}
@@ -134,7 +134,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🔍 C++ Linting and Formatting
         uses: cpp-linter/cpp-linter-action@v2
